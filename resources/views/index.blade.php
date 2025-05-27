@@ -66,52 +66,81 @@
                         </label>
                         <p class="text-muted small">Pasirinkite bent vieną modelį</p>
                         
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="model-checkbox">
-                                    <input type="checkbox" class="form-check-input" id="claude" name="models[]" value="claude-4">
-                                    <label class="form-check-label w-100" for="claude">
-                                        <div class="d-flex align-items-center">
-                                            <i class="fas fa-brain text-primary me-2"></i>
-                                            <div>
-                                                <strong>Claude 4</strong>
-                                                <small class="d-block text-muted">Anthropic AI (claude-sonnet-4-20250514)</small>
-                                            </div>
-                                        </div>
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-4">
-                                <div class="model-checkbox">
-                                    <input type="checkbox" class="form-check-input" id="gemini" name="models[]" value="gemini-2.5-pro">
-                                    <label class="form-check-label w-100" for="gemini">
-                                        <div class="d-flex align-items-center">
-                                            <i class="fas fa-star text-warning me-2"></i>
-                                            <div>
-                                                <strong>Gemini 2.5 Pro Preview</strong>
-                                                <small class="d-block text-muted">Google AI (gemini-2.5-pro-preview-05-06)</small>
-                                            </div>
-                                        </div>
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-4">
-                                <div class="model-checkbox">
-                                    <input type="checkbox" class="form-check-input" id="gpt" name="models[]" value="gpt-4.1">
-                                    <label class="form-check-label w-100" for="gpt">
-                                        <div class="d-flex align-items-center">
-                                            <i class="fas fa-cog text-success me-2"></i>
-                                            <div>
-                                                <strong>GPT-4o</strong>
-                                                <small class="d-block text-muted">OpenAI (gpt-4o)</small>
-                                            </div>
-                                        </div>
-                                    </label>
-                                </div>
-                            </div>
+                        <div id="model-selection">
+                            <!-- Models will be loaded dynamically -->
                         </div>
+                        
+                        <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            loadModels();
+                        });
+                        
+                        function loadModels() {
+                            const models = @json(config('llm.models'));
+                            const providers = @json(config('llm.providers'));
+                            const container = document.getElementById('model-selection');
+                            
+                            let html = '';
+                            
+                            // Group models by provider
+                            const groupedModels = {};
+                            Object.keys(models).forEach(key => {
+                                const model = models[key];
+                                const provider = model.provider;
+                                if (!groupedModels[provider]) {
+                                    groupedModels[provider] = [];
+                                }
+                                groupedModels[provider].push({key, ...model});
+                            });
+                            
+                            // Create sections for each provider
+                            Object.keys(groupedModels).forEach(provider => {
+                                const providerConfig = providers[provider];
+                                const providerModels = groupedModels[provider];
+                                
+                                html += `
+                                <div class="provider-section mb-4">
+                                    <h6 class="mb-3">
+                                        <i class="${providerConfig.icon} text-${providerConfig.color} me-2"></i>
+                                        ${providerConfig.name}
+                                    </h6>
+                                    <div class="row">
+                                `;
+                                
+                                providerModels.forEach(model => {
+                                    const isDefault = model.is_default ? 'checked' : '';
+                                    const tier = model.tier === 'premium' ? 
+                                        '<span class="badge bg-warning text-dark ms-1">Premium</span>' : '';
+                                    
+                                    html += `
+                                    <div class="col-md-6 mb-2">
+                                        <div class="model-checkbox">
+                                            <input type="checkbox" class="form-check-input" 
+                                                   id="${model.key}" name="models[]" value="${model.key}" ${isDefault}>
+                                            <label class="form-check-label w-100" for="${model.key}">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="${providerConfig.icon} text-${providerConfig.color} me-2"></i>
+                                                    <div class="flex-grow-1">
+                                                        <strong>${model.model}</strong>
+                                                        ${tier}
+                                                        <small class="d-block text-muted">${model.description || ''}</small>
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    `;
+                                });
+                                
+                                html += `
+                                    </div>
+                                </div>
+                                `;
+                            });
+                            
+                            container.innerHTML = html;
+                        }
+                        </script>
                     </div>
 
                     <!-- Analizės paleidimo mygtukas -->

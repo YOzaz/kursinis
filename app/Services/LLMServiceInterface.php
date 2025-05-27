@@ -28,4 +28,19 @@ interface LLMServiceInterface
      * Patikrinti ar servisas yra konfigūruotas.
      */
     public function isConfigured(): bool;
+
+    /**
+     * Nustatyti dabartinį modelį.
+     */
+    public function setModel(string $modelKey): bool;
+
+    /**
+     * Gauti visus galimus modelius.
+     */
+    public function getAvailableModels(): array;
+
+    /**
+     * Pakartoti analizę su konkrečiu modeliu.
+     */
+    public function retryWithModel(string $modelKey, string $text, ?string $customPrompt = null): array;
 }

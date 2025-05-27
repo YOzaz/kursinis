@@ -24,128 +24,32 @@ return [
     */
 
     'models' => [
-        
-        // === ANTHROPIC CLAUDE MODELIAI ===
-        
-        'claude-opus-4' => [
-            'api_key' => env('CLAUDE_API_KEY'),
-            'base_url' => 'https://api.anthropic.com/v1/',
-            'model' => 'claude-opus-4-20250514',
-            'max_tokens' => 4096,
-            'temperature' => 0.1,
-            'provider' => 'anthropic',
-            'tier' => 'premium',
-            'description' => 'Anthropic\'s most advanced coding model, world\'s best coding model',
-            'is_default' => true,
-        ],
-        
-        'claude-sonnet-4' => [
+        'claude-4' => [
             'api_key' => env('CLAUDE_API_KEY'),
             'base_url' => 'https://api.anthropic.com/v1/',
             'model' => 'claude-sonnet-4-20250514',
             'max_tokens' => 4096,
             'temperature' => 0.1,
-            'provider' => 'anthropic',
-            'tier' => 'standard',
-            'description' => 'Evolution of Claude 3.5 Sonnet, excelling in coding',
-            'is_default' => false,
+            'rate_limit' => env('CLAUDE_RATE_LIMIT', 50),
         ],
-
-        // === OPENAI GPT MODELIAI ===
         
-        'gpt-4.1' => [
-            'api_key' => env('OPENAI_API_KEY'),
-            'base_url' => 'https://api.openai.com/v1',
-            'model' => 'gpt-4.1',
+        'gemini-2.5-pro' => [
+            'api_key' => env('GEMINI_API_KEY'),
+            'base_url' => 'https://generativelanguage.googleapis.com/',
+            'model' => 'gemini-2.5-pro-preview-05-06',
             'max_tokens' => 4096,
             'temperature' => 0.1,
-            'provider' => 'openai',
-            'tier' => 'premium',
-            'description' => 'OpenAI\'s latest flagship model with improved coding',
-            'context_window' => 1000000,
-            'is_default' => true,
+            'rate_limit' => env('GEMINI_RATE_LIMIT', 50),
         ],
         
-        'gpt-4o-latest' => [
+        'gpt-4.1' => [
             'api_key' => env('OPENAI_API_KEY'),
             'base_url' => 'https://api.openai.com/v1',
             'model' => 'gpt-4o',
             'max_tokens' => 4096,
             'temperature' => 0.1,
-            'provider' => 'openai',
-            'tier' => 'standard',
-            'description' => 'OpenAI\'s multimodal flagship model with audio, vision, and text',
-            'is_default' => false,
+            'rate_limit' => env('OPENAI_RATE_LIMIT', 50),
         ],
-
-        // === GOOGLE GEMINI MODELIAI ===
-        
-        'gemini-2.5-pro' => [
-            'api_key' => env('GEMINI_API_KEY'),
-            'base_url' => 'https://generativelanguage.googleapis.com/',
-            'model' => 'gemini-2.5-pro-experimental',
-            'max_tokens' => 4096,
-            'temperature' => 0.1,
-            'provider' => 'google',
-            'tier' => 'premium',
-            'description' => 'Google\'s most advanced model for complex reasoning tasks',
-            'is_default' => true,
-        ],
-        
-        'gemini-2.5-flash' => [
-            'api_key' => env('GEMINI_API_KEY'),
-            'base_url' => 'https://generativelanguage.googleapis.com/',
-            'model' => 'gemini-2.5-flash-preview-04-17',
-            'max_tokens' => 4096,
-            'temperature' => 0.1,
-            'provider' => 'google',
-            'tier' => 'standard',
-            'description' => 'Google\'s best price-performance model with thinking capabilities',
-            'thinking_budget' => 2048,
-            'is_default' => false,
-        ],
-
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Tiekėjų konfigūracija
-    |--------------------------------------------------------------------------
-    */
-    
-    'providers' => [
-        'anthropic' => [
-            'name' => 'Anthropic',
-            'icon' => 'fas fa-brain',
-            'color' => 'primary',
-            'default_model' => 'claude-opus-4',
-        ],
-        'openai' => [
-            'name' => 'OpenAI',
-            'icon' => 'fas fa-cog',
-            'color' => 'success',
-            'default_model' => 'gpt-4.1',
-        ],
-        'google' => [
-            'name' => 'Google',
-            'icon' => 'fas fa-star',
-            'color' => 'warning',
-            'default_model' => 'gemini-2.5-pro',
-        ],
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Klaidų valdymo konfigūracija
-    |--------------------------------------------------------------------------
-    */
-    
-    'error_handling' => [
-        'continue_on_failure' => true,
-        'max_retries_per_model' => 3,
-        'retry_delay_seconds' => 2,
-        'exponential_backoff' => true,
-        'timeout_seconds' => 120,
     ],
 
     /*
