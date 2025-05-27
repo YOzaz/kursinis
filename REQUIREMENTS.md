@@ -1,9 +1,17 @@
 # Reikalavimai sistemai "Propagandos ir dezinformacijos tekstų anotavimas su LLM įrankiu per API sąsają"
 
+## 📚 Moksliniai pagrindai
+
+### ATSPARA projektas
+Sistema remiasi [ATSPARA](https://www.atspara.mif.vu.lt/) (Automatinė propagandos ir dezinformacijos atpažinimo sistema) projekto metodologija ir duomenimis. ATSPARA yra Vilniaus universiteto Matematikos ir informatikos fakulteto vykdomas mokslo projektas.
+
+### Magistrinio darbo metodologija
+Sistema naudoja Pauliaus Zarankos (paulius.zaranka@mif.vu.lt) magistrinio darbo *"Propagandos technikų fragmentų identifikavimas lietuviškame tekste naudojant transformeriais pagrįstus, iš anksto apmokytus daugiakalbius modelius"* tyrimo metodologiją.
+
 ## 1. Sistemos apžvalga
 
 ### 1.1 Tikslas
-Sukurti tyrimui skirtą sistemą, kuri naudodama tris LLM modelius (Claude 4, Gemini 2.5 Pro, ChatGPT 4.1 arba naujesnius) atpažintų propagandos technikas ir dezinformacijos naratyvus tekstuose, lyginant rezultatus su ekspertų anotacijomis.
+Sukurti tyrimui skirtą sistemą, kuri naudodama tris LLM modelius (Claude 4, Gemini 2.5 Pro, ChatGPT 4.1 arba naujesnius) atpažintų propagandos technikas ir dezinformacijos naratyvus lietuviškame tekste, lyginant rezultatus su ATSPARA projekto ekspertų anotacijomis.
 
 ### 1.2 Pagrindiniai komponentai
 - API serveris su endpointais LLM užklausoms
@@ -276,3 +284,27 @@ Atskiras dokumentas su:
 - Klaidų kodais
 - Rate limiting informacija
 - Naudojimo pavyzdžiais Python/JavaScript/PHP
+
+## 8. Autorių teisės ir duomenų naudojimas
+
+### 8.1 Duomenų šaltiniai
+- **ATSPARA korpusas**: © Vilniaus universitetas, MIF
+- **Ekspertų anotacijos**: ATSPARA projekto duomenys
+- **Metodologija**: Paulius Zaranka, magistrinis darbas
+
+### 8.2 Naudojimo sąlygos
+- Sistema skirta **mokslo tyrimų tikslams**
+- ATSPARA duomenų komerciniam naudojimui reikalingas atskiras sutikimas
+- Privaloma cituoti šaltinius:
+  - ATSPARA projektą: https://www.atspara.mif.vu.lt/
+  - Pauliaus Zarankos magistrinį darbą
+
+### 8.3 Duomenų apsauga
+- Visi duomenys apdorojami pagal BDAR reikalavimus
+- API raktai saugomi užšifruoti
+- Analizės rezultatai saugomi tik tyrimų tikslais
+
+### 8.4 Kontaktai
+- **ATSPARA projektas**: https://www.atspara.mif.vu.lt/
+- **Paulius Zaranka**: paulius.zaranka@mif.vu.lt
+- **VU MIF**: mokslinių duomenų klausimais

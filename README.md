@@ -1,6 +1,24 @@
 # Propagandos ir dezinformacijos tekstų analizės sistema
 
-Sistema, skirta automatiškai atpažinti propagandos technikas ir dezinformacijos naratyvus tekstuose naudojant dirbtinio intelekto modelius (Claude, Gemini, ChatGPT) ir palyginti juos su ekspertų anotacijomis.
+Sistema, skirta automatiškai atpažinti propagandos technikas ir dezinformacijos naratyvus lietuviškame tekste naudojant dirbtinius intelekto modelius (Claude, Gemini, ChatGPT) ir palyginti juos su ekspertų anotacijomis.
+
+## 📚 Moksliniai pagrindai
+
+### ATSPARA projektas
+Ši sistema naudoja [ATSPARA](https://www.atspara.mif.vu.lt/) (Automatinė propagandos ir dezinformacijos atpažinimo sistema) projekto duomenis ir metodologiją. ATSPARA yra Vilniaus universiteto Matematikos ir informatikos fakulteto vykdomas mokslo projektas, skirtas kurti pažangius sprendimo priėmimo įrankius, padedančius efektyviai aptikti propagandą ir dezinformaciją lietuviškoje žiniasklaidoje ir socialiniuose tinkluose.
+
+**ATSPARA projekto tikslai:**
+- Sukurti propagandos ir dezinformacijos korpusą lietuvių kalbai
+- Panaudoti hibridiniuose giliuosiuose neuroniniuose tinkluose ekspertų turinio analizę
+- Sukurti viešai prieinamą įrankį, leidžiantį automatiškai įvertinti propagandos ir dezinformacijos lygį
+
+### Magistrinis darbas
+Sistema remiasi Pauliaus Zarankos (paulius.zaranka@mif.vu.lt) magistrinio darbo *"Propagandos technikų fragmentų identifikavimas lietuviškame tekste naudojant transformeriais pagrįstus, iš anksto apmokytus daugiakalbius modelius"* tyrimais ir metodologija.
+
+**Darbo indėlis:**
+- Propagandos technikų identifikavimo metodų lietuvių kalbai tyrimas
+- Daugiakalbių transformerių modelių pritaikymas lietuviškam tekstui
+- Eksperimentinių duomenų analizė ir vertinimas
 
 ## 🎯 Sistemos tikslas
 
@@ -255,23 +273,51 @@ tail -f storage/logs/worker.log
 4. Push į branch (`git push origin feature/AmazingFeature`)
 5. Atidaryti Pull Request
 
-## 📄 Licencija
+## 📄 Autorių teisės ir licencija
 
-Šis projektas yra licencijuotas MIT licencija - žiūrėti [LICENSE](LICENSE) failą.
+### Duomenų šaltiniai
+- **ATSPARA korpusas**: © Vilniaus universitetas, Matematikos ir informatikos fakultetas
+- **Anotacijų duomenys**: Naudojami mokslo tyrimų tikslais pagal ATSPARA projekto nuostatas
+- **Metodologija**: Paulius Zaranka (paulius.zaranka@mif.vu.lt), magistrinis darbas
 
-## 👥 Autoriai
+### Licencija
+Šis projektas yra licencijuotas MIT licencija mokslo tyrimų tikslams - žiūrėti [LICENSE](LICENSE) failą.
 
-**VU Research Team** - Vilniaus universitetas
+### Naudojimo sąlygos
+- Sistema skirta **tik mokslo tyrimų tikslams**
+- ATSPARA duomenų komerciniam naudojimui reikalingas atskiras sutikimas
+- Cituojant tyrimus prašome nurodyti šaltinius:
+  - ATSPARA projektą (https://www.atspara.mif.vu.lt/)
+  - Pauliaus Zarankos magistrinį darbą
+
+### Duomenų apsauga
+- Visi duomenys apdorojami pagal BDAR reikalavimus
+- API raktai ir slapti duomenys saugomi užšifruoti
+- Analizės rezultatai saugomi tik mokslo tyrimų tikslais
 
 ## 🙏 Padėkos
 
+- **Vilniaus universiteto MIF** už ATSPARA projekto duomenis ir paramą
+- **Pauliui Zarankai** už magistrinio darbo metodologiją ir konsultacijas
+- **ATSPARA projekto komandai** už propagandos korpuso sukūrimą
 - Anthropic už Claude API
 - Google už Gemini API  
 - OpenAI už GPT API
 - Laravel community už framework'ą
+
+## 📞 Kontaktai
+
+**Moksliniai klausimai:**
+- ATSPARA projektas: https://www.atspara.mif.vu.lt/
+- Paulius Zaranka: paulius.zaranka@mif.vu.lt
+
+**Techniniai klausimai:**
+- VU Research Team
 
 ---
 
 ⭐ **Svarbu**: Redis yra būtinas sistemos komponentas. Be Redis cache, sessions ir queue neveiks!
 
 🚀 **Rekomenduojama**: Naudoti Supervisor production aplinkoje queue worker'iams valdyti.
+
+📚 **Moksliniai tyrimai**: Sistema skirta mokslo tyrimų tikslams naudojant ATSPARA korpuso duomenis.

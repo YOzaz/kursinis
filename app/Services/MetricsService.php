@@ -8,9 +8,13 @@ use App\Models\AnalysisJob;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Metrikų skaičiavimo servisas.
+ * Metrikų skaičiavimo servisas ATSPARA propagandos analizei.
  * 
- * Skaičiuoja precision, recall, F1, Cohen's Kappa ir kitas metrikas.
+ * Skaičiuoja precision, recall, F1, Cohen's Kappa ir kitas metrikas
+ * pagal ATSPARA projekto metodologiją lietuviško teksto analizei.
+ * 
+ * ATSPARA: https://www.atspara.mif.vu.lt/
+ * Metodologija: Paulius Zaranka (paulius.zaranka@mif.vu.lt)
  */
 class MetricsService
 {

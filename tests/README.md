@@ -1,6 +1,12 @@
 # 🧪 Laravel Propaganda Analysis System - Test Suite
 
-Šis dokumentas aprašo išsamų testų rinkinį Laravel propagandos analizės sistemai.
+Šis dokumentas aprašo išsamų testų rinkinį Laravel propagandos analizės sistemai, sukurtai pagal ATSPARA projekto metodologiją.
+
+## 📚 Moksliniai pagrindai
+
+Sistema naudoja:
+- **ATSPARA projekto duomenis**: https://www.atspara.mif.vu.lt/
+- **Pauliaus Zarankos magistrinio darbo metodologiją**: "Propagandos technikų fragmentų identifikavimas lietuviškame tekste"
 
 ## 📋 Testų struktūra
 

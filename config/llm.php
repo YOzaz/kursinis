@@ -7,7 +7,12 @@ return [
     | LLM API konfigūracija
     |--------------------------------------------------------------------------
     |
-    | Čia aprašytos visų LLM modelių konfigūracijos.
+    | Čia aprašytos visų LLM modelių konfigūracijos propagandos ir 
+    | dezinformacijos analizei lietuviškame tekste.
+    |
+    | Sistema naudoja ATSPARA projekto metodologiją ir duomenis:
+    | - ATSPARA: https://www.atspara.mif.vu.lt/
+    | - Magistrinis darbas: Paulius Zaranka (paulius.zaranka@mif.vu.lt)
     |
     */
 
@@ -53,8 +58,13 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Propagandos technikos
+    | Propagandos technikos (ATSPARA projekto klasifikacija)
     |--------------------------------------------------------------------------
+    |
+    | Šios propagandos technikos apibrėžtos ATSPARA projekto tyrimuose
+    | ir naudojamos Pauliaus Zarankos magistrinio darbo metodologijoje
+    | lietuviško teksto analizei.
+    |
     */
 
     'propaganda_techniques' => [
@@ -69,8 +79,12 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Dezinformacijos naratyvai
+    | Dezinformacijos naratyvai (ATSPARA projekto duomenys)
     |--------------------------------------------------------------------------
+    |
+    | Dezinformacijos naratyvai identifikuoti ATSPARA projekto tyrimuose
+    | lietuviškoje žiniasklaidoje ir socialiniuose tinkluose.
+    |
     */
 
     'disinformation_narratives' => [

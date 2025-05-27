@@ -2,6 +2,16 @@
 
 namespace App\Services;
 
+/**
+ * RISEN metodologijos promptų kūrimo servisas
+ * 
+ * Šis servisas kuria propagandos ir dezinformacijos analizės promptus
+ * pagal ATSPARA projekto metodologiją ir Pauliaus Zarankos magistrinio
+ * darbo tyrimus lietuviško teksto analizei.
+ *
+ * ATSPARA: https://www.atspara.mif.vu.lt/
+ * Metodologija: Paulius Zaranka (paulius.zaranka@mif.vu.lt)
+ */
 class PromptBuilderService
 {
     public function buildRisenPrompt(array $config): string

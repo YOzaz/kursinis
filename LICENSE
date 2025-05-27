@@ -1,0 +1,54 @@
+MIT License
+
+Copyright (c) 2025 Vilniaus universitetas, Matematikos ir informatikos fakultetas
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+## ATSPARA projekto duomenų naudojimas
+
+ATSPARA (Automatinė propagandos ir dezinformacijos atpažinimo sistema) projekto duomenys 
+ir korpusas yra Vilniaus universiteto nuosavybė ir naudojami šioje sistemoje mokslo 
+tyrimų tikslais.
+
+### Duomenų šaltiniai:
+- ATSPARA korpusas: © Vilniaus universitetas, MIF
+- Projekto vadovas: Prof. Dr. Darius Plikynas
+- Projekto svetainė: https://www.atspara.mif.vu.lt/
+
+### Metodologijos šaltinis:
+Paulius Zaranka (paulius.zaranka@mif.vu.lt)
+Magistrinis darbas: "Propagandos technikų fragmentų identifikavimas lietuviškame tekste 
+naudojant transformeriais pagrįstus, iš anksto apmokytus daugiakalbius modelius"
+
+### Naudojimo sąlygos:
+1. Sistema skirta TIKTAI mokslo tyrimų tikslams
+2. Komerciniam ATSPARA duomenų naudojimui reikalingas atskiras sutikimas iš VU MIF
+3. Privaloma cituoti šaltinius naudojant šią sistemą tyrimuose:
+   - ATSPARA projektą: https://www.atspara.mif.vu.lt/
+   - Pauliaus Zarankos magistrinį darbą
+
+### Duomenų apsauga:
+- Visi duomenys apdorojami pagal BDAR (GDPR) reikalavimus
+- Analizės rezultatai saugomi tik mokslo tyrimų tikslais
+- API raktai ir slapti duomenys turi būti saugomi užšifruoti
+
+### Kontaktai:
+- ATSPARA projekto klausimai: https://www.atspara.mif.vu.lt/
+- Paulius Zaranka: paulius.zaranka@mif.vu.lt
+- VU MIF: mokslinių duomenų naudojimo klausimai
