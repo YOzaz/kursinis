@@ -18,6 +18,10 @@
         </testsuite>
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
+            <exclude>tests/Feature/Integration</exclude>
+        </testsuite>
+        <testsuite name="Integration">
+            <directory>tests/Feature/Integration</directory>
         </testsuite>
     </testsuites>
     <source>
@@ -27,6 +31,7 @@
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
+        <env name="APP_KEY" value="base64:8aq0dHZTtaBOXGfGcaAFwVIZaVT9SfWi7kJgNNmMaKY="/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_DRIVER" value="array"/>
         <env name="DB_CONNECTION" value="sqlite"/>
@@ -35,5 +40,13 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        
+        <!-- LLM API Keys for testing (can be fake values) -->
+        <env name="CLAUDE_API_KEY" value="test-claude-key"/>
+        <env name="GEMINI_API_KEY" value="test-gemini-key"/>
+        <env name="OPENAI_API_KEY" value="test-openai-key"/>
+        
+        <!-- Disable external HTTP calls by default -->
+        <env name="HTTP_FAKE" value="true"/>
     </php>
-</phpunit.xml>
+</phpunit>
