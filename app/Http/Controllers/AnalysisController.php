@@ -39,7 +39,8 @@ class AnalysisController extends Controller
             'text_id' => 'required|string',
             'content' => 'required|string|min:10',
             'models' => 'required|array|min:1',
-            'models.*' => 'required|string|in:claude-4,gemini-2.5-pro,gpt-4.1'
+            'models.*' => 'required|string|in:claude-4,gemini-2.5-pro,gpt-4.1',
+            'expert_annotations' => 'nullable|array', // Pasirinktinės ekspertų anotacijos tyrimo tikslams
         ]);
 
         if ($validator->fails()) {
@@ -65,7 +66,7 @@ class AnalysisController extends Controller
                 'job_id' => $jobId,
                 'text_id' => $request->text_id,
                 'content' => $request->content,
-                'expert_annotations' => [], // Vienai analizei nėra ekspertų anotacijų
+                'expert_annotations' => $request->input('expert_annotations', []), // Pasirinktinės ekspertų anotacijos
             ]);
 
             // Paleisti analizės darbus
@@ -192,15 +193,33 @@ class AnalysisController extends Controller
                 ]);
             }
 
-            // Apskaičiuoti bendrąsias metrikas
-            $comparisonMetrics = $this->metricsService->calculateAggregatedMetrics($jobId);
+            // Apskaičiuoti bendrąsias metrikas (tik jei yra ekspertų anotacijų)
+            $hasExpertAnnotations = $job->textAnalyses->some(function ($textAnalysis) {
+                return !empty($textAnalysis->expert_annotations);
+            });
 
-            return response()->json([
+            $response = [
                 'job_id' => $jobId,
                 'status' => $job->status,
-                'comparison_metrics' => $comparisonMetrics,
+                'has_expert_annotations' => $hasExpertAnnotations,
                 'detailed_results' => route('api.results.export', ['jobId' => $jobId])
-            ]);
+            ];
+
+            if ($hasExpertAnnotations) {
+                $response['comparison_metrics'] = $this->metricsService->calculateAggregatedMetrics($jobId);
+            } else {
+                // Tik LLM analizės rezultatai be palyginimo metrikų
+                $response['llm_results'] = $job->textAnalyses->map(function ($textAnalysis) {
+                    return [
+                        'text_id' => $textAnalysis->text_id,
+                        'claude_result' => $textAnalysis->claude_annotations,
+                        'gemini_result' => $textAnalysis->gemini_annotations,
+                        'gpt_result' => $textAnalysis->gpt_annotations,
+                    ];
+                });
+            }
+
+            return response()->json($response);
 
         } catch (\Exception $e) {
             Log::error('Rezultatų gavimo klaida', [

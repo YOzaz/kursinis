@@ -32,11 +32,22 @@ Sistema naudoja ATSPARA projekto sukurtą **anotavimo ir klasifikavimo metodolog
 
 ## 🎯 Sistemos tikslas
 
-Sukurti tyrimui skirtą įrankį, kuris:
-- Analizuoja tekstus automatiškai atpažįstant 7 propagandos technikas
-- Palygina LLM rezultatus su ekspertų anotacijomis  
+Universali propagandos analizės platforma, kuri veikia dviem režimais:
+
+### 🔬 Tyrimų režimas (Research Mode)
+- Palygina LLM rezultatus su ATSPARA ekspertų anotacijomis
 - Apskaičiuoja tikslumo metrikas (Precision, Recall, F1, Cohen's Kappa)
-- Eksportuoja detalizuotus rezultatus CSV formatu
+- Generuoja detalizuotas palyginimo ataskaitas mokslo tyrimams
+
+### 🛠️ Praktinio naudojimo režimas (Practical Mode)  
+- Analizuoja naują lietuvių kalbos tekstą be ekspertų anotacijų
+- Identifikuoja 21 ATSPARA propagandos techniką 10 kategorijų
+- Generuoja struktūrizuotus analizės rezultatus praktiniam naudojimui
+
+**Abiem atvejais:**
+- Naudoja tris LLM modelius (Claude, Gemini, ChatGPT) lyginimui
+- Eksportuoja rezultatus CSV/JSON formatais
+- Palaiko batch analizę dideliems duomenų kiekiams
 
 ## ⭐ Pagrindinės funkcijos
 
@@ -253,6 +264,71 @@ Projekte yra paruošti testiniai failai:
 | **Recall** | Kiek ekspertų anotacijų LLM atpažino | > 0.7 |
 | **F1 Score** | Bendras tikslumo įvertis | > 0.75 |
 | **Cohen's Kappa** | Sutarimo lygis tarp LLM ir ekspertų | > 0.6 |
+
+## 🚀 API naudojimas
+
+### Praktinio naudojimo režimas
+```bash
+# Vieno teksto analizė (be ekspertų anotacijų)
+curl -X POST /api/analyze \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text_id": "new-text-1",
+    "content": "Lietuvių kalbos tekstas analizei...",
+    "models": ["claude-4", "gemini-2.5-pro", "gpt-4.1"]
+  }'
+```
+
+### Tyrimų režimas
+```bash
+# Su ekspertų anotacijomis palyginimui
+curl -X POST /api/analyze \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text_id": "research-text-1", 
+    "content": "Tekstas su ekspertų anotacijomis...",
+    "models": ["claude-4"],
+    "expert_annotations": [
+      {
+        "type": "labels",
+        "value": {
+          "start": 10,
+          "end": 25,
+          "text": "propaganda tekstas",
+          "labels": ["emotionalAppeal"]
+        }
+      }
+    ]
+  }'
+```
+
+### Batch analizė (ATSPARA formatas)
+```bash
+curl -X POST /api/batch-analyze \
+  -H "Content-Type: application/json" \
+  -d '{
+    "file_content": [
+      {
+        "id": 1,
+        "data": {"content": "Tekstas..."},
+        "annotations": [...] 
+      }
+    ],
+    "models": ["claude-4", "gemini-2.5-pro"]
+  }'
+```
+
+### Rezultatų gavimas
+```bash
+# Patikrinti progresą
+curl /api/status/{job_id}
+
+# Gauti rezultatus
+curl /api/results/{job_id}
+
+# Eksportuoti CSV
+curl /api/results/{job_id}/export
+```
 
 ## 🐛 Klaidų sprendimas
 

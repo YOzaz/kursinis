@@ -30,7 +30,7 @@ class MetricsServiceTest extends TestCase
     {
         $analysisJob = AnalysisJob::factory()->create();
         $textAnalysis = TextAnalysis::factory()->create([
-            'analysis_job_id' => $analysisJob->id,
+            'job_id' => $analysisJob->job_id,
             'expert_annotations' => [
                 ['result' => [
                     ['value' => ['start' => 0, 'end' => 10, 'text' => 'propaganda', 'labels' => ['propaganda']]]
@@ -55,7 +55,7 @@ class MetricsServiceTest extends TestCase
     {
         $analysisJob = AnalysisJob::factory()->create();
         $textAnalysis = TextAnalysis::factory()->create([
-            'analysis_job_id' => $analysisJob->id,
+            'job_id' => $analysisJob->job_id,
             'expert_annotations' => [
                 ['result' => [
                     ['value' => ['start' => 0, 'end' => 10, 'text' => 'propaganda', 'labels' => ['propaganda']]]
@@ -79,7 +79,7 @@ class MetricsServiceTest extends TestCase
     {
         $analysisJob = AnalysisJob::factory()->create();
         $textAnalysis = TextAnalysis::factory()->create([
-            'analysis_job_id' => $analysisJob->id,
+            'job_id' => $analysisJob->job_id,
             'expert_annotations' => [],
             'claude_annotations' => [
                 'annotations' => [
@@ -99,7 +99,7 @@ class MetricsServiceTest extends TestCase
     {
         $analysisJob = AnalysisJob::factory()->create();
         $textAnalysis = TextAnalysis::factory()->create([
-            'analysis_job_id' => $analysisJob->id,
+            'job_id' => $analysisJob->job_id,
             'expert_annotations' => [
                 ['result' => [
                     ['value' => ['start' => 0, 'end' => 10, 'text' => 'propaganda', 'labels' => ['propaganda']]]
@@ -151,7 +151,7 @@ class MetricsServiceTest extends TestCase
     {
         $analysisJob = AnalysisJob::factory()->create();
         $textAnalysis = TextAnalysis::factory()->create([
-            'analysis_job_id' => $analysisJob->id,
+            'job_id' => $analysisJob->job_id,
             'expert_annotations' => [
                 ['result' => [
                     ['value' => ['start' => 0, 'end' => 10, 'text' => 'propaganda', 'labels' => ['propaganda']]],
@@ -176,7 +176,7 @@ class MetricsServiceTest extends TestCase
     {
         $analysisJob = AnalysisJob::factory()->create();
         $textAnalysis = TextAnalysis::factory()->create([
-            'analysis_job_id' => $analysisJob->id,
+            'job_id' => $analysisJob->job_id,
             'expert_annotations' => [
                 ['result' => [
                     ['value' => ['start' => 0, 'end' => 10, 'text' => 'propaganda', 'labels' => ['propaganda']]]
@@ -220,7 +220,7 @@ class MetricsServiceTest extends TestCase
     {
         $analysisJob = AnalysisJob::factory()->create();
         $textAnalysis = TextAnalysis::factory()->create([
-            'analysis_job_id' => $analysisJob->id,
+            'job_id' => $analysisJob->job_id,
             'expert_annotations' => [], // No expert annotations
             'claude_annotations' => [
                 'annotations' => [
@@ -240,7 +240,7 @@ class MetricsServiceTest extends TestCase
     {
         $analysisJob = AnalysisJob::factory()->create();
         $textAnalysis = TextAnalysis::factory()->create([
-            'analysis_job_id' => $analysisJob->id,
+            'job_id' => $analysisJob->job_id,
             'expert_annotations' => [
                 ['result' => [
                     ['value' => ['start' => 0, 'end' => 10, 'text' => 'missed', 'labels' => ['propaganda']]]
@@ -262,7 +262,7 @@ class MetricsServiceTest extends TestCase
     {
         $analysisJob = AnalysisJob::factory()->create();
         $textAnalysis = TextAnalysis::factory()->create([
-            'analysis_job_id' => $analysisJob->id,
+            'job_id' => $analysisJob->job_id,
             'expert_annotations' => [
                 ['result' => [
                     ['value' => ['start' => 0, 'end' => 10, 'text' => 'fear', 'labels' => ['appeal_to_fear']]],

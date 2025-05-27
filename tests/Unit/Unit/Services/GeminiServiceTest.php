@@ -3,6 +3,7 @@
 namespace Tests\Unit\Unit\Services;
 
 use App\Services\GeminiService;
+use App\Services\PromptService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -16,7 +17,8 @@ class GeminiServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new GeminiService();
+        $promptService = new PromptService();
+        $this->service = new GeminiService($promptService);
         Http::fake();
     }
 

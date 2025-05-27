@@ -12,7 +12,7 @@ interface LLMServiceInterface
     /**
      * Analizuoti tekstą su propagandos technikų atpažinimu.
      */
-    public function analyzeText(string $text): array;
+    public function analyzeText(string $text, ?string $customPrompt = null): array;
 
     /**
      * Gauti modelio pavadinimą.

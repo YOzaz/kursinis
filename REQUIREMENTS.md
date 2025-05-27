@@ -18,7 +18,11 @@ Sistema naudoja ATSPARA projekto sukurtą **anotavimo ir klasifikavimo metodolog
 ## 1. Sistemos apžvalga
 
 ### 1.1 Tikslas
-Sukurti tyrimui skirtą sistemą, kuri naudodama tris LLM modelius (Claude 4, Gemini 2.5 Pro, ChatGPT 4.1 arba naujesnius) atpažintų propagandos technikas ir dezinformacijos naratyvus lietuviškame tekste, lyginant rezultatus su ATSPARA projekto ekspertų anotacijomis.
+Sukurti universalią propagandos analizės sistemą, kuri veikia dviem režimais:
+
+**Tyrimų režimas:** Naudodama tris LLM modelius (Claude 4, Gemini 2.5 Pro, ChatGPT 4.1) atpažįsta propagandos technikas ir lygina rezultatus su ATSPARA projekto ekspertų anotacijomis mokslo tyrimams.
+
+**Praktinio naudojimo režimas:** Analizuoja naujus lietuvių kalbos tekstus be ekspertų anotacijų, identifikuodama 21 ATSPARA propagandos techniką praktiniam naudojimui.
 
 ### 1.2 Pagrindiniai komponentai
 - API serveris su endpointais LLM užklausoms

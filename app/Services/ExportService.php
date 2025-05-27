@@ -4,7 +4,11 @@ namespace App\Services;
 
 use App\Models\Experiment;
 use App\Models\ExperimentResult;
+use App\Models\AnalysisJob;
+use App\Models\TextAnalysis;
+use App\Models\ComparisonMetric;
 use Illuminate\Support\Collection;
+use Illuminate\Http\Response;
 
 class ExportService
 {
@@ -219,6 +223,143 @@ class ExportService
         fclose($output);
         
         return $csv;
+    }
+
+    /**
+     * Eksportuoti analizės darbo rezultatus į CSV.
+     */
+    public function exportToCsv(string $jobId): Response
+    {
+        $job = AnalysisJob::with(['textAnalyses', 'comparisonMetrics'])->where('job_id', $jobId)->first();
+        
+        if (!$job) {
+            abort(404, 'Analizės darbas nerastas');
+        }
+
+        $hasExpertAnnotations = $job->textAnalyses->some(function ($textAnalysis) {
+            return !empty($textAnalysis->expert_annotations);
+        });
+
+        if ($hasExpertAnnotations) {
+            // Eksportuoti su palyginimo metrikomis
+            return $this->exportAnalysisWithMetrics($job);
+        } else {
+            // Eksportuoti tik LLM rezultatus
+            return $this->exportAnalysisResultsOnly($job);
+        }
+    }
+
+    /**
+     * Eksportuoti analizės rezultatus su metrikomis.
+     */
+    private function exportAnalysisWithMetrics(AnalysisJob $job): Response
+    {
+        $headers = [
+            'job_id',
+            'text_id',
+            'text_content',
+            'model_name',
+            'expert_annotations',
+            'llm_annotations',
+            'true_positives',
+            'false_positives',
+            'false_negatives',
+            'precision',
+            'recall',
+            'f1_score',
+            'position_accuracy'
+        ];
+
+        $rows = [$headers];
+
+        foreach ($job->textAnalyses as $textAnalysis) {
+            foreach (['claude-4', 'gemini-2.5-pro', 'gpt-4.1'] as $model) {
+                $modelAnnotations = $textAnalysis->getModelAnnotations($model);
+                if (!$modelAnnotations) continue;
+
+                $metric = $job->comparisonMetrics
+                    ->where('text_id', $textAnalysis->text_id)
+                    ->where('model_name', $model)
+                    ->first();
+
+                $rows[] = [
+                    $job->job_id,
+                    $textAnalysis->text_id,
+                    $textAnalysis->content,
+                    $model,
+                    json_encode($textAnalysis->expert_annotations),
+                    json_encode($modelAnnotations),
+                    $metric?->true_positives ?? 0,
+                    $metric?->false_positives ?? 0,
+                    $metric?->false_negatives ?? 0,
+                    $metric?->precision ?? 0,
+                    $metric?->recall ?? 0,
+                    $metric?->f1_score ?? 0,
+                    $metric?->position_accuracy ?? 0,
+                ];
+            }
+        }
+
+        $csv = $this->arrayToCsv($rows);
+        $filename = $this->getExportFilename('analysis_with_metrics') . '.csv';
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\""
+        ]);
+    }
+
+    /**
+     * Eksportuoti tik LLM analizės rezultatus.
+     */
+    private function exportAnalysisResultsOnly(AnalysisJob $job): Response
+    {
+        $headers = [
+            'job_id',
+            'text_id',
+            'text_content',
+            'model_name',
+            'llm_annotations',
+            'propaganda_detected',
+            'techniques_found',
+            'narratives_found'
+        ];
+
+        $rows = [$headers];
+
+        foreach ($job->textAnalyses as $textAnalysis) {
+            foreach (['claude-4', 'gemini-2.5-pro', 'gpt-4.1'] as $model) {
+                $modelAnnotations = $textAnalysis->getModelAnnotations($model);
+                if (!$modelAnnotations) continue;
+
+                $propagandaDetected = ($modelAnnotations['primaryChoice']['choices'][0] ?? 'no') === 'yes';
+                $techniques = [];
+                $narratives = $modelAnnotations['desinformationTechnique']['choices'] ?? [];
+
+                foreach ($modelAnnotations['annotations'] ?? [] as $annotation) {
+                    $techniques = array_merge($techniques, $annotation['value']['labels'] ?? []);
+                }
+
+                $rows[] = [
+                    $job->job_id,
+                    $textAnalysis->text_id,
+                    $textAnalysis->content,
+                    $model,
+                    json_encode($modelAnnotations),
+                    $propagandaDetected ? 'yes' : 'no',
+                    implode(';', array_unique($techniques)),
+                    implode(';', $narratives),
+                ];
+            }
+        }
+
+        $csv = $this->arrayToCsv($rows);
+        $filename = $this->getExportFilename('analysis_results') . '.csv';
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\""
+        ]);
     }
 
     public function getExportFilename(string $type, ?string $experimentName = null): string
