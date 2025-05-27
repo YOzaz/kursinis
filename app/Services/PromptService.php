@@ -5,68 +5,117 @@ namespace App\Services;
 /**
  * Prompt generavimo servisas.
  * 
- * Sukuria RISEN metodologijos pagrindu struktūrizuotus prompt'us.
+ * Sukuria RISEN metodologijos pagrindu struktūrizuotus prompt'us
+ * remiantis ATSPARA projekto anotavimo instrukcijomis.
+ * 
+ * Kursinio darbo autorius: Marijus Plančiūnas (marijus.planciunas@mif.stud.vu.lt)
+ * Dėstytojas: Prof. Dr. Darius Plikynas (darius.plikynas@mif.vu.lt)
+ * Duomenų šaltiniai ir metodologija: ATSPARA projektas (https://www.atspara.mif.vu.lt/)
  */
 class PromptService
 {
     /**
-     * Generuoti pagrindinį prompt'ą propagandos technikų analizei.
+     * Generuoti Claude prompt'ą.
      */
-    public function generateAnalysisPrompt(string $text, ?string $customPrompt = null): string
+    public function generateClaudePrompt(string $text): string
     {
-        if ($customPrompt) {
-            return $customPrompt . "\n\nAnalizuojamas tekstas:\n{$text}";
-        }
+        return $this->generateDetailedAnalysisPrompt($text, 'Claude');
+    }
 
+    /**
+     * Generuoti Gemini prompt'ą.
+     */
+    public function generateGeminiPrompt(string $text): string
+    {
+        return $this->generateDetailedAnalysisPrompt($text, 'Gemini');
+    }
+
+    /**
+     * Generuoti OpenAI prompt'ą.
+     */
+    public function generateOpenAIPrompt(string $text): string
+    {
+        return $this->generateDetailedAnalysisPrompt($text, 'ChatGPT');
+    }
+
+    /**
+     * Generuoti detalų analizės prompt'ą remiantis ATSPARA instrukcijomis.
+     */
+    private function generateDetailedAnalysisPrompt(string $text, string $modelName): string
+    {
         $techniques = config('llm.propaganda_techniques');
         $narratives = config('llm.disinformation_narratives');
 
         $techniquesList = collect($techniques)->map(function ($description, $key) {
-            return "   - {$key} ({$description})";
+            return "   - {$key}: {$description}";
         })->implode("\n");
 
         $narrativesList = collect($narratives)->map(function ($description, $key) {
-            return "   - {$key} ({$description})";
+            return "   - {$key}: {$description}";
         })->implode("\n");
 
-        return "Role: Tu esi propagandos ir dezinformacijos analizės ekspertas, specializuojantis politinių tekstų vertinime.
+        return "**ATSPARA Propagandos analizės sistema**
 
-Instructions: Išanalizuok pateiktą tekstą ir identifikuok propagandos technikas bei dezinformacijos naratyvus. Kiekvienai identifikuotai technikai nurodyk tikslią teksto vietą (pradžios ir pabaigos pozicijas simboliais) ir pateik teksto ištrauką.
+**Role**: Tu esi tikslus propagandos ir dezinformacijos analizės ekspertas, specializuojantis lietuvių kalbos tekstų vertinime pagal ATSPARA projekto metodologiją.
 
-Steps:
-1. Perskaityk visą tekstą ir susidaryti bendrą įspūdį
-2. Identifikuok propagandos technikas iš šio sąrašo:
+**Instructions**: Išanalizuok pateiktą lietuvių kalbos tekstą ir objektyviai identifikuok propagandos technikas nepriklausomai nuo politinės stovyklos ar šaltinio. Vadovaukis ATSPARA projekto anotavimo principais:
+
+1. **Objektyvumas**: Žymi tik aiškiai identifikuojamas technikas be šališkumo
+2. **Tikslumas**: Kiekviena anotacija turi turėti tikslią teksto poziciją simboliais
+3. **Konservatyvumas**: Jei abejoji, geriau praleisk - būk griežtas kriterijų atžvilgiu
+4. **Proporcingumas**: Vertink ar propaganda sudaro >40% teksto (jei taip, tada primaryChoice = \"yes\")
+
+**Steps**:
+1. **Susipažinimas**: Atidžiai perskaityk visą tekstą lietuvių kalba
+2. **Technikų identifikavimas**: Ieškokių šių ATSPARA apibrėžtų propagandos technikų:
+
 {$techniquesList}
-3. Kiekvienai technikai rask konkrečias teksto vietas
-4. Identifikuok pagrindinius dezinformacijos naratyvus:
+
+3. **Pozicijų nustatymas**: Kiekvienai technikai rask tikslią poziciją simboliais nuo teksto pradžios
+4. **Ištraukų pateikimas**: Kopijuok tikslų tekstą be pakeitimų
+5. **Dezinformacijos naratyvų identifikavimas**:
+
 {$narrativesList}
 
-End goal: Grąžink JSON formatą su anotacijomis, atitinkančiu pateiktą struktūrą.
+6. **Bendro sprendimo formavimas**: Ar propaganda sudaro didesnę teksto dalį (>40%)?
 
-Narrowness: Analizuok tik aiškiai identifikuojamas propagandos technikas. Jei abejoji, geriau praleisk. Kiekviena anotacija turi turėti tikslią teksto poziciją.
+**End goal**: Grąžink tik JSON formatą su tiksliais rezultatais pagal ATSPARA struktūrą.
 
-Grąžink rezultatus šiuo JSON formatu:
+**Narrowness**: 
+- Analizuok TIK aiškiai matomą, nepriešginį propagandą
+- Žymi tik tuos fragmentus, kur 100% tikras propagandos technikos buvimu
+- Neinterpretuko dviprasmiškai - jei neaišku, praleisk
+- Tiksliai nurodyk pradžios ir pabaigos pozicijas
+- Kopijuok teksto fragmentą TIKSLIAI kaip parašyta originale
+
+**Reikalaujamas JSON formatas (grąžink TIK JSON, nieko daugiau):**
+```json
 {
   \"primaryChoice\": {
-    \"choices\": [\"yes\"] // jei rastos propagandos technikos, [\"no\"] jei ne
+    \"choices\": [\"yes\"] // arba [\"no\"] - ar propaganda dominuoja (>40% teksto)
   },
   \"annotations\": [
     {
       \"type\": \"labels\",
       \"value\": {
-        \"start\": [pradžios pozicija simboliais],
-        \"end\": [pabaigos pozicija simboliais],
-        \"text\": \"[tikslus tekstas iš dokumento]\",
-        \"labels\": [\"technika1\", \"technika2\"] // iš apibrėžto sąrašo
+        \"start\": 0,
+        \"end\": 50,
+        \"text\": \"tikslus tekstas iš dokumento be pakeitimų\",
+        \"labels\": [\"konkretūs_technikų_pavadinimai\"]
       }
     }
   ],
   \"desinformationTechnique\": {
-    \"choices\": [\"naratyvas1\", \"naratyvas2\"] // iš apibrėžto sąrašo
+    \"choices\": [\"naratyvo_pavadinimas\"] // arba []
   }
 }
+```
 
-Analizuojamas tekstas:
+**SVARBU**: Analizuojamas tekstas lietuvių kalba. Atsakyk TIK JSON formatu.
+
+---
+
+**Analizuojamas tekstas:**
 {$text}";
     }
 
@@ -75,7 +124,7 @@ Analizuojamas tekstas:
      */
     public function getSystemMessage(): string
     {
-        return "Tu esi tiksli propagandos analizės sistema. Visada grąžink tik JSON formatą be papildomų komentarų ar paaiškinimų. Būk tikslus teksto pozicijų nustatyme ir konservatyvus anotacijų kiekio atžvilgiu.";
+        return "Tu esi ATSPARA propagandos analizės sistema. Analizuoji lietuvių kalbos tekstus pagal griežtus objektyvius kriterijus. Visada grąžink tik galiojantį JSON formatą be papildomų komentarų. Būk maksimaliai tikslus pozicijų nustatyme ir konservatyvus anotacijų kiekio atžvilgiu - žymi tik aiškiai identifikuojamas propagandos technikas.";
     }
 
     /**
@@ -91,6 +140,12 @@ Analizuojamas tekstas:
             }
         }
 
+        // Patikrinti primaryChoice struktūrą
+        if (!isset($response['primaryChoice']['choices']) || 
+            !is_array($response['primaryChoice']['choices'])) {
+            return false;
+        }
+
         // Patikrinti annotations struktūrą
         if (isset($response['annotations']) && is_array($response['annotations'])) {
             foreach ($response['annotations'] as $annotation) {
@@ -102,9 +157,37 @@ Analizuojamas tekstas:
                 if (!isset($value['start'], $value['end'], $value['text'], $value['labels'])) {
                     return false;
                 }
+
+                // Patikrinti ar pozicijos yra skaičiai
+                if (!is_numeric($value['start']) || !is_numeric($value['end'])) {
+                    return false;
+                }
+
+                // Patikrinti ar labels yra masyvas
+                if (!is_array($value['labels'])) {
+                    return false;
+                }
             }
         }
 
+        // Patikrinti desinformationTechnique struktūrą
+        if (!isset($response['desinformationTechnique']['choices']) || 
+            !is_array($response['desinformationTechnique']['choices'])) {
+            return false;
+        }
+
         return true;
+    }
+
+    /**
+     * Gauti pagrindinį analizės prompt'ą (atgalinis suderinamumas).
+     */
+    public function generateAnalysisPrompt(string $text, ?string $customPrompt = null): string
+    {
+        if ($customPrompt) {
+            return $customPrompt . "\n\nAnalizuojamas tekstas:\n{$text}";
+        }
+
+        return $this->generateDetailedAnalysisPrompt($text, 'General');
     }
 }

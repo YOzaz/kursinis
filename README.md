@@ -22,12 +22,13 @@ Sistema naudoja [ATSPARA](https://www.atspara.mif.vu.lt/) (Automatinė propagand
 - Propagandos technikų klasifikacija
 
 #### Klasifikavimo metodologija
-Sistema naudoja Pauliaus Zarankos (paulius.zaranka@mif.vu.lt) magistrinio darbo *"Propagandos technikų fragmentų identifikavimas lietuviškame tekste naudojant transformeriais pagrįstus, iš anksto apmokytus daugiakalbius modelius"* **klasifikavimo metodologiją**.
+Sistema naudoja ATSPARA projekto sukurtą **anotavimo ir klasifikavimo metodologiją** lietuvių kalbos propagandos analizei.
 
 **Metodologijos indėlis:**
-- Propagandos technikų identifikavimo metodai lietuvių kalbai
-- Klasifikavimo algoritmų pritaikymas
-- Vertinimo metrikų metodologija
+- Objektyvūs propagandos technikų identifikavimo kriterijai
+- 10 pagrindinių propagandos technikų kategorijų sistema
+- Ekspertų anotavimo principai ir instrukcijos
+- Statistinių metrikų skaičiavimo metodai
 
 ## 🎯 Sistemos tikslas
 
@@ -44,14 +45,19 @@ Sukurti tyrimui skirtą įrankį, kuris:
 - **Gemini 2.5 Pro** (Google) 
 - **GPT-4.1** (OpenAI)
 
-### 🏷️ Propagandos technikos
-- `simplification` - Sudėtingų klausimų supaprastinimas
-- `emotionalExpression` - Emocijų naudojimas argumentų vietoje
-- `uncertainty` - Neapibrėžti teiginiai be įrodymų
-- `doubt` - Abejonių sėjimas patikimomis institucijomis
-- `wavingTheFlag` - Patriotizmo išnaudojimas
-- `reductioAdHitlerum` - Lyginimai su totalitariniais režimais
-- `repetition` - Teiginių kartojimas
+### 🏷️ Propagandos technikos (ATSPARA klasifikacija)
+1. **Emocinė raiška** - Stiprių jausmų kėlimas, emocinė leksika
+2. **Whataboutism/Red Herring** - Išsisukinėjimas, dėmesio nukreipimas
+3. **Supaprastinimas** - Sudėtingų problemų pernelyg paprastas pristatymas
+4. **Neapibrėžtumas** - Sąmoningas neaiškios kalbos vartojimas
+5. **Apeliavimas į autoritetą** - Garsiųjų nuomonių cituojimas
+6. **Mojavimas vėliava** - Patriotizmu grįsti argumentai
+7. **Bandwagon** - Apeliavimas į "bandos jausmą"
+8. **Abejojimas** - Patikimumo kvestionavimas, šmeižtas
+9. **Reductio ad hitlerum** - Lyginimai su nekenčiamomis grupėmis
+10. **Pakartojimas** - Tos pačios žinutės kartojimas
+
+*Detalūs kriterijai: [ATSPARA Anotavimo metodologija](docs/ATSPARA-ANNOTATION-METHODOLOGY.md)*
 
 ### 📊 Metrikų skaičiavimas
 - **Precision** - LLM teisingų anotacijų dalis
@@ -278,6 +284,7 @@ tail -f storage/logs/worker.log
 
 - **[DEPLOYMENT.md](DEPLOYMENT.md)** - Išsami diegimo instrukcija
 - **[REQUIREMENTS.md](REQUIREMENTS.md)** - Detalūs sistemos reikalavimai
+- **[ATSPARA Anotavimo metodologija](docs/ATSPARA-ANNOTATION-METHODOLOGY.md)** - Propagandos technikų klasifikavimo kriterijai
 - **[API dokumentacija](docs/api.md)** - API endpointų aprašymas
 
 ## 🤝 Prisidėjimas
@@ -297,8 +304,7 @@ tail -f storage/logs/worker.log
 - **Projekto tipas**: Kursinio darbo dalis
 
 ### Duomenų šaltiniai ir metodologija
-- **ATSPARA korpuso duomenys**: © Vilniaus universitetas, MIF (duomenų šaltinis)
-- **Klasifikavimo metodologija**: Paulius Zaranka (paulius.zaranka@mif.vu.lt), magistrinis darbas
+- **ATSPARA korpuso duomenys ir metodologija**: © Vilniaus universitetas, MIF
 - **Sistemos implementacija**: Marijus Plančiūnas (kursinio darbo autorius)
 
 ### Licencija
@@ -309,8 +315,7 @@ tail -f storage/logs/worker.log
 - ATSPARA duomenų komerciniam naudojimui reikalingas atskiras sutikimas
 - Cituojant prašome nurodyti:
   - Marijų Plančiūną kaip sistemos autorių
-  - ATSPARA projektą kaip duomenų šaltinį
-  - Pauliaus Zarankos metodologiją klasifikavimui
+  - ATSPARA projektą kaip duomenų šaltinį ir metodologijos autorių
 
 ### Duomenų apsauga
 - Visi duomenys apdorojami pagal BDAR reikalavimus
@@ -320,8 +325,7 @@ tail -f storage/logs/worker.log
 ## 🙏 Padėkos
 
 - **Prof. Dr. Dariui Plykynui** už vadovavimą ir konsultacijas
-- **ATSPARA projekto komandai** už korpuso duomenis
-- **Pauliui Zarankai** už klasifikavimo metodologiją
+- **ATSPARA projekto komandai** už korpuso duomenis ir anotavimo metodologiją
 - **Vilniaus universiteto MIF** už studijų galimybes
 - Anthropic už Claude API
 - Google už Gemini API  
@@ -338,7 +342,6 @@ tail -f storage/logs/worker.log
 
 **Duomenų šaltiniai:**
 - ATSPARA projektas: https://www.atspara.mif.vu.lt/
-- Paulius Zaranka: paulius.zaranka@mif.vu.lt
 
 ---
 

@@ -27,7 +27,7 @@ class PromptServiceTest extends TestCase
 
         $this->assertIsString($prompt);
         $this->assertStringContainsString($text, $prompt);
-        $this->assertStringContainsString('RISEN', $prompt);
+        $this->assertStringContainsString('ATSPARA', $prompt);
         $this->assertStringContainsString('propaganda', $prompt);
         $this->assertStringContainsString('JSON', $prompt);
     }
@@ -39,7 +39,7 @@ class PromptServiceTest extends TestCase
 
         $this->assertIsString($prompt);
         $this->assertStringContainsString($text, $prompt);
-        $this->assertStringContainsString('RISEN', $prompt);
+        $this->assertStringContainsString('ATSPARA', $prompt);
         $this->assertStringContainsString('propaganda', $prompt);
         $this->assertStringContainsString('JSON', $prompt);
     }
@@ -51,7 +51,7 @@ class PromptServiceTest extends TestCase
 
         $this->assertIsString($prompt);
         $this->assertStringContainsString($text, $prompt);
-        $this->assertStringContainsString('RISEN', $prompt);
+        $this->assertStringContainsString('ATSPARA', $prompt);
         $this->assertStringContainsString('propaganda', $prompt);
         $this->assertStringContainsString('JSON', $prompt);
     }

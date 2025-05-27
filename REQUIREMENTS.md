@@ -13,7 +13,7 @@
 Sistema naudoja [ATSPARA](https://www.atspara.mif.vu.lt/) (Automatinė propagandos ir dezinformacijos atpažinimo sistema) projekto **korpuso duomenis**. ATSPARA yra Vilniaus universiteto Matematikos ir informatikos fakulteto vykdomas mokslo projektas.
 
 ### Klasifikavimo metodologija  
-Sistema taiko Pauliaus Zarankos (paulius.zaranka@mif.vu.lt) magistrinio darbo *"Propagandos technikų fragmentų identifikavimas lietuviškame tekste naudojant transformeriais pagrįstus, iš anksto apmokytus daugiakalbius modelius"* **klasifikavimo metodologiją**.
+Sistema naudoja ATSPARA projekto sukurtą **anotavimo ir klasifikavimo metodologiją** lietuvių kalbos propagandos analizei, kuri apima 10 pagrindinių propagandos technikų kategorijų sistemą ir objektyvius identifikavimo kriterijus.
 
 ## 1. Sistemos apžvalga
 

@@ -11,9 +11,8 @@ namespace App\Services;
  * Kursinio darbo autorius: Marijus Plančiūnas (marijus.planciunas@mif.stud.vu.lt)
  * Dėstytojas: Prof. Dr. Darius Plikynas (darius.plikynas@mif.vu.lt)
  *
- * Duomenų šaltiniai:
- * - ATSPARA korpuso duomenys: https://www.atspara.mif.vu.lt/
- * - Klasifikavimo metodologija: Paulius Zaranka (paulius.zaranka@mif.vu.lt)
+ * Duomenų šaltiniai ir metodologija:
+ * - ATSPARA korpuso duomenys ir anotavimo metodologija: https://www.atspara.mif.vu.lt/
  */
 class PromptBuilderService
 {

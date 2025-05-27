@@ -13,9 +13,8 @@ return [
     | Kursinio darbo autorius: Marijus Plančiūnas (marijus.planciunas@mif.stud.vu.lt)
     | Dėstytojas: Prof. Dr. Darius Plikynas (darius.plikynas@mif.vu.lt)
     |
-    | Duomenų šaltiniai:
-    | - ATSPARA korpuso duomenys: https://www.atspara.mif.vu.lt/
-    | - Klasifikavimo metodologija: Paulius Zaranka (paulius.zaranka@mif.vu.lt)
+    | Duomenų šaltiniai ir metodologija:
+    | - ATSPARA korpuso duomenys ir klasifikavimo metodologija: https://www.atspara.mif.vu.lt/
     |
     */
 
@@ -64,20 +63,52 @@ return [
     | Propagandos technikos (ATSPARA projekto klasifikacija)
     |--------------------------------------------------------------------------
     |
-    | Šios propagandos technikos apibrėžtos ATSPARA projekto tyrimuose
-    | ir naudojamos Pauliaus Zarankos magistrinio darbo metodologijoje
-    | lietuviško teksto analizei.
+    | Šios propagandos technikos apibrėžtos ATSPARA projekto anotavimo
+    | instrukcijose ir naudojamos lietuviško teksto analizei.
     |
     */
 
     'propaganda_techniques' => [
-        'simplification' => 'Sudėtingų klausimų pernelyg paprastas pristatymas',
-        'emotionalExpression' => 'Stiprių emocijų naudojimas racionalių argumentų vietoje',
-        'uncertainty' => 'Neapibrėžtų teiginių naudojimas be įrodymų',
-        'doubt' => 'Abejonių sėjimas patikimomis institucijomis ar faktais',
-        'wavingTheFlag' => 'Patriotizmo išnaudojimas manipuliacijai',
-        'reductioAdHitlerum' => 'Nepagrįsti lyginimai su totalitariniais režimais',
-        'repetition' => 'Tų pačių teiginių kartojimas įtikimumui didinti',
+        // 1. Emocinė raiška
+        'emotionalAppeal' => 'Apeliavimas į jausmus - siekiama sukelti stiprius jausmus/emocijas',
+        'appealToFear' => 'Apeliavimas į baimę - sėjama panika ir nerimas',
+        'loadedLanguage' => 'Vertinamoji, emocinė leksika - stiprias asociacijas turintys žodžiai',
+        'nameCalling' => 'Etikečių klijavimas - neigiamų žodžių vartojimas oponentui sumenkinti',
+        'exaggeration' => 'Perdėtas vertinimas/hiperbolizavimas arba sumenkinimas',
+        'glitteringGeneralities' => '"Blizgantys" apibendrinimai - vertybiniai žodžiai be konteksto',
+        
+        // 2. Whataboutism_Red Herring_Straw Man
+        'whataboutism' => 'Whataboutism - diskreditavimas per veidmainiavimu kaltinimą',
+        'redHerring' => 'Red Herring - nereikšmingų dalykų pateikimas dėmesio nukreipimui',
+        'strawMan' => 'Straw Man - oponento pozicijos pakeitimas panašiu teiginiu',
+        
+        // 3. Supaprastinimas
+        'causalOversimplification' => 'Supaprastinimas - paprasti atsakymai į sudėtingas problemas',
+        'blackAndWhite' => 'Juoda-balta - tik du alternatyvūs variantai',
+        'thoughtTerminatingCliche' => 'Klišės - stereotipiniai posakiai',
+        'slogans' => 'Šūkiai - santrauka, žymi frazė',
+        
+        // 4. Neapibrėžtumas
+        'obfuscation' => 'Neapibrėžtumas - sąmoningas neaiškios kalbos vartojimas',
+        
+        // 5. Apeliavimas į autoritetą
+        'appealToAuthority' => 'Apeliavimas į autoritetą - garsi asmenybė remia poziciją',
+        
+        // 6. Mojavimas vėliava
+        'flagWaving' => 'Mojavimas vėliava - patriotizmu pagrįsti argumentai',
+        
+        // 7. Sekimas iš paskos
+        'bandwagon' => 'Bandwagon - apeliavimas į bandos jausmą',
+        
+        // 8. Abejojimas
+        'doubt' => 'Abejojimas - grupės/asmens patikimumo kvestionavimas',
+        'smears' => 'Šmeižtas - reputacijos kenkimas',
+        
+        // 9. Reductio ad hitlerum
+        'reductioAdHitlerum' => 'Reductio ad hitlerum - lyginimas su nekenčiamomis grupėmis',
+        
+        // 10. Pakartojimas
+        'repetition' => 'Pakartojimas - tos pačios žinutės kartojimas',
     ],
 
     /*
