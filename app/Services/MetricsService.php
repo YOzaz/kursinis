@@ -1,0 +1,311 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\TextAnalysis;
+use App\Models\ComparisonMetric;
+use App\Models\AnalysisJob;
+use Illuminate\Support\Facades\Log;
+
+/**
+ * Metrikų skaičiavimo servisas.
+ * 
+ * Skaičiuoja precision, recall, F1, Cohen's Kappa ir kitas metrikas.
+ */
+class MetricsService
+{
+    /**
+     * Pozicijos tikslumo tolerancija simboliais.
+     */
+    const POSITION_TOLERANCE = 10;
+
+    /**
+     * Apskaičiuoti metrikas vienam tekstui ir modeliui.
+     */
+    public function calculateMetricsForText(
+        TextAnalysis $textAnalysis, 
+        string $modelName, 
+        string $jobId
+    ): ComparisonMetric {
+        $expertAnnotations = $textAnalysis->expert_annotations;
+        $modelAnnotations = $textAnalysis->getModelAnnotations($modelName);
+
+        if (empty($expertAnnotations) || empty($modelAnnotations)) {
+            Log::warning('Trūksta anotacijų metrikoms skaičiuoti', [
+                'text_id' => $textAnalysis->text_id,
+                'model' => $modelName,
+                'has_expert' => !empty($expertAnnotations),
+                'has_model' => !empty($modelAnnotations)
+            ]);
+            
+            return $this->createEmptyMetric($jobId, $textAnalysis->text_id, $modelName);
+        }
+
+        // Išgauti anotacijas iš struktūros
+        $expertLabels = $this->extractLabelsFromAnnotations($expertAnnotations);
+        $modelLabels = $this->extractLabelsFromAnnotations($modelAnnotations['annotations'] ?? []);
+
+        // Apskaičiuoti sutapimo statistiką
+        $stats = $this->calculateOverlapStatistics($expertLabels, $modelLabels);
+
+        // Apskaičiuoti pozicijos tikslumą
+        $positionAccuracy = $this->calculatePositionAccuracy($expertLabels, $modelLabels);
+
+        // Sukurti metrikų įrašą
+        $metric = ComparisonMetric::create([
+            'job_id' => $jobId,
+            'text_id' => $textAnalysis->text_id,
+            'model_name' => $modelName,
+            'true_positives' => $stats['true_positives'],
+            'false_positives' => $stats['false_positives'],
+            'false_negatives' => $stats['false_negatives'],
+            'position_accuracy' => $positionAccuracy,
+        ]);
+
+        // Apskaičiuoti ir išsaugoti metrikas
+        $metric->updateCalculatedMetrics();
+        $metric->save();
+
+        Log::info('MetrikOs apskaičiuotos tekstui', [
+            'text_id' => $textAnalysis->text_id,
+            'model' => $modelName,
+            'precision' => $metric->precision,
+            'recall' => $metric->recall,
+            'f1_score' => $metric->f1_score
+        ]);
+
+        return $metric;
+    }
+
+    /**
+     * Apskaičiuoti agregatas metrikas visam darbui.
+     */
+    public function calculateAggregatedMetrics(string $jobId): array
+    {
+        $models = ['claude-4', 'gemini-2.5-pro', 'gpt-4.1'];
+        $results = [];
+
+        foreach ($models as $model) {
+            $metrics = ComparisonMetric::where('job_id', $jobId)
+                ->where('model_name', $model)
+                ->get();
+
+            if ($metrics->isEmpty()) {
+                continue;
+            }
+
+            $results[$model] = [
+                'precision' => round($metrics->avg('precision'), 4),
+                'recall' => round($metrics->avg('recall'), 4),
+                'f1_score' => round($metrics->avg('f1_score'), 4),
+                'position_accuracy' => round($metrics->avg('position_accuracy'), 4),
+                'cohen_kappa' => $this->calculateCohenKappa($metrics),
+                'total_texts' => $metrics->count(),
+            ];
+        }
+
+        return $results;
+    }
+
+    /**
+     * Išgauti etiketes iš anotacijų struktūros.
+     */
+    private function extractLabelsFromAnnotations(array $annotations): array
+    {
+        $labels = [];
+
+        foreach ($annotations as $annotation) {
+            if (isset($annotation['result'])) {
+                // Ekspertų anotacijų formatas
+                foreach ($annotation['result'] as $result) {
+                    if (isset($result['value'])) {
+                        $labels[] = [
+                            'start' => $result['value']['start'] ?? 0,
+                            'end' => $result['value']['end'] ?? 0,
+                            'text' => $result['value']['text'] ?? '',
+                            'labels' => $result['value']['labels'] ?? [],
+                        ];
+                    }
+                }
+            } elseif (isset($annotation['value'])) {
+                // LLM anotacijų formatas
+                $labels[] = [
+                    'start' => $annotation['value']['start'] ?? 0,
+                    'end' => $annotation['value']['end'] ?? 0,
+                    'text' => $annotation['value']['text'] ?? '',
+                    'labels' => $annotation['value']['labels'] ?? [],
+                ];
+            }
+        }
+
+        return $labels;
+    }
+
+    /**
+     * Apskaičiuoti sutapimo statistiką tarp ekspertų ir modelio anotacijų.
+     */
+    private function calculateOverlapStatistics(array $expertLabels, array $modelLabels): array
+    {
+        $truePositives = 0;
+        $falsePositives = 0;
+        $falseNegatives = 0;
+        $matchedExpertIndices = [];
+
+        // Ieškoti true positives ir false positives
+        foreach ($modelLabels as $modelLabel) {
+            $matched = false;
+            
+            foreach ($expertLabels as $index => $expertLabel) {
+                if (in_array($index, $matchedExpertIndices)) {
+                    continue; // Jau suporuotas
+                }
+
+                if ($this->labelsMatch($expertLabel, $modelLabel)) {
+                    $truePositives++;
+                    $matchedExpertIndices[] = $index;
+                    $matched = true;
+                    break;
+                }
+            }
+
+            if (!$matched) {
+                $falsePositives++;
+            }
+        }
+
+        // False negatives = nesuporuotos ekspertų anotacijos
+        $falseNegatives = count($expertLabels) - count($matchedExpertIndices);
+
+        return [
+            'true_positives' => $truePositives,
+            'false_positives' => $falsePositives,
+            'false_negatives' => $falseNegatives,
+        ];
+    }
+
+    /**
+     * Patikrinti ar dvi etiketės sutampa.
+     */
+    private function labelsMatch(array $expertLabel, array $modelLabel): bool
+    {
+        // Patikrinti pozicijos sutapimą su tolerancija
+        $positionMatch = $this->positionsOverlap(
+            $expertLabel['start'], 
+            $expertLabel['end'],
+            $modelLabel['start'], 
+            $modelLabel['end']
+        );
+
+        if (!$positionMatch) {
+            return false;
+        }
+
+        // Patikrinti etikečių sutapimą
+        $expertLabelSet = array_map('strtolower', $expertLabel['labels'] ?? []);
+        $modelLabelSet = array_map('strtolower', $modelLabel['labels'] ?? []);
+
+        return !empty(array_intersect($expertLabelSet, $modelLabelSet));
+    }
+
+    /**
+     * Patikrinti ar pozicijos persidengia.
+     */
+    private function positionsOverlap(int $start1, int $end1, int $start2, int $end2): bool
+    {
+        // Apskaičiuoti persidenginų pozicijų santykį
+        $overlapStart = max($start1, $start2);
+        $overlapEnd = min($end1, $end2);
+        
+        if ($overlapStart >= $overlapEnd) {
+            return false; // Nėra persidengimo
+        }
+
+        $overlapLength = $overlapEnd - $overlapStart;
+        $totalLength = max($end1 - $start1, $end2 - $start2);
+
+        // Reikia bent 50% persidengimo
+        return ($overlapLength / $totalLength) >= 0.5;
+    }
+
+    /**
+     * Apskaičiuoti pozicijos tikslumą.
+     */
+    private function calculatePositionAccuracy(array $expertLabels, array $modelLabels): float
+    {
+        if (empty($modelLabels)) {
+            return 0.0;
+        }
+
+        $accuratePositions = 0;
+
+        foreach ($modelLabels as $modelLabel) {
+            foreach ($expertLabels as $expertLabel) {
+                $startDiff = abs($modelLabel['start'] - $expertLabel['start']);
+                $endDiff = abs($modelLabel['end'] - $expertLabel['end']);
+
+                if ($startDiff <= self::POSITION_TOLERANCE && $endDiff <= self::POSITION_TOLERANCE) {
+                    $accuratePositions++;
+                    break; // Rasta atitikmuo, pereiti prie kito modelio label
+                }
+            }
+        }
+
+        return round($accuratePositions / count($modelLabels), 4);
+    }
+
+    /**
+     * Apskaičiuoti Cohen's Kappa koeficientą.
+     */
+    private function calculateCohenKappa($metrics): float
+    {
+        $totalTP = $metrics->sum('true_positives');
+        $totalFP = $metrics->sum('false_positives');
+        $totalFN = $metrics->sum('false_negatives');
+        $totalTN = $totalTP; // Supaprastintas skaičiavimas
+
+        $total = $totalTP + $totalFP + $totalFN + $totalTN;
+        
+        if ($total === 0) {
+            return 0.0;
+        }
+
+        // Stebimas sutarimas
+        $observedAgreement = ($totalTP + $totalTN) / $total;
+
+        // Tikėtinas sutarimas
+        $expertPositive = ($totalTP + $totalFN) / $total;
+        $modelPositive = ($totalTP + $totalFP) / $total;
+        $expertNegative = ($totalTN + $totalFP) / $total;
+        $modelNegative = ($totalTN + $totalFN) / $total;
+
+        $expectedAgreement = ($expertPositive * $modelPositive) + 
+                           ($expertNegative * $modelNegative);
+
+        if ($expectedAgreement >= 1.0) {
+            return 0.0;
+        }
+
+        $kappa = ($observedAgreement - $expectedAgreement) / (1 - $expectedAgreement);
+        
+        return round($kappa, 4);
+    }
+
+    /**
+     * Sukurti tuščią metriką, kai trūksta duomenų.
+     */
+    private function createEmptyMetric(string $jobId, string $textId, string $modelName): ComparisonMetric
+    {
+        return ComparisonMetric::create([
+            'job_id' => $jobId,
+            'text_id' => $textId,
+            'model_name' => $modelName,
+            'true_positives' => 0,
+            'false_positives' => 0,
+            'false_negatives' => 0,
+            'position_accuracy' => 0.0000,
+            'precision' => 0.0000,
+            'recall' => 0.0000,
+            'f1_score' => 0.0000,
+        ]);
+    }
+}
