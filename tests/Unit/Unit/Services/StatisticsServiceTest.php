@@ -238,4 +238,57 @@ class StatisticsServiceTest extends TestCase
             $performance['claude-4']['reliability_score']
         );
     }
+
+    public function test_combines_experiment_and_standard_analysis_performance(): void
+    {
+        // Create experiment data
+        $experiment = Experiment::factory()->create();
+        ExperimentResult::factory()->forExperiment($experiment)->create([
+            'llm_model' => 'claude-3-5-sonnet-20241022',
+            'metrics' => ['precision' => 0.8, 'recall' => 0.7, 'f1_score' => 0.75],
+            'execution_time' => 2.5
+        ]);
+
+        // Create standard analysis data
+        $analysisJob = \App\Models\AnalysisJob::factory()->create([
+            'model' => 'gemini-2.5-pro-preview-05-06',
+            'status' => 'completed'
+        ]);
+        
+        $textAnalysis = \App\Models\TextAnalysis::factory()->create([
+            'job_id' => $analysisJob->job_id
+        ]);
+
+        \App\Models\ComparisonMetric::factory()->create([
+            'job_id' => $analysisJob->job_id,
+            'text_id' => $textAnalysis->text_id,
+            'model_name' => 'gemini-2.5-pro-preview-05-06',
+            'precision' => '0.650',
+            'recall' => '0.800',
+            'f1_score' => '0.720'
+        ]);
+
+        $globalStats = $this->service->getGlobalStatistics();
+        $performance = $globalStats['model_performance'];
+
+        // Should have both models
+        $this->assertArrayHasKey('claude-3-5-sonnet-20241022', $performance);
+        $this->assertArrayHasKey('gemini-2.5-pro-preview-05-06', $performance);
+
+        // Check that experiment and standard analysis counts are correct
+        $claudePerf = $performance['claude-3-5-sonnet-20241022'];
+        $this->assertEquals(1, $claudePerf['experiment_analyses']);
+        $this->assertEquals(0, $claudePerf['standard_analyses']);
+        $this->assertEquals(1, $claudePerf['total_analyses']);
+
+        $geminiPerf = $performance['gemini-2.5-pro-preview-05-06'];
+        $this->assertEquals(0, $geminiPerf['experiment_analyses']);
+        $this->assertEquals(1, $geminiPerf['standard_analyses']);
+        $this->assertEquals(1, $geminiPerf['total_analyses']);
+
+        // Check metrics are calculated correctly
+        $this->assertEquals(0.650, $geminiPerf['avg_precision']);
+        $this->assertEquals(0.800, $geminiPerf['avg_recall']);
+        $this->assertEquals(0.720, $geminiPerf['avg_f1']);
+    }
 }

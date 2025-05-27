@@ -26,7 +26,7 @@ Sistema naudoja ATSPARA projekto sukurtą **anotavimo ir klasifikavimo metodolog
 
 **Metodologijos indėlis:**
 - Objektyvūs propagandos technikų identifikavimo kriterijai
-- 10 pagrindinių propagandos technikų kategorijų sistema
+- 21 propagandos technika + 2 dezinformacijos naratyvai
 - Ekspertų anotavimo principai ir instrukcijos
 - Statistinių metrikų skaičiavimo metodai
 
@@ -58,9 +58,9 @@ Universali propagandos analizės platforma, kuri veikia dviem pagrindiniais rež
 ## ⭐ Pagrindinės funkcijos
 
 ### 🤖 LLM modelių integracija
-- **Claude 4** (Anthropic)
-- **Gemini 2.5 Pro** (Google) 
-- **GPT-4.1** (OpenAI)
+- **Claude 3.5 Sonnet** (Anthropic) - claude-3-5-sonnet-20241022
+- **Gemini 2.5 Pro Preview** (Google) - gemini-2.5-pro-preview-05-06
+- **GPT-4o** (OpenAI) - gpt-4o
 
 ### 🧪 Prompt eksperimentų sistema
 - **RISEN metodologija**: Role, Instructions, Situation, Execution, Needle
@@ -81,6 +81,7 @@ Universali propagandos analizės platforma, kuri veikia dviem pagrindiniais rež
 9. **Reductio ad hitlerum** - Lyginimai su nekenčiamomis grupėmis
 10. **Pakartojimas** - Tos pačios žinutės kartojimas
 
+*Čia pateiktos pagrindinės kategorijos. Pilna sistema apima 21 detalų technikos kriterijų ir 2 dezinformacijos naratyvus.*  
 *Detalūs kriterijai: [ATSPARA Anotavimo metodologija](docs/ATSPARA-ANNOTATION-METHODOLOGY.md)*
 
 ### 📊 Metrikų skaičiavimas

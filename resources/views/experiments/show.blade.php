@@ -145,15 +145,15 @@
                             <label class="form-label">Pasirinkite modelius:</label>
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="claude" name="models[]" value="claude-4">
-                                <label class="form-check-label" for="claude">Claude 4</label>
+                                <label class="form-check-label" for="claude">Claude 3.5 Sonnet</label>
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="gemini" name="models[]" value="gemini-2.5-pro">
-                                <label class="form-check-label" for="gemini">Gemini 2.5 Pro</label>
+                                <label class="form-check-label" for="gemini">Gemini 2.5 Pro Preview</label>
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="openai" name="models[]" value="gpt-4.1">
-                                <label class="form-check-label" for="openai">GPT 4.1</label>
+                                <label class="form-check-label" for="openai">GPT-4o</label>
                             </div>
                         </div>
 

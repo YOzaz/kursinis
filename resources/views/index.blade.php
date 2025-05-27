@@ -74,8 +74,8 @@
                                         <div class="d-flex align-items-center">
                                             <i class="fas fa-brain text-primary me-2"></i>
                                             <div>
-                                                <strong>Claude 4</strong>
-                                                <small class="d-block text-muted">Anthropic AI</small>
+                                                <strong>Claude 3.5 Sonnet</strong>
+                                                <small class="d-block text-muted">Anthropic AI (claude-3-5-sonnet-20241022)</small>
                                             </div>
                                         </div>
                                     </label>
@@ -89,8 +89,8 @@
                                         <div class="d-flex align-items-center">
                                             <i class="fas fa-star text-warning me-2"></i>
                                             <div>
-                                                <strong>Gemini 2.5 Pro</strong>
-                                                <small class="d-block text-muted">Google AI</small>
+                                                <strong>Gemini 2.5 Pro Preview</strong>
+                                                <small class="d-block text-muted">Google AI (gemini-2.5-pro-preview-05-06)</small>
                                             </div>
                                         </div>
                                     </label>
@@ -104,8 +104,8 @@
                                         <div class="d-flex align-items-center">
                                             <i class="fas fa-cog text-success me-2"></i>
                                             <div>
-                                                <strong>GPT-4.1</strong>
-                                                <small class="d-block text-muted">OpenAI</small>
+                                                <strong>GPT-4o</strong>
+                                                <small class="d-block text-muted">OpenAI (gpt-4o)</small>
                                             </div>
                                         </div>
                                     </label>
@@ -129,14 +129,14 @@
                     <div class="col-md-3">
                         <div class="p-3">
                             <i class="fas fa-tags fa-2x text-primary mb-2"></i>
-                            <h6>7 propagandos technikos</h6>
+                            <h6>21 propagandos technika</h6>
                             <small class="text-muted">Automatinis atpažinimas</small>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="p-3">
                             <i class="fas fa-chart-line fa-2x text-success mb-2"></i>
-                            <h6>Tikslumas metrikOs</h6>
+                            <h6>Tikslumas metrikos</h6>
                             <small class="text-muted">Precision, Recall, F1</small>
                         </div>
                     </div>

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layout')
 
 @section('content')
 <div class="container-fluid">
@@ -156,17 +156,17 @@
                                 <div class="row text-center">
                                     <div class="col-12 mb-3">
                                         <h6 class="text-muted">Bendras tikslumas</h6>
-                                        <h3 class="text-primary">{{ number_format($statistics['overall_accuracy'] * 100, 1) }}%</h3>
+                                        <h3 class="text-primary">{{ number_format(($statistics['overall_metrics']['accuracy'] ?? 0) * 100, 1) }}%</h3>
                                     </div>
                                 </div>
                                 <hr>
                                 <dl class="row mb-0">
                                     <dt class="col-6">Tikslumas:</dt>
-                                    <dd class="col-6">{{ number_format($statistics['precision'] * 100, 1) }}%</dd>
+                                    <dd class="col-6">{{ number_format(($statistics['overall_metrics']['precision'] ?? 0) * 100, 1) }}%</dd>
                                     <dt class="col-6">Atsaukimas:</dt>
-                                    <dd class="col-6">{{ number_format($statistics['recall'] * 100, 1) }}%</dd>
+                                    <dd class="col-6">{{ number_format(($statistics['overall_metrics']['recall'] ?? 0) * 100, 1) }}%</dd>
                                     <dt class="col-6">F1 balas:</dt>
-                                    <dd class="col-6">{{ number_format($statistics['f1_score'] * 100, 1) }}%</dd>
+                                    <dd class="col-6">{{ number_format(($statistics['overall_metrics']['f1_score'] ?? 0) * 100, 1) }}%</dd>
                                 </dl>
                             </div>
                         </div>
