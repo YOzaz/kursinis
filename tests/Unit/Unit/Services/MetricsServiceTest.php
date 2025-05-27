@@ -33,12 +33,12 @@ class MetricsServiceTest extends TestCase
             'job_id' => $analysisJob->job_id,
             'expert_annotations' => [
                 ['result' => [
-                    ['value' => ['start' => 0, 'end' => 10, 'text' => 'propaganda', 'labels' => ['propaganda']]]
+                    ['type' => 'labels', 'value' => ['start' => 0, 'end' => 10, 'text' => 'propaganda', 'labels' => ['propaganda']]]
                 ]]
             ],
             'claude_annotations' => [
                 'annotations' => [
-                    ['value' => ['start' => 0, 'end' => 10, 'text' => 'propaganda', 'labels' => ['propaganda']]]
+                    ['type' => 'labels', 'value' => ['start' => 0, 'end' => 10, 'text' => 'propaganda', 'labels' => ['propaganda']]]
                 ]
             ]
         ]);
@@ -58,12 +58,12 @@ class MetricsServiceTest extends TestCase
             'job_id' => $analysisJob->job_id,
             'expert_annotations' => [
                 ['result' => [
-                    ['value' => ['start' => 0, 'end' => 10, 'text' => 'propaganda', 'labels' => ['propaganda']]]
+                    ['type' => 'labels', 'value' => ['start' => 0, 'end' => 10, 'text' => 'propaganda', 'labels' => ['propaganda']]]
                 ]]
             ],
             'claude_annotations' => [
                 'annotations' => [
-                    ['value' => ['start' => 50, 'end' => 60, 'text' => 'different', 'labels' => ['different']]]
+                    ['type' => 'labels', 'value' => ['start' => 50, 'end' => 60, 'text' => 'different', 'labels' => ['different']]]
                 ]
             ]
         ]);
@@ -83,7 +83,7 @@ class MetricsServiceTest extends TestCase
             'expert_annotations' => [],
             'claude_annotations' => [
                 'annotations' => [
-                    ['value' => ['start' => 0, 'end' => 10, 'text' => 'test', 'labels' => ['test']]]
+                    ['type' => 'labels', 'value' => ['start' => 0, 'end' => 10, 'text' => 'test', 'labels' => ['test']]]
                 ]
             ]
         ]);
@@ -102,7 +102,7 @@ class MetricsServiceTest extends TestCase
             'job_id' => $analysisJob->job_id,
             'expert_annotations' => [
                 ['result' => [
-                    ['value' => ['start' => 0, 'end' => 10, 'text' => 'propaganda', 'labels' => ['propaganda']]]
+                    ['type' => 'labels', 'value' => ['start' => 0, 'end' => 10, 'text' => 'propaganda', 'labels' => ['propaganda']]]
                 ]]
             ],
             'claude_annotations' => null
@@ -154,13 +154,13 @@ class MetricsServiceTest extends TestCase
             'job_id' => $analysisJob->job_id,
             'expert_annotations' => [
                 ['result' => [
-                    ['value' => ['start' => 0, 'end' => 10, 'text' => 'propaganda', 'labels' => ['propaganda']]],
-                    ['value' => ['start' => 20, 'end' => 30, 'text' => 'technique', 'labels' => ['technique']]]
+                    ['type' => 'labels', 'value' => ['start' => 0, 'end' => 10, 'text' => 'propaganda', 'labels' => ['propaganda']]],
+                    ['type' => 'labels', 'value' => ['start' => 20, 'end' => 30, 'text' => 'technique', 'labels' => ['technique']]]
                 ]]
             ],
             'claude_annotations' => [
                 'annotations' => [
-                    ['value' => ['start' => 0, 'end' => 10, 'text' => 'propaganda', 'labels' => ['propaganda']]]
+                    ['type' => 'labels', 'value' => ['start' => 0, 'end' => 10, 'text' => 'propaganda', 'labels' => ['propaganda']]]
                 ]
             ]
         ]);
@@ -179,12 +179,12 @@ class MetricsServiceTest extends TestCase
             'job_id' => $analysisJob->job_id,
             'expert_annotations' => [
                 ['result' => [
-                    ['value' => ['start' => 0, 'end' => 10, 'text' => 'propaganda', 'labels' => ['propaganda']]]
+                    ['type' => 'labels', 'value' => ['start' => 0, 'end' => 10, 'text' => 'propaganda', 'labels' => ['propaganda']]]
                 ]]
             ],
             'claude_annotations' => [
                 'annotations' => [
-                    ['value' => ['start' => 2, 'end' => 12, 'text' => 'propaganda', 'labels' => ['propaganda']]]
+                    ['type' => 'labels', 'value' => ['start' => 2, 'end' => 12, 'text' => 'propaganda', 'labels' => ['propaganda']]]
                 ]
             ]
         ]);
@@ -224,7 +224,7 @@ class MetricsServiceTest extends TestCase
             'expert_annotations' => [], // No expert annotations
             'claude_annotations' => [
                 'annotations' => [
-                    ['value' => ['start' => 0, 'end' => 10, 'text' => 'false', 'labels' => ['propaganda']]]
+                    ['type' => 'labels', 'value' => ['start' => 0, 'end' => 10, 'text' => 'false', 'labels' => ['propaganda']]]
                 ]
             ]
         ]);
@@ -243,7 +243,7 @@ class MetricsServiceTest extends TestCase
             'job_id' => $analysisJob->job_id,
             'expert_annotations' => [
                 ['result' => [
-                    ['value' => ['start' => 0, 'end' => 10, 'text' => 'missed', 'labels' => ['propaganda']]]
+                    ['type' => 'labels', 'value' => ['start' => 0, 'end' => 10, 'text' => 'missed', 'labels' => ['propaganda']]]
                 ]]
             ],
             'claude_annotations' => [
@@ -255,7 +255,7 @@ class MetricsServiceTest extends TestCase
 
         $this->assertEquals(0, $metric->true_positives);
         $this->assertEquals(0, $metric->false_positives);
-        $this->assertEquals(0, $metric->false_negatives);
+        $this->assertEquals(1, $metric->false_negatives);
     }
 
     public function test_supports_different_technique_types(): void
@@ -265,14 +265,14 @@ class MetricsServiceTest extends TestCase
             'job_id' => $analysisJob->job_id,
             'expert_annotations' => [
                 ['result' => [
-                    ['value' => ['start' => 0, 'end' => 10, 'text' => 'fear', 'labels' => ['appeal_to_fear']]],
-                    ['value' => ['start' => 20, 'end' => 30, 'text' => 'loaded', 'labels' => ['loaded_language']]]
+                    ['type' => 'labels', 'value' => ['start' => 0, 'end' => 10, 'text' => 'fear', 'labels' => ['appeal_to_fear']]],
+                    ['type' => 'labels', 'value' => ['start' => 20, 'end' => 30, 'text' => 'loaded', 'labels' => ['loaded_language']]]
                 ]]
             ],
             'claude_annotations' => [
                 'annotations' => [
-                    ['value' => ['start' => 0, 'end' => 10, 'text' => 'fear', 'labels' => ['appeal_to_fear']]],
-                    ['value' => ['start' => 20, 'end' => 30, 'text' => 'loaded', 'labels' => ['loaded_language']]]
+                    ['type' => 'labels', 'value' => ['start' => 0, 'end' => 10, 'text' => 'fear', 'labels' => ['appeal_to_fear']]],
+                    ['type' => 'labels', 'value' => ['start' => 20, 'end' => 30, 'text' => 'loaded', 'labels' => ['loaded_language']]]
                 ]
             ]
         ]);
@@ -280,6 +280,131 @@ class MetricsServiceTest extends TestCase
         $metric = $this->service->calculateMetricsForText($textAnalysis, 'claude', $analysisJob->job_id);
 
         $this->assertEquals(2, $metric->true_positives);
+        $this->assertEquals(0, $metric->false_positives);
+        $this->assertEquals(0, $metric->false_negatives);
+    }
+
+    public function test_category_mapping_between_expert_and_ai_annotations(): void
+    {
+        $analysisJob = AnalysisJob::factory()->create();
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $analysisJob->job_id,
+            'expert_annotations' => [
+                ['result' => [
+                    // Expert uses simplified category
+                    ['type' => 'labels', 'value' => ['start' => 0, 'end' => 50, 'text' => 'expert text', 'labels' => ['simplification']]]
+                ]]
+            ],
+            'claude_annotations' => [
+                'annotations' => [
+                    // AI uses ATSPARA category that maps to expert category
+                    ['type' => 'labels', 'value' => ['start' => 0, 'end' => 50, 'text' => 'expert text', 'labels' => ['causalOversimplification']]]
+                ]
+            ]
+        ]);
+
+        $metric = $this->service->calculateMetricsForText($textAnalysis, 'claude', $analysisJob->job_id);
+
+        // Should match due to category mapping
+        $this->assertEquals(1, $metric->true_positives);
+        $this->assertEquals(0, $metric->false_positives);
+        $this->assertEquals(0, $metric->false_negatives);
+    }
+
+    public function test_filters_out_invalid_annotations(): void
+    {
+        $analysisJob = AnalysisJob::factory()->create();
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $analysisJob->job_id,
+            'expert_annotations' => [
+                ['result' => [
+                    // Invalid annotation with empty text
+                    ['type' => 'labels', 'value' => ['start' => 0, 'end' => 0, 'text' => '', 'labels' => []]],
+                    // Valid annotation
+                    ['type' => 'labels', 'value' => ['start' => 10, 'end' => 20, 'text' => 'valid', 'labels' => ['propaganda']]],
+                    // Non-label annotation (should be skipped)
+                    ['type' => 'choices', 'value' => ['choices' => ['yes']]]
+                ]]
+            ],
+            'claude_annotations' => [
+                'annotations' => [
+                    ['type' => 'labels', 'value' => ['start' => 10, 'end' => 20, 'text' => 'valid', 'labels' => ['propaganda']]]
+                ]
+            ]
+        ]);
+
+        $metric = $this->service->calculateMetricsForText($textAnalysis, 'claude', $analysisJob->job_id);
+
+        // Should only count the valid annotation
+        $this->assertEquals(1, $metric->true_positives);
+        $this->assertEquals(0, $metric->false_positives);
+        $this->assertEquals(0, $metric->false_negatives);
+    }
+
+    public function test_dynamic_model_detection_in_aggregated_metrics(): void
+    {
+        $analysisJob = AnalysisJob::factory()->create();
+        
+        // Create metrics for different models (not hardcoded)
+        ComparisonMetric::factory()->create([
+            'job_id' => $analysisJob->job_id,
+            'model_name' => 'claude-opus-4', // Actual model name
+            'precision' => 0.8,
+            'recall' => 0.9,
+            'f1_score' => 0.85
+        ]);
+        
+        ComparisonMetric::factory()->create([
+            'job_id' => $analysisJob->job_id,
+            'model_name' => 'gemini-2.5-pro', // Another actual model name
+            'precision' => 0.7,
+            'recall' => 0.8,
+            'f1_score' => 0.75
+        ]);
+
+        $results = $this->service->calculateAggregatedMetrics($analysisJob->job_id);
+
+        // Should find both models dynamically
+        $this->assertArrayHasKey('claude-opus-4', $results);
+        $this->assertArrayHasKey('gemini-2.5-pro', $results);
+        $this->assertEquals(0.8, $results['claude-opus-4']['precision']);
+        $this->assertEquals(0.7, $results['gemini-2.5-pro']['precision']);
+    }
+
+    public function test_handles_real_world_annotation_format(): void
+    {
+        $analysisJob = AnalysisJob::factory()->create();
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $analysisJob->job_id,
+            'expert_annotations' => [
+                [
+                    'id' => 828,
+                    'result' => [
+                        ['type' => 'choices', 'value' => ['choices' => ['yes']]],
+                        ['type' => 'labels', 'value' => [
+                            'start' => 0, 'end' => 100, 
+                            'text' => 'Real propaganda text from experts',
+                            'labels' => ['emotionalExpression']
+                        ]]
+                    ]
+                ]
+            ],
+            'claude_annotations' => [
+                'primaryChoice' => ['choices' => ['yes']],
+                'annotations' => [
+                    ['type' => 'labels', 'value' => [
+                        'start' => 0, 'end' => 100,
+                        'text' => 'Real propaganda text from experts', 
+                        'labels' => ['loadedLanguage']
+                    ]]
+                ]
+            ]
+        ]);
+
+        $metric = $this->service->calculateMetricsForText($textAnalysis, 'claude-opus-4', $analysisJob->job_id);
+
+        // Should match due to emotionalExpression -> loadedLanguage mapping
+        $this->assertEquals(1, $metric->true_positives);
         $this->assertEquals(0, $metric->false_positives);
         $this->assertEquals(0, $metric->false_negatives);
     }

@@ -74,13 +74,18 @@
                 <!-- Veiksmai -->
                 <div class="d-grid gap-2">
                     @if($job->status === 'completed')
+                        <a href="{{ route('analyses.show', ['jobId' => $job->job_id]) }}" 
+                           class="btn btn-success btn-lg">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Peržiūrėti detalų analizės puslapį
+                        </a>
                         <a href="{{ route('api.results.get', ['jobId' => $job->job_id]) }}" 
-                           class="btn btn-success btn-lg" target="_blank">
+                           class="btn btn-outline-info btn-lg" target="_blank">
                             <i class="fas fa-eye me-2"></i>
                             Peržiūrėti rezultatus (JSON)
                         </a>
                         <a href="{{ route('api.results.export', ['jobId' => $job->job_id]) }}" 
-                           class="btn btn-primary btn-lg">
+                           class="btn btn-outline-primary btn-lg">
                             <i class="fas fa-download me-2"></i>
                             Atsisiųsti CSV failą
                         </a>

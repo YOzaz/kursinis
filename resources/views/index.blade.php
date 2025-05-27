@@ -42,6 +42,10 @@
                         <label for="json_file" class="form-label fw-bold">
                             <i class="fas fa-file-code me-2"></i>
                             JSON failas (su arba be ekspertų anotacijų)
+                            <i class="fas fa-question-circle text-muted ms-2" 
+                               data-bs-toggle="tooltip" 
+                               data-bs-placement="top" 
+                               title="Įkelkite JSON failą su tekstais. Jei turite ekspertų anotacijas (iš Label Studio), sistema apskaičiuos palyginimo metrikas. Jei ne - tik AI analizė."></i>
                         </label>
                         <div class="upload-area" id="uploadArea">
                             <input type="file" class="form-control d-none" id="json_file" name="json_file" accept=".json" required>
@@ -63,6 +67,10 @@
                         <label class="form-label fw-bold">
                             <i class="fas fa-robot me-2"></i>
                             LLM modeliai analizei
+                            <i class="fas fa-question-circle text-muted ms-2" 
+                               data-bs-toggle="tooltip" 
+                               data-bs-placement="top" 
+                               title="Pasirinkite AI modelius, kurie analizuos tekstą. Rekomenduojama pasirinkti 2-3 modelius palyginimui. Claude ir GPT modeliai paprastai geresni lietuvių kalba."></i>
                         </label>
                         <p class="text-muted small">Pasirinkite bent vieną modelį</p>
                         
@@ -148,6 +156,10 @@
                         <label class="form-label fw-bold">
                             <i class="fas fa-edit me-2"></i>
                             Custom prompt (neprivalomas)
+                            <i class="fas fa-question-circle text-muted ms-2" 
+                               data-bs-toggle="tooltip" 
+                               data-bs-placement="top" 
+                               title="Galite nurodyti specialų prompt'ą AI modeliams. Jei nepridėsite, bus naudojamas ATSPARA metodologijos prompt'as su 20+ propagandos technikų."></i>
                         </label>
                         <p class="text-muted small">Jei nepridėsite custom prompt'o, bus naudojamas standartinis sistemos prompt'as</p>
                         <textarea class="form-control" id="custom_prompt" name="custom_prompt" rows="6" 
@@ -288,6 +300,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Pakeisti mygtuką į loading būseną
         analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Paleidžiama analizė...';
         analyzeBtn.disabled = true;
+    });
+
+    // Initialize Bootstrap tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 });
 </script>

@@ -273,9 +273,16 @@ class ExportService
         $rows = [$headers];
 
         foreach ($job->textAnalyses as $textAnalysis) {
-            foreach (['claude-4', 'gemini-2.5-pro', 'gpt-4.1'] as $model) {
+            // Get all models that have annotations for this text
+            $availableModels = [];
+            foreach (['claude-4', 'claude-opus-4', 'gemini-2.5-pro', 'gemini-pro', 'gpt-4.1', 'gpt-4'] as $model) {
+                if ($textAnalysis->getModelAnnotations($model)) {
+                    $availableModels[] = $model;
+                }
+            }
+            
+            foreach ($availableModels as $model) {
                 $modelAnnotations = $textAnalysis->getModelAnnotations($model);
-                if (!$modelAnnotations) continue;
 
                 $metric = $job->comparisonMetrics
                     ->where('text_id', $textAnalysis->text_id)
@@ -328,9 +335,16 @@ class ExportService
         $rows = [$headers];
 
         foreach ($job->textAnalyses as $textAnalysis) {
-            foreach (['claude-4', 'gemini-2.5-pro', 'gpt-4.1'] as $model) {
+            // Get all models that have annotations for this text
+            $availableModels = [];
+            foreach (['claude-4', 'claude-opus-4', 'gemini-2.5-pro', 'gemini-pro', 'gpt-4.1', 'gpt-4'] as $model) {
+                if ($textAnalysis->getModelAnnotations($model)) {
+                    $availableModels[] = $model;
+                }
+            }
+            
+            foreach ($availableModels as $model) {
                 $modelAnnotations = $textAnalysis->getModelAnnotations($model);
-                if (!$modelAnnotations) continue;
 
                 $propagandaDetected = ($modelAnnotations['primaryChoice']['choices'][0] ?? 'no') === 'yes';
                 $techniques = [];

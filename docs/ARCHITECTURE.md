@@ -48,9 +48,9 @@ app/
 │   │   └── LLMServiceInterface.php    # Common interface
 │   ├── Core Services/
 │   │   ├── PromptService.php          # Standard and custom prompt generation
-│   │   ├── MetricsService.php         # Statistical calculations
+│   │   ├── MetricsService.php         # Advanced statistical calculations with category mapping
 │   │   ├── StatisticsService.php      # Global performance stats
-│   │   └── ExportService.php          # CSV/JSON export
+│   │   └── ExportService.php          # Dynamic CSV/JSON export with model detection
 ├── Jobs/
 │   ├── AnalyzeTextJob.php             # Single text analysis with custom prompts
 │   └── BatchAnalysisJob.php           # Multiple text processing
@@ -202,11 +202,15 @@ Reference Analysis ID
   - `claude_annotations`, `gemini_annotations`, `gpt_annotations`: JSON with AI results
 
 #### `comparison_metrics`
-- **Purpose**: Statistical comparison between AI and expert annotations
+- **Purpose**: Statistical comparison between AI and expert annotations with intelligent category mapping
 - **Key Fields**:
-  - `model_name`: Which AI model produced results
-  - `precision`, `recall`, `f1_score`: Performance metrics
+  - `model_name`: Dynamically detected AI model name
+  - `precision`, `recall`, `f1_score`: Performance metrics (calculated from real data)
   - `true_positives`, `false_positives`, `false_negatives`: Confusion matrix data
+  - `position_accuracy`: Spatial overlap accuracy
+  - `cohen_kappa`: Inter-annotator agreement coefficient
+
+**Recent Enhancement**: Supports category mapping between expert annotations (simplified names like 'simplification', 'emotionalExpression') and AI annotations (ATSPARA methodology names like 'causalOversimplification', 'loadedLanguage')
 
 
 ## 🔧 Service Layer Architecture
@@ -349,6 +353,46 @@ Request
 - **Text Content**: Temporarily stored, not logged
 - **Results**: Anonymized for research purposes
 - **Database**: Credentials in environment, encrypted connections
+
+## 🔄 Recent System Enhancements (2025)
+
+### Major UI/UX Improvements
+
+#### Enhanced Analysis Results Display
+- **Model-Specific Results**: Results table redesigned to show each model in separate rows with clear performance metrics
+- **Interactive Help System**: 14+ context-sensitive help tooltips using Bootstrap popovers
+- **Smart Text Handling**: Modal text automatically truncates long content (>500 chars) with async expansion
+- **Direct Downloads**: JSON/CSV export buttons directly accessible from analysis results
+
+#### Improved Statistics Visualization
+- **Real Metrics Display**: Fixed statistics showing actual calculated values instead of zeros
+- **Dynamic Model Detection**: System automatically detects which models were used in analysis
+- **Comprehensive Metrics**: Shows Precision, Recall, F1-score, and Cohen's Kappa for each model
+
+### Advanced Metrics System
+
+#### Intelligent Category Mapping
+The `MetricsService` now includes sophisticated category mapping between expert and AI annotation systems:
+
+```php
+// Expert annotation categories (simplified)
+'simplification' => ['causalOversimplification', 'blackandwhite', 'thoughtterminatingcliche']
+'emotionalExpression' => ['emotionalappeal', 'loadedlanguage', 'appealtofear']
+'distraction' => ['whataboutism', 'strawman', 'redherring']
+```
+
+This enables accurate comparison between different annotation methodologies while maintaining compatibility with both expert annotations (using simplified category names) and AI annotations (using full ATSPARA methodology names).
+
+#### Enhanced Data Processing
+- **Annotation Filtering**: Automatically filters out invalid or incomplete annotations
+- **Type-Safe Processing**: Validates annotation structure with proper `type` field handling
+- **Position Tolerance**: Accounts for slight position differences in text span annotations
+- **Real-World Format Support**: Handles complex annotation structures from actual research data
+
+### Export System Enhancements
+- **Dynamic Model Detection**: Export service automatically discovers which models were used
+- **Comprehensive Data Export**: Includes all analysis metadata, performance metrics, and detailed annotations
+- **Format Flexibility**: Supports both JSON (for programmatic use) and CSV (for spreadsheet analysis)
 
 ## 📊 Performance Architecture
 

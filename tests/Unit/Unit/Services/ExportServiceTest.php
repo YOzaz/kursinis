@@ -67,7 +67,7 @@ class ExportServiceTest extends TestCase
 
         $expectedHeaders = [
             'job_id', 'text_id', 'text_content', 'model_name', 
-            'llm_annotations', 'propaganda_detected', 'techniques_found', 'narratives_found'
+            'expert_annotations', 'llm_annotations', 'true_positives', 'false_positives'
         ];
 
         foreach ($expectedHeaders as $header) {

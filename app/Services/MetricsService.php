@@ -91,7 +91,12 @@ class MetricsService
      */
     public function calculateAggregatedMetrics(string $jobId): array
     {
-        $models = ['claude-4', 'gemini-2.5-pro', 'gpt-4.1'];
+        // Get all unique model names that have metrics for this job
+        $models = ComparisonMetric::where('job_id', $jobId)
+            ->distinct('model_name')
+            ->pluck('model_name')
+            ->toArray();
+        
         $results = [];
 
         foreach ($models as $model) {
@@ -127,22 +132,38 @@ class MetricsService
             if (isset($annotation['result'])) {
                 // Ekspertų anotacijų formatas
                 foreach ($annotation['result'] as $result) {
-                    if (isset($result['value'])) {
+                    if (isset($result['value']) && $result['type'] === 'labels') {
+                        // Only process label annotations, skip choices and other types
+                        $value = $result['value'];
+                        
+                        // Skip empty or invalid annotations
+                        if (empty($value['text']) || empty($value['labels']) || 
+                            ($value['start'] === 0 && $value['end'] === 0)) {
+                            continue;
+                        }
+                        
                         $labels[] = [
-                            'start' => $result['value']['start'] ?? 0,
-                            'end' => $result['value']['end'] ?? 0,
-                            'text' => $result['value']['text'] ?? '',
-                            'labels' => $result['value']['labels'] ?? [],
+                            'start' => $value['start'] ?? 0,
+                            'end' => $value['end'] ?? 0,
+                            'text' => $value['text'] ?? '',
+                            'labels' => $value['labels'] ?? [],
                         ];
                     }
                 }
-            } elseif (isset($annotation['value'])) {
+            } elseif (isset($annotation['value']) && $annotation['type'] === 'labels') {
                 // LLM anotacijų formatas
+                $value = $annotation['value'];
+                
+                // Skip empty or invalid annotations
+                if (empty($value['text']) || empty($value['labels'])) {
+                    continue;
+                }
+                
                 $labels[] = [
-                    'start' => $annotation['value']['start'] ?? 0,
-                    'end' => $annotation['value']['end'] ?? 0,
-                    'text' => $annotation['value']['text'] ?? '',
-                    'labels' => $annotation['value']['labels'] ?? [],
+                    'start' => $value['start'] ?? 0,
+                    'end' => $value['end'] ?? 0,
+                    'text' => $value['text'] ?? '',
+                    'labels' => $value['labels'] ?? [],
                 ];
             }
         }
@@ -209,11 +230,55 @@ class MetricsService
             return false;
         }
 
-        // Patikrinti etikečių sutapimą
+        // Patikrinti etikečių sutapimą su kategorijų žemėlapiu
         $expertLabelSet = array_map('strtolower', $expertLabel['labels'] ?? []);
         $modelLabelSet = array_map('strtolower', $modelLabel['labels'] ?? []);
 
-        return !empty(array_intersect($expertLabelSet, $modelLabelSet));
+        // Direct match first
+        if (!empty(array_intersect($expertLabelSet, $modelLabelSet))) {
+            return true;
+        }
+
+        // Try category mapping
+        foreach ($expertLabelSet as $expertCategory) {
+            $mappedCategories = $this->getMappedCategories($expertCategory);
+            if (!empty(array_intersect($mappedCategories, $modelLabelSet))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Gauti AI kategorijų atitikimus ekspertų kategorijoms.
+     * 
+     * Ekspertai naudoja supaprastintas kategorijas, o AI naudoja ATSPARA metodologijos kategorijas.
+     * Šis žemėlapis susieja skirtingas klasifikacijas.
+     */
+    private function getMappedCategories(string $expertCategory): array
+    {
+        $categoryMapping = [
+            // Expert category => AI categories (ATSPARA)
+            'simplification' => ['causaloversimplification', 'blackandwhite', 'thoughtterminatingcliche', 'slogans'],
+            'emotionalexpression' => ['emotionalappeal', 'loadedlanguage', 'appealtofear', 'exaggeration', 'namecalling'],
+            'uncertainty' => ['doubt', 'obfuscation', 'appealtofear'],
+            'doubt' => ['doubt', 'smears', 'uncertainty'],
+            'repetition' => ['repetition', 'bandwagon'],
+            'reductionadhitlerum' => ['reductionoadhitlerum', 'namecalling'],
+            'wavingtheflag' => ['flagwaving', 'appealtofear'],
+            'namecalling' => ['namecalling', 'loadedlanguage', 'smears'],
+            
+            // Additional mappings for other expert categories observed
+            'whataboutism' => ['whataboutism', 'redherring'],
+            'strawman' => ['strawman', 'redherring'],
+            'bandwagon' => ['bandwagon', 'repetition'],
+            'authority' => ['appealtoauthority'],
+            'false' => ['doubt', 'smears'],
+            'fear' => ['appealtofear', 'loadedlanguage'],
+        ];
+
+        return $categoryMapping[strtolower($expertCategory)] ?? [];
     }
 
     /**
