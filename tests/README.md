@@ -1,12 +1,18 @@
 # 🧪 Laravel Propaganda Analysis System - Test Suite
 
-Šis dokumentas aprašo išsamų testų rinkinį Laravel propagandos analizės sistemai, sukurtai pagal ATSPARA projekto metodologiją.
+Šis dokumentas aprašo išsamų testų rinkinį Laravel propagandos analizės sistemai.
 
-## 📚 Moksliniai pagrindai
+## 👨‍🎓 Projekto autorystė
+
+**Autorius:** Marijus Plančiūnas (marijus.planciunas@mif.stud.vu.lt)  
+**Dėstytojas:** Prof. Dr. Darius Plikynas (darius.plikynas@mif.vu.lt)  
+**Projekto tipas:** VU MIF Informatikos 3 kurso kursinio darbo dalis
+
+## 📚 Duomenų šaltiniai ir metodologija
 
 Sistema naudoja:
-- **ATSPARA projekto duomenis**: https://www.atspara.mif.vu.lt/
-- **Pauliaus Zarankos magistrinio darbo metodologiją**: "Propagandos technikų fragmentų identifikavimas lietuviškame tekste"
+- **ATSPARA projekto korpuso duomenis**: https://www.atspara.mif.vu.lt/ (duomenų šaltinis)
+- **Pauliaus Zarankos klasifikavimo metodologiją**: "Propagandos technikų fragmentų identifikavimas lietuviškame tekste"
 
 ## 📋 Testų struktūra
 

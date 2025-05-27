@@ -66,15 +66,19 @@
     "prefer-stable": true,
     "authors": [
         {
-            "name": "VU Research Team",
-            "email": "mif@vu.lt",
-            "homepage": "https://mif.vu.lt",
-            "role": "Development Team"
+            "name": "Marijus Plančiūnas",
+            "email": "marijus.planciunas@mif.stud.vu.lt",
+            "role": "System Developer (Course Work)"
+        },
+        {
+            "name": "Prof. Dr. Darius Plikynas",
+            "email": "darius.plikynas@mif.vu.lt",
+            "role": "Academic Supervisor"
         },
         {
             "name": "Paulius Zaranka",
             "email": "paulius.zaranka@mif.vu.lt",
-            "role": "Research Methodology"
+            "role": "Classification Methodology"
         }
     ],
     "funding": [

@@ -1,12 +1,19 @@
 # Reikalavimai sistemai "Propagandos ir dezinformacijos tekstų anotavimas su LLM įrankiu per API sąsają"
 
-## 📚 Moksliniai pagrindai
+## 👨‍🎓 Projekto autorystė
 
-### ATSPARA projektas
-Sistema remiasi [ATSPARA](https://www.atspara.mif.vu.lt/) (Automatinė propagandos ir dezinformacijos atpažinimo sistema) projekto metodologija ir duomenimis. ATSPARA yra Vilniaus universiteto Matematikos ir informatikos fakulteto vykdomas mokslo projektas.
+**Autorius:** Marijus Plančiūnas (marijus.planciunas@mif.stud.vu.lt)  
+**Studijos:** VU MIF Informatikos 3 kursas  
+**Dėstytojas:** Prof. Dr. Darius Plikynas (darius.plikynas@mif.vu.lt)  
+**Projekto tipas:** Kursinio darbo dalis
 
-### Magistrinio darbo metodologija
-Sistema naudoja Pauliaus Zarankos (paulius.zaranka@mif.vu.lt) magistrinio darbo *"Propagandos technikų fragmentų identifikavimas lietuviškame tekste naudojant transformeriais pagrįstus, iš anksto apmokytus daugiakalbius modelius"* tyrimo metodologiją.
+## 📚 Duomenų šaltiniai ir metodologija
+
+### ATSPARA projektas (duomenų šaltinis)
+Sistema naudoja [ATSPARA](https://www.atspara.mif.vu.lt/) (Automatinė propagandos ir dezinformacijos atpažinimo sistema) projekto **korpuso duomenis**. ATSPARA yra Vilniaus universiteto Matematikos ir informatikos fakulteto vykdomas mokslo projektas.
+
+### Klasifikavimo metodologija  
+Sistema taiko Pauliaus Zarankos (paulius.zaranka@mif.vu.lt) magistrinio darbo *"Propagandos technikų fragmentų identifikavimas lietuviškame tekste naudojant transformeriais pagrįstus, iš anksto apmokytus daugiakalbius modelius"* **klasifikavimo metodologiją**.
 
 ## 1. Sistemos apžvalga
 
@@ -287,24 +294,32 @@ Atskiras dokumentas su:
 
 ## 8. Autorių teisės ir duomenų naudojimas
 
-### 8.1 Duomenų šaltiniai
-- **ATSPARA korpusas**: © Vilniaus universitetas, MIF
-- **Ekspertų anotacijos**: ATSPARA projekto duomenys
-- **Metodologija**: Paulius Zaranka, magistrinis darbas
+### 8.1 Projekto autorystė
+- **Sistemos autorius**: Marijus Plančiūnas (marijus.planciunas@mif.stud.vu.lt)
+- **Dėstytojas**: Prof. Dr. Darius Plikynas (darius.plikynas@mif.vu.lt)
+- **Institucija**: VU MIF Informatikos 3 kursas
+- **Projekto tipas**: Kursinio darbo dalis
 
-### 8.2 Naudojimo sąlygos
-- Sistema skirta **mokslo tyrimų tikslams**
+### 8.2 Duomenų šaltiniai ir metodologija
+- **ATSPARA korpuso duomenys**: © Vilniaus universitetas, MIF (duomenų šaltinis)
+- **Klasifikavimo metodologija**: Paulius Zaranka, magistrinis darbas
+- **Sistemos implementacija**: Marijus Plančiūnas
+
+### 8.3 Naudojimo sąlygos
+- Sistema skirta **mokslo tyrimų ir studijų tikslams**
 - ATSPARA duomenų komerciniam naudojimui reikalingas atskiras sutikimas
-- Privaloma cituoti šaltinius:
-  - ATSPARA projektą: https://www.atspara.mif.vu.lt/
-  - Pauliaus Zarankos magistrinį darbą
+- Cituojant prašome nurodyti:
+  - Marijų Plančiūną kaip sistemos autorių
+  - ATSPARA projektą kaip duomenų šaltinį
+  - Pauliaus Zarankos metodologiją
 
-### 8.3 Duomenų apsauga
+### 8.4 Duomenų apsauga
 - Visi duomenys apdorojami pagal BDAR reikalavimus
 - API raktai saugomi užšifruoti
 - Analizės rezultatai saugomi tik tyrimų tikslais
 
-### 8.4 Kontaktai
+### 8.5 Kontaktai
+- **Projekto autorius**: Marijus Plančiūnas (marijus.planciunas@mif.stud.vu.lt)
+- **Dėstytojas**: Prof. Dr. Darius Plikynas (darius.plikynas@mif.vu.lt)
 - **ATSPARA projektas**: https://www.atspara.mif.vu.lt/
 - **Paulius Zaranka**: paulius.zaranka@mif.vu.lt
-- **VU MIF**: mokslinių duomenų klausimais
