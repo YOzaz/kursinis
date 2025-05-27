@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Services;
+namespace Tests\Unit\Unit\Services;
 
 use Tests\TestCase;
 use App\Services\PromptService;
@@ -56,6 +56,137 @@ class PromptServiceTest extends TestCase
         $this->assertStringContainsString('JSON', $prompt);
     }
 
+    public function test_get_system_message_returns_valid_content(): void
+    {
+        $message = $this->service->getSystemMessage();
+
+        $this->assertStringContainsString('ATSPARA propagandos analizės sistema', $message);
+        $this->assertStringContainsString('JSON formatą', $message);
+        $this->assertStringContainsString('objektyvius kriterijus', $message);
+        $this->assertNotEmpty($message);
+    }
+
+    public function test_validate_response_accepts_valid_structure(): void
+    {
+        $validResponse = [
+            'primaryChoice' => [
+                'choices' => ['yes']
+            ],
+            'annotations' => [
+                [
+                    'type' => 'labels',
+                    'value' => [
+                        'start' => 0,
+                        'end' => 10,
+                        'text' => 'sample text',
+                        'labels' => ['propaganda_technique']
+                    ]
+                ]
+            ],
+            'desinformationTechnique' => [
+                'choices' => ['some_narrative']
+            ]
+        ];
+
+        $this->assertTrue($this->service->validateResponse($validResponse));
+    }
+
+    public function test_validate_response_rejects_missing_primary_choice(): void
+    {
+        $invalidResponse = [
+            'annotations' => [],
+            'desinformationTechnique' => ['choices' => []]
+        ];
+
+        $this->assertFalse($this->service->validateResponse($invalidResponse));
+    }
+
+    public function test_validate_response_rejects_missing_annotations(): void
+    {
+        $invalidResponse = [
+            'primaryChoice' => ['choices' => ['no']],
+            'desinformationTechnique' => ['choices' => []]
+        ];
+
+        $this->assertFalse($this->service->validateResponse($invalidResponse));
+    }
+
+    public function test_validate_response_rejects_missing_desinformation_technique(): void
+    {
+        $invalidResponse = [
+            'primaryChoice' => ['choices' => ['no']],
+            'annotations' => []
+        ];
+
+        $this->assertFalse($this->service->validateResponse($invalidResponse));
+    }
+
+    public function test_validate_response_rejects_invalid_primary_choice_structure(): void
+    {
+        $invalidResponse = [
+            'primaryChoice' => 'invalid_structure',
+            'annotations' => [],
+            'desinformationTechnique' => ['choices' => []]
+        ];
+
+        $this->assertFalse($this->service->validateResponse($invalidResponse));
+    }
+
+    public function test_validate_response_rejects_invalid_annotation_structure(): void
+    {
+        $invalidResponse = [
+            'primaryChoice' => ['choices' => ['yes']],
+            'annotations' => [
+                [
+                    'type' => 'labels',
+                    'value' => [
+                        'start' => 'invalid_start',
+                        'end' => 10,
+                        'text' => 'sample text',
+                        'labels' => ['technique']
+                    ]
+                ]
+            ],
+            'desinformationTechnique' => ['choices' => []]
+        ];
+
+        $this->assertFalse($this->service->validateResponse($invalidResponse));
+    }
+
+    public function test_validate_response_accepts_empty_annotations(): void
+    {
+        $validResponse = [
+            'primaryChoice' => ['choices' => ['no']],
+            'annotations' => [],
+            'desinformationTechnique' => ['choices' => []]
+        ];
+
+        $this->assertTrue($this->service->validateResponse($validResponse));
+    }
+
+    public function test_generate_analysis_prompt_with_custom_prompt(): void
+    {
+        $text = 'Test tekstas';
+        $customPrompt = 'Custom instrukcijos analizei';
+        
+        $result = $this->service->generateAnalysisPrompt($text, $customPrompt);
+
+        $this->assertStringContainsString($customPrompt, $result);
+        $this->assertStringContainsString($text, $result);
+        $this->assertStringContainsString('Analizuojamas tekstas:', $result);
+    }
+
+    public function test_generate_analysis_prompt_without_custom_prompt(): void
+    {
+        $text = 'Test tekstas';
+        
+        $result = $this->service->generateAnalysisPrompt($text);
+
+        $this->assertStringContainsString('ATSPARA Propagandos analizės sistema', $result);
+        $this->assertStringContainsString($text, $result);
+        $this->assertStringContainsString('General', $result);
+    }
+
     public function test_prompts_contain_required_json_structure(): void
     {
         $text = "Test text";
@@ -64,7 +195,6 @@ class PromptServiceTest extends TestCase
         $geminiPrompt = $this->service->generateGeminiPrompt($text);
         $openaiPrompt = $this->service->generateOpenAIPrompt($text);
 
-        // Check for required JSON structure elements
         $requiredElements = ['primaryChoice', 'annotations', 'desinformationTechnique'];
         
         foreach ($requiredElements as $element) {
@@ -109,27 +239,29 @@ class PromptServiceTest extends TestCase
         $geminiPrompt = $this->service->generateGeminiPrompt($text);
         $openaiPrompt = $this->service->generateOpenAIPrompt($text);
 
-        // Should contain Lithuanian context or instructions
         $this->assertStringContainsString('lietuvių', $claudePrompt);
         $this->assertStringContainsString('lietuvių', $geminiPrompt);
         $this->assertStringContainsString('lietuvių', $openaiPrompt);
     }
 
-    public function test_prompts_are_consistent_in_structure(): void
+    public function test_validate_response_validates_labels_array_structure(): void
     {
-        $text = "Consistent test text";
-        
-        $claudePrompt = $this->service->generateClaudePrompt($text);
-        $geminiPrompt = $this->service->generateGeminiPrompt($text);
-        $openaiPrompt = $this->service->generateOpenAIPrompt($text);
+        $invalidResponse = [
+            'primaryChoice' => ['choices' => ['yes']],
+            'annotations' => [
+                [
+                    'type' => 'labels',
+                    'value' => [
+                        'start' => 0,
+                        'end' => 10,
+                        'text' => 'sample text',
+                        'labels' => 'not_an_array'
+                    ]
+                ]
+            ],
+            'desinformationTechnique' => ['choices' => []]
+        ];
 
-        // All prompts should have similar structure elements
-        $commonElements = ['primaryChoice', 'choices', 'propaganda'];
-        
-        foreach ($commonElements as $element) {
-            $this->assertStringContainsString($element, $claudePrompt);
-            $this->assertStringContainsString($element, $geminiPrompt);
-            $this->assertStringContainsString($element, $openaiPrompt);
-        }
+        $this->assertFalse($this->service->validateResponse($invalidResponse));
     }
 }
