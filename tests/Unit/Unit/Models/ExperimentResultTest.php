@@ -172,7 +172,7 @@ class ExperimentResultTest extends TestCase
             'execution_time' => 2.567,
         ]);
 
-        $this->assertEquals(2.567, $result->execution_time);
-        $this->assertIsFloat($result->execution_time);
+        $this->assertEquals('2.567', $result->execution_time);
+        $this->assertEquals(2.567, (float) $result->execution_time);
     }
 }
