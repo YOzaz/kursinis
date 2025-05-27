@@ -16,12 +16,17 @@ return [
     | Duomenų šaltiniai ir metodologija:
     | - ATSPARA korpuso duomenys ir klasifikavimo metodologija: https://www.atspara.mif.vu.lt/
     |
+    | API implementacija:
+    | - OpenAI: naudoja oficialų openai-php/client paketą (fiksuotas 404 error)
+    | - Claude: naudoja HTTP klientą su teisingais v1 endpoint'ais
+    | - Gemini: naudoja HTTP klientą su v1beta API
+    |
     */
 
     'models' => [
         'claude-4' => [
             'api_key' => env('CLAUDE_API_KEY'),
-            'base_url' => 'https://api.anthropic.com/v1',
+            'base_url' => 'https://api.anthropic.com/v1/',
             'model' => 'claude-3-5-sonnet-20241022',
             'max_tokens' => 4096,
             'temperature' => 0.1,

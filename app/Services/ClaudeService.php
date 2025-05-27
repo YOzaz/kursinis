@@ -54,7 +54,7 @@ class ClaudeService implements LLMServiceInterface
 
         for ($attempt = 1; $attempt <= $retries; $attempt++) {
             try {
-                $response = $this->httpClient->post('/messages', [
+                $response = $this->httpClient->post('messages', [
                     'json' => [
                         'model' => $this->config['model'],
                         'max_tokens' => $this->config['max_tokens'],

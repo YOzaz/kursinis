@@ -3,6 +3,7 @@
 namespace Tests\Unit\Unit\Services;
 
 use App\Services\ClaudeService;
+use App\Services\PromptService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -12,11 +13,13 @@ class ClaudeServiceTest extends TestCase
     use RefreshDatabase;
 
     private ClaudeService $service;
+    private PromptService $promptService;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new ClaudeService();
+        $this->promptService = new PromptService();
+        $this->service = new ClaudeService($this->promptService);
         Http::fake();
     }
 
