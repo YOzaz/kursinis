@@ -286,7 +286,7 @@ class StatisticsService
         }
         
         // Iš standartinių analizių (per ComparisonMetric)
-        $jobIds = $standardAnalyses->pluck('analysis_job_id')->unique();
+        $jobIds = $standardAnalyses->pluck('job_id')->unique();
         $comparisonMetrics = ComparisonMetric::whereIn('job_id', $jobIds)
             ->get()
             ->groupBy('model_name');
@@ -308,11 +308,16 @@ class StatisticsService
             $performance[$model]['standard_analyses'] = $modelMetrics->count();
             $performance[$model]['total_analyses'] += $modelMetrics->count();
             
-            // Skaičiuoti metrikas iš ComparisonMetric
+            // Skaičiuoti metrikas iš ComparisonMetric (konvertuoti string į float)
             if ($modelMetrics->count() > 0) {
-                $performance[$model]['avg_precision'] = round($modelMetrics->avg('precision'), 3);
-                $performance[$model]['avg_recall'] = round($modelMetrics->avg('recall'), 3);
-                $performance[$model]['avg_f1'] = round($modelMetrics->avg('f1_score'), 3);
+                $precisionValues = $modelMetrics->pluck('precision')->map(fn($v) => (float)$v);
+                $recallValues = $modelMetrics->pluck('recall')->map(fn($v) => (float)$v);
+                $f1Values = $modelMetrics->pluck('f1_score')->map(fn($v) => (float)$v);
+                
+                $performance[$model]['avg_precision'] = round($precisionValues->avg(), 3);
+                $performance[$model]['avg_recall'] = round($recallValues->avg(), 3);
+                $performance[$model]['avg_f1'] = round($f1Values->avg(), 3);
+                $performance[$model]['reliability_score'] = round(($precisionValues->avg() + $recallValues->avg() + $f1Values->avg()) / 3, 3);
             }
         }
 

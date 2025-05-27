@@ -298,6 +298,64 @@ class MetricsService
     }
 
     /**
+     * Skaičiuoti darbo statistikas.
+     */
+    public function calculateJobStatistics(AnalysisJob $job): array
+    {
+        $textAnalyses = $job->textAnalyses()->with('comparisonMetrics')->get();
+        
+        if ($textAnalyses->isEmpty()) {
+            return [
+                'total_texts' => 0,
+                'models_used' => [],
+                'overall_metrics' => [],
+                'per_model_metrics' => [],
+                'execution_time' => 0,
+            ];
+        }
+
+        $allMetrics = $textAnalyses->flatMap(function ($textAnalysis) {
+            return $textAnalysis->comparisonMetrics;
+        });
+
+        $modelMetrics = $allMetrics->groupBy('model_name');
+        $modelsUsed = $modelMetrics->keys()->toArray();
+
+        $perModelMetrics = [];
+        foreach ($modelMetrics as $model => $metrics) {
+            $perModelMetrics[$model] = [
+                'count' => $metrics->count(),
+                'avg_precision' => round($metrics->avg('precision'), 3),
+                'avg_recall' => round($metrics->avg('recall'), 3),
+                'avg_f1' => round($metrics->avg('f1_score'), 3),
+                'total_tp' => $metrics->sum('true_positives'),
+                'total_fp' => $metrics->sum('false_positives'),
+                'total_fn' => $metrics->sum('false_negatives'),
+            ];
+        }
+
+        $overallMetrics = [
+            'avg_precision' => round($allMetrics->avg('precision'), 3),
+            'avg_recall' => round($allMetrics->avg('recall'), 3),
+            'avg_f1' => round($allMetrics->avg('f1_score'), 3),
+            'total_comparisons' => $allMetrics->count(),
+        ];
+
+        $executionTime = 0;
+        if ($job->started_at && $job->completed_at) {
+            $executionTime = $job->started_at->diffInSeconds($job->completed_at);
+        }
+
+        return [
+            'total_texts' => $textAnalyses->count(),
+            'models_used' => $modelsUsed,
+            'overall_metrics' => $overallMetrics,
+            'per_model_metrics' => $perModelMetrics,
+            'execution_time' => $executionTime,
+        ];
+    }
+
+    /**
      * Sukurti tuščią metriką, kai trūksta duomenų.
      */
     private function createEmptyMetric(string $jobId, string $textId, string $modelName): ComparisonMetric

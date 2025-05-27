@@ -31,6 +31,30 @@ class AnalysisController extends Controller
     }
 
     /**
+     * Rodyti analizių sąrašą.
+     */
+    public function index()
+    {
+        $analyses = AnalysisJob::with(['textAnalyses'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
+            
+        return view('analyses.index', compact('analyses'));
+    }
+
+    /**
+     * Rodyti konkrečios analizės rezultatus.
+     */
+    public function show(string $jobId)
+    {
+        $analysis = AnalysisJob::where('job_id', $jobId)->firstOrFail();
+        $analysis->load(['textAnalyses.comparisonMetrics']);
+        $statistics = $this->metricsService->calculateJobStatistics($analysis);
+        
+        return view('analyses.show', compact('analysis', 'statistics'));
+    }
+
+    /**
      * Analizuoti vieną tekstą.
      */
     public function analyzeSingle(Request $request): JsonResponse
