@@ -81,7 +81,10 @@ Analyze a single text with selected LLM models.
         "labels": ["simplification", "emotionalExpression"]
       }
     }
-  ]
+  ],
+  "custom_prompt": "Specialus prompt'as šiai analizei",
+  "name": "Analizės pavadinimas",
+  "description": "Analizės aprašymas"
 }
 ```
 
@@ -93,6 +96,10 @@ Analyze a single text with selected LLM models.
 | `content` | string | Yes | Full text content to analyze |
 | `models` | array | Yes | List of model keys to use |
 | `expert_annotations` | array | No | Expert annotations for comparison |
+| `custom_prompt` | string | No | Custom prompt for analysis |
+| `reference_analysis_id` | string | No | Reference to previous analysis for text reuse |
+| `name` | string | No | Human-readable name for the analysis |
+| `description` | string | No | Description of the analysis purpose |
 
 #### Response
 
@@ -153,7 +160,10 @@ Process multiple texts with expert annotations in ATSPARA format.
       }
     }
   ],
-  "models": ["claude-4", "gemini-2.5-pro", "gpt-4.1"]
+  "models": ["claude-4", "gemini-2.5-pro", "gpt-4.1"],
+  "custom_prompt": "Custom prompt for this batch analysis",
+  "name": "Batch Analysis Name",
+  "description": "Description of the batch analysis"
 }
 ```
 
@@ -163,6 +173,10 @@ Process multiple texts with expert annotations in ATSPARA format.
 |-----------|------|----------|-------------|
 | `file_content` | array | Yes | Array of texts with ATSPARA annotations |
 | `models` | array | Yes | List of model keys to use |
+| `custom_prompt` | string | No | Custom prompt for all texts in batch |
+| `reference_analysis_id` | string | No | Reference to previous analysis for text reuse |
+| `name` | string | No | Human-readable name for the batch |
+| `description` | string | No | Description of the batch purpose |
 
 #### Response
 
@@ -292,7 +306,46 @@ text_id,technique,expert_start,expert_end,expert_text,model,model_start,model_en
 37735,simplification,0,360,"Visų pirma nusiimkim...",claude-4,0,196,"Visų pirma nusiimkim...",true,0.92,0.85,0.78,0.81
 ```
 
-### 6. System Health
+### 6. Repeat Analysis
+
+**Endpoint**: `POST /api/repeat-analysis`
+
+Repeat a previous analysis with new parameters (such as different prompt or models) while reusing the same text data.
+
+#### Request
+
+```json
+{
+  "reference_analysis_id": "550e8400-e29b-41d4-a716-446655440000",
+  "models": ["claude-4", "gemini-2.5-pro"],
+  "custom_prompt": "Naujasis custom prompt'as pakartotinei analizei",
+  "name": "Pakartotinė analizė su nauju prompt'u",
+  "description": "Testuojame skirtingus prompt'us"
+}
+```
+
+#### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `reference_analysis_id` | string | Yes | ID of completed analysis to repeat |
+| `models` | array | Yes | List of model keys to use |
+| `custom_prompt` | string | No | New custom prompt for analysis |
+| `name` | string | Yes | Human-readable name for the repeated analysis |
+| `description` | string | No | Description of the repeated analysis purpose |
+
+#### Response
+
+```json
+{
+  "job_id": "550e8400-e29b-41d4-a716-446655440002",
+  "status": "processing",
+  "reference_analysis_id": "550e8400-e29b-41d4-a716-446655440000",
+  "total_texts": 100
+}
+```
+
+### 7. System Health
 
 **Endpoint**: `GET /api/health`
 
@@ -337,7 +390,7 @@ Check system status and model availability.
 }
 ```
 
-### 7. Available Models
+### 8. Available Models
 
 **Endpoint**: `GET /api/models`
 

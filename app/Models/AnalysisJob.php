@@ -45,7 +45,10 @@ class AnalysisJob extends Model
         'total_texts',
         'processed_texts',
         'error_message',
-        'experiment_id',
+        'custom_prompt',
+        'reference_analysis_id',
+        'name',
+        'description',
     ];
 
     /**
@@ -111,10 +114,26 @@ class AnalysisJob extends Model
     }
 
     /**
-     * Gauti eksperimentą.
+     * Gauti nuorodos analizę (jei tai pakartojimas).
      */
-    public function experiment(): BelongsTo
+    public function referenceAnalysis(): BelongsTo
     {
-        return $this->belongsTo(Experiment::class);
+        return $this->belongsTo(AnalysisJob::class, 'reference_analysis_id', 'job_id');
+    }
+
+    /**
+     * Gauti pakartojamas analizės.
+     */
+    public function repeatedAnalyses(): HasMany
+    {
+        return $this->hasMany(AnalysisJob::class, 'reference_analysis_id', 'job_id');
+    }
+
+    /**
+     * Patikrinti ar analizė naudoja custom prompt'ą.
+     */
+    public function usesCustomPrompt(): bool
+    {
+        return !empty($this->custom_prompt);
     }
 }

@@ -26,8 +26,10 @@
                                     <dl class="row">
                                         <dt class="col-sm-4">Tipas:</dt>
                                         <dd class="col-sm-8">
-                                            @if($analysis->experiment_id)
-                                                <span class="badge bg-info">Eksperimentas</span>
+                                            @if($analysis->reference_analysis_id)
+                                                <span class="badge bg-info">Pakartotinė analizė</span>
+                                            @elseif($analysis->usesCustomPrompt())
+                                                <span class="badge bg-warning">Custom prompt</span>
                                             @else
                                                 <span class="badge bg-primary">Standartinė analizė</span>
                                             @endif
@@ -48,8 +50,18 @@
                                                     <span class="badge bg-secondary">{{ ucfirst($analysis->status) }}</span>
                                             @endswitch
                                         </dd>
-                                        <dt class="col-sm-4">Modelis:</dt>
-                                        <dd class="col-sm-8">{{ $analysis->model }}</dd>
+                                        @if($analysis->name)
+                                            <dt class="col-sm-4">Pavadinimas:</dt>
+                                            <dd class="col-sm-8">{{ $analysis->name }}</dd>
+                                        @endif
+                                        @if($analysis->reference_analysis_id)
+                                            <dt class="col-sm-4">Nuoroda:</dt>
+                                            <dd class="col-sm-8">
+                                                <a href="{{ route('analyses.show', $analysis->reference_analysis_id) }}">
+                                                    {{ $analysis->reference_analysis_id }}
+                                                </a>
+                                            </dd>
+                                        @endif
                                         <dt class="col-sm-4">Sukurta:</dt>
                                         <dd class="col-sm-8">{{ $analysis->created_at->format('Y-m-d H:i:s') }}</dd>
                                     </dl>
@@ -58,16 +70,19 @@
                                     <dl class="row">
                                         <dt class="col-sm-4">Tekstų kiekis:</dt>
                                         <dd class="col-sm-8">{{ $analysis->textAnalyses->count() }}</dd>
-                                        @if($analysis->completed_at)
-                                            <dt class="col-sm-4">Baigta:</dt>
-                                            <dd class="col-sm-8">{{ $analysis->completed_at->format('Y-m-d H:i:s') }}</dd>
+                                        @if($analysis->description)
+                                            <dt class="col-sm-4">Aprašymas:</dt>
+                                            <dd class="col-sm-8">{{ $analysis->description }}</dd>
                                         @endif
-                                        @if($analysis->experiment_id)
-                                            <dt class="col-sm-4">Eksperimentas:</dt>
+                                        @if($analysis->usesCustomPrompt())
+                                            <dt class="col-sm-4">Custom prompt:</dt>
                                             <dd class="col-sm-8">
-                                                <a href="{{ route('experiments.show', $analysis->experiment_id) }}">
-                                                    Peržiūrėti eksperimentą
-                                                </a>
+                                                <details>
+                                                    <summary class="btn btn-sm btn-outline-secondary">Peržiūrėti</summary>
+                                                    <div class="mt-2 p-2 bg-light rounded">
+                                                        <pre class="small mb-0">{{ $analysis->custom_prompt }}</pre>
+                                                    </div>
+                                                </details>
                                             </dd>
                                         @endif
                                     </dl>
@@ -99,8 +114,16 @@
                                             @foreach($analysis->textAnalyses as $textAnalysis)
                                                 <tr>
                                                     <td>
-                                                        <div class="text-truncate" style="max-width: 200px;" title="{{ $textAnalysis->content }}">
-                                                            {{ Str::limit($textAnalysis->content, 100) }}
+                                                        <div class="text-truncate" style="max-width: 200px;">
+                                                            <span class="text-preview" data-text-id="{{ $textAnalysis->id }}">
+                                                                {{ Str::limit($textAnalysis->content, 50) }}
+                                                            </span>
+                                                            <button class="btn btn-sm btn-link p-0 ms-1" onclick="toggleFullText({{ $textAnalysis->id }})">
+                                                                <i class="fas fa-expand-alt"></i>
+                                                            </button>
+                                                            <div class="full-text d-none" id="full-text-{{ $textAnalysis->id }}">
+                                                                {{ $textAnalysis->content }}
+                                                            </div>
                                                         </div>
                                                     </td>
                                                     <td>
@@ -321,14 +344,56 @@
                             </div>
                         </div>
                         
-                        @if($textAnalysis->analysis_result)
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">AI analizės rezultatas:</label>
-                                <div class="border p-3 rounded">
-                                    <pre class="mb-0">{{ $textAnalysis->analysis_result }}</pre>
+                        @php
+                            $modelAnnotations = [
+                                'Claude' => ['annotations' => $textAnalysis->claude_annotations, 'actual_model' => $textAnalysis->claude_actual_model],
+                                'Gemini' => ['annotations' => $textAnalysis->gemini_annotations, 'actual_model' => $textAnalysis->gemini_actual_model],
+                                'GPT' => ['annotations' => $textAnalysis->gpt_annotations, 'actual_model' => $textAnalysis->gpt_actual_model],
+                            ];
+                        @endphp
+                        
+                        @foreach($modelAnnotations as $modelName => $data)
+                            @if($data['annotations'])
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">
+                                        {{ $modelName }} rezultatas 
+                                        @if($data['actual_model'])
+                                            <small class="text-muted">({{ $data['actual_model'] }})</small>
+                                        @endif
+                                    </label>
+                                    <div class="border p-3 rounded">
+                                        @if(isset($data['annotations']['primaryChoice']))
+                                            <div class="mb-2">
+                                                <strong>Propaganda sprendimas:</strong>
+                                                @if(in_array('yes', $data['annotations']['primaryChoice']['choices'] ?? []))
+                                                    <span class="badge bg-danger">Propaganda</span>
+                                                @else
+                                                    <span class="badge bg-success">Ne propaganda</span>
+                                                @endif
+                                            </div>
+                                        @endif
+                                        
+                                        @if(isset($data['annotations']['annotations']))
+                                            <div class="mb-2">
+                                                <strong>Aptikti metodai:</strong>
+                                                @foreach($data['annotations']['annotations'] as $annotation)
+                                                    @if(isset($annotation['value']['labels']))
+                                                        @foreach($annotation['value']['labels'] as $label)
+                                                            <span class="badge bg-secondary me-1">{{ $label }}</span>
+                                                        @endforeach
+                                                    @endif
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                        
+                                        <details class="mt-2">
+                                            <summary class="btn btn-sm btn-outline-secondary">Pilnas atsakymas</summary>
+                                            <pre class="mt-2 small">{{ json_encode($data['annotations'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+                                        </details>
+                                    </div>
                                 </div>
-                            </div>
-                        @endif
+                            @endif
+                        @endforeach
 
                         @if($textAnalysis->comparisonMetrics->isNotEmpty())
                             <div class="mb-3">
@@ -372,4 +437,25 @@
         </div>
     @endforeach
 @endif
+
+<script>
+function toggleFullText(textId) {
+    const preview = document.querySelector(`[data-text-id="${textId}"]`);
+    const fullText = document.getElementById(`full-text-${textId}`);
+    const button = preview.nextElementSibling;
+    const icon = button.querySelector('i');
+    
+    if (fullText.classList.contains('d-none')) {
+        fullText.classList.remove('d-none');
+        preview.classList.add('d-none');
+        icon.className = 'fas fa-compress-alt';
+        button.title = 'Sutrumpinti';
+    } else {
+        fullText.classList.add('d-none');
+        preview.classList.remove('d-none');
+        icon.className = 'fas fa-expand-alt';
+        button.title = 'Išplėsti';
+    }
+}
+</script>
 @endsection

@@ -36,9 +36,8 @@ The Propaganda and Disinformation Analysis System is a Laravel-based web applica
 app/
 ├── Http/
 │   ├── Controllers/
-│   │   ├── AnalysisController.php      # Main analysis workflow
+│   │   ├── AnalysisController.php      # Main analysis workflow with custom prompts
 │   │   ├── DashboardController.php     # Statistics and overview
-│   │   ├── ExperimentController.php    # RISEN experiments
 │   │   └── WebController.php           # Main web interface
 │   └── Middleware/                     # Custom middleware
 ├── Services/
@@ -48,23 +47,17 @@ app/
 │   │   ├── OpenAIService.php          # OpenAI GPT-4o API
 │   │   └── LLMServiceInterface.php    # Common interface
 │   ├── Core Services/
-│   │   ├── PromptService.php          # RISEN prompt generation
+│   │   ├── PromptService.php          # Standard and custom prompt generation
 │   │   ├── MetricsService.php         # Statistical calculations
 │   │   ├── StatisticsService.php      # Global performance stats
 │   │   └── ExportService.php          # CSV/JSON export
-│   └── Processing/
-│       ├── TextAnalysisService.php    # Text preprocessing
-│       └── ComparisonService.php      # Expert vs AI comparison
 ├── Jobs/
-│   ├── AnalyzeTextJob.php             # Single text analysis
-│   ├── BatchAnalysisJob.php           # Multiple text processing
-│   └── ExperimentJob.php              # Custom prompt testing
+│   ├── AnalyzeTextJob.php             # Single text analysis with custom prompts
+│   └── BatchAnalysisJob.php           # Multiple text processing
 ├── Models/
-│   ├── AnalysisJob.php                # Main job tracking
+│   ├── AnalysisJob.php                # Main job tracking with custom prompts and references
 │   ├── TextAnalysis.php               # Individual text results
-│   ├── ComparisonMetric.php           # Statistical comparisons
-│   ├── Experiment.php                 # RISEN experiments
-│   └── ExperimentResult.php           # Experiment outcomes
+│   └── ComparisonMetric.php           # Statistical comparisons
 └── Console/Commands/                   # Artisan commands
 
 config/
@@ -78,8 +71,7 @@ database/
 
 resources/
 ├── views/
-│   ├── analyses/                      # Analysis results UI
-│   ├── experiments/                   # RISEN experiment UI
+│   ├── analyses/                      # Analysis results UI with custom prompt support
 │   ├── dashboard/                     # Statistics dashboard
 │   └── layout.blade.php               # Main layout
 └── css/                               # Frontend styles
@@ -134,19 +126,26 @@ Text Input
 └─────────────────┘
 ```
 
-### 2. Experiment Flow
+### 2. Analysis Repetition Flow
 
 ```
-Custom Prompt (RISEN)
+Reference Analysis ID
     ↓
 ┌─────────────────┐
-│ ExperimentController │
-│ - Validate prompt │
-│ - Create experiment │
+│ AnalysisController │
+│ - Get reference data │
+│ - Apply new prompt   │
+│ - Create new job     │
 └─────────┬───────┘
           ↓
 ┌─────────────────┐
-│ PromptService   │
+│ RepeatAnalysis  │
+│ - Copy text data │
+│ - Use custom prompt │
+└─────────┬───────┘
+          ↓
+┌─────────────────┐
+│ AnalyzeTextJob  │
 │ - Build RISEN   │
 │ - Generate final│
 │   prompt        │

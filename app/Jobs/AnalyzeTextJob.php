@@ -81,12 +81,11 @@ class AnalyzeTextJob implements ShouldQueue
                 'job_id' => $this->jobId
             ]);
 
-            // Gauti custom prompt jei eksperimentas nurodytas
+            // Gauti custom prompt iš analizės darbo
             $customPrompt = null;
             $job = AnalysisJob::where('job_id', $this->jobId)->first();
-            if ($job && $job->experiment_id) {
-                $experiment = $job->experiment;
-                $customPrompt = $experiment?->custom_prompt;
+            if ($job && $job->custom_prompt) {
+                $customPrompt = $job->custom_prompt;
             }
 
             // Analizuoti tekstą
@@ -140,12 +139,22 @@ class AnalyzeTextJob implements ShouldQueue
         GeminiService $geminiService, 
         OpenAIService $openAIService
     ) {
-        return match ($this->modelName) {
-            'claude-4' => $claudeService,
-            'gemini-2.5-pro' => $geminiService,
-            'gpt-4.1' => $openAIService,
-            default => null,
-        };
+        // Dinamiškai nustatyti servisą pagal modelio pavadinimą
+        if (str_starts_with($this->modelName, 'claude')) {
+            if ($claudeService->setModel($this->modelName)) {
+                return $claudeService;
+            }
+        } elseif (str_starts_with($this->modelName, 'gemini')) {
+            if ($geminiService->setModel($this->modelName)) {
+                return $geminiService;
+            }
+        } elseif (str_starts_with($this->modelName, 'gpt')) {
+            if ($openAIService->setModel($this->modelName)) {
+                return $openAIService;
+            }
+        }
+        
+        return null;
     }
 
     /**

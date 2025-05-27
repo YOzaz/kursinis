@@ -59,12 +59,18 @@ class AnalysisController extends Controller
      */
     public function analyzeSingle(Request $request): JsonResponse
     {
+        $availableModels = collect(config('llm.models', []))->keys()->implode(',');
+        
         $validator = Validator::make($request->all(), [
             'text_id' => 'required|string',
             'content' => 'required|string|min:10',
             'models' => 'required|array|min:1',
-            'models.*' => 'required|string|in:claude-4,gemini-2.5-pro,gpt-4.1',
-            'expert_annotations' => 'nullable|array', // Pasirinktinės ekspertų anotacijos tyrimo tikslams
+            'models.*' => "required|string|in:{$availableModels}",
+            'expert_annotations' => 'nullable|array',
+            'custom_prompt' => 'nullable|string',
+            'reference_analysis_id' => 'nullable|string|exists:analysis_jobs,job_id',
+            'name' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -83,6 +89,10 @@ class AnalysisController extends Controller
                 'status' => AnalysisJob::STATUS_PROCESSING,
                 'total_texts' => 1,
                 'processed_texts' => 0,
+                'custom_prompt' => $request->custom_prompt,
+                'reference_analysis_id' => $request->reference_analysis_id,
+                'name' => $request->name,
+                'description' => $request->description,
             ]);
 
             // Sukurti tekstų analizės įrašą
@@ -128,10 +138,16 @@ class AnalysisController extends Controller
      */
     public function analyzeBatch(Request $request): JsonResponse
     {
+        $availableModels = collect(config('llm.models', []))->keys()->implode(',');
+        
         $validator = Validator::make($request->all(), [
             'file_content' => 'required|array',
             'models' => 'required|array|min:1',
-            'models.*' => 'required|string|in:claude-4,gemini-2.5-pro,gpt-4.1'
+            'models.*' => "required|string|in:{$availableModels}",
+            'custom_prompt' => 'nullable|string',
+            'reference_analysis_id' => 'nullable|string|exists:analysis_jobs,job_id',
+            'name' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -162,6 +178,10 @@ class AnalysisController extends Controller
                 'status' => AnalysisJob::STATUS_PENDING,
                 'total_texts' => $totalTexts,
                 'processed_texts' => 0,
+                'custom_prompt' => $request->custom_prompt,
+                'reference_analysis_id' => $request->reference_analysis_id,
+                'name' => $request->name,
+                'description' => $request->description,
             ]);
 
             // Paleisti batch analizės darbą
@@ -320,6 +340,168 @@ class AnalysisController extends Controller
 
             return response()->json([
                 'error' => 'Statuso gavimo klaida',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Pakartoti analizę su nauju prompt'u.
+     */
+    public function repeatAnalysis(Request $request): JsonResponse
+    {
+        $availableModels = collect(config('llm.models', []))->keys()->implode(',');
+        
+        $validator = Validator::make($request->all(), [
+            'reference_analysis_id' => 'required|string|exists:analysis_jobs,job_id',
+            'models' => 'required|array|min:1',
+            'models.*' => "required|string|in:{$availableModels}",
+            'custom_prompt' => 'nullable|string',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => 'Neteisingi duomenys',
+                'details' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $referenceAnalysis = AnalysisJob::where('job_id', $request->reference_analysis_id)->firstOrFail();
+            
+            if (!$referenceAnalysis->isCompleted()) {
+                return response()->json([
+                    'error' => 'Nuorodos analizė dar nebaigta'
+                ], 400);
+            }
+
+            $jobId = Str::uuid();
+            $textAnalyses = $referenceAnalysis->textAnalyses;
+
+            // Sukurti naują analizės darbą
+            $job = AnalysisJob::create([
+                'job_id' => $jobId,
+                'status' => AnalysisJob::STATUS_PENDING,
+                'total_texts' => $textAnalyses->count(),
+                'processed_texts' => 0,
+                'custom_prompt' => $request->custom_prompt,
+                'reference_analysis_id' => $request->reference_analysis_id,
+                'name' => $request->name,
+                'description' => $request->description,
+            ]);
+
+            // Kopijuoti tekstus iš nuorodos analizės
+            foreach ($textAnalyses as $originalText) {
+                $newTextAnalysis = TextAnalysis::create([
+                    'job_id' => $jobId,
+                    'text_id' => $originalText->text_id,
+                    'content' => $originalText->content,
+                    'expert_annotations' => $originalText->expert_annotations,
+                ]);
+
+                // Paleisti analizės darbus su nauju prompt'u
+                foreach ($request->models as $model) {
+                    AnalyzeTextJob::dispatch($newTextAnalysis->id, $model, $jobId);
+                }
+            }
+
+            Log::info('Pakartota analizė su nauju prompt\'u', [
+                'job_id' => $jobId,
+                'reference_analysis_id' => $request->reference_analysis_id,
+                'models' => $request->models,
+                'has_custom_prompt' => !empty($request->custom_prompt)
+            ]);
+
+            return response()->json([
+                'job_id' => $jobId,
+                'status' => 'processing',
+                'reference_analysis_id' => $request->reference_analysis_id,
+                'total_texts' => $textAnalyses->count()
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Analizės pakartojimo klaida', [
+                'error' => $e->getMessage(),
+                'reference_analysis_id' => $request->reference_analysis_id ?? 'nežinomas'
+            ]);
+
+            return response()->json([
+                'error' => 'Analizės pakartojimo klaida',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Gauti sistemos statusą ir modelių prieinamumą.
+     */
+    public function health(): JsonResponse
+    {
+        try {
+            $models = config('llm.models', []);
+            $modelStatus = [];
+            
+            foreach ($models as $key => $config) {
+                $modelStatus[$key] = [
+                    'status' => !empty($config['api_key']) ? 'available' : 'not_configured',
+                    'configured' => !empty($config['api_key']),
+                    'rate_limit' => $config['rate_limit'] ?? 50
+                ];
+            }
+            
+            return response()->json([
+                'status' => 'healthy',
+                'timestamp' => now()->toISOString(),
+                'services' => [
+                    'database' => 'connected',
+                    'queue' => 'operational'
+                ],
+                'models' => $modelStatus
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'unhealthy',
+                'timestamp' => now()->toISOString(),
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Gauti galimų modelių sąrašą.
+     */
+    public function models(): JsonResponse
+    {
+        try {
+            $models = config('llm.models', []);
+            $availableModels = [];
+            
+            foreach ($models as $key => $config) {
+                $provider = 'Unknown';
+                if (strpos($key, 'claude') === 0) $provider = 'Anthropic';
+                elseif (strpos($key, 'gemini') === 0) $provider = 'Google';
+                elseif (strpos($key, 'gpt') === 0) $provider = 'OpenAI';
+                
+                $availableModels[] = [
+                    'key' => $key,
+                    'name' => ucfirst(str_replace('-', ' ', $key)),
+                    'provider' => $provider,
+                    'model' => $config['model'] ?? $key,
+                    'configured' => !empty($config['api_key']),
+                    'available' => !empty($config['api_key']),
+                    'rate_limit' => $config['rate_limit'] ?? 50,
+                    'max_tokens' => $config['max_tokens'] ?? 4096
+                ];
+            }
+            
+            return response()->json([
+                'models' => $availableModels
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Modelių sąrašo gavimo klaida',
                 'message' => $e->getMessage()
             ], 500);
         }

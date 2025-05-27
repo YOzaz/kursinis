@@ -22,7 +22,14 @@ class OpenAIService implements LLMServiceInterface
     {
         $this->promptService = $promptService;
         $models = config('llm.models', []);
-        $this->config = $models['gpt-4.1'] ?? null;
+        
+        // Rasti bet kurį GPT modelį kaip numatytąjį
+        foreach ($models as $key => $config) {
+            if (str_starts_with($key, 'gpt')) {
+                $this->config = $config;
+                break;
+            }
+        }
         
         if ($this->config && !empty($this->config['api_key'])) {
             $this->client = OpenAI::client($this->config['api_key']);
@@ -141,5 +148,62 @@ class OpenAIService implements LLMServiceInterface
     public function isConfigured(): bool
     {
         return $this->client !== null && !empty($this->config['api_key'] ?? '');
+    }
+
+    /**
+     * Nustatyti dabartinį modelį.
+     */
+    public function setModel(string $modelKey): bool
+    {
+        $models = config('llm.models', []);
+        $this->config = $models[$modelKey] ?? null;
+        
+        if ($this->config && !empty($this->config['api_key'])) {
+            $this->client = \OpenAI::client($this->config['api_key']);
+            return true;
+        }
+        
+        return false;
+    }
+
+    /**
+     * Gauti visus galimus modelius.
+     */
+    public function getAvailableModels(): array
+    {
+        $models = config('llm.models', []);
+        $openaiModels = [];
+        
+        foreach ($models as $key => $config) {
+            if (strpos($key, 'gpt') === 0 || strpos($key, 'openai') === 0) {
+                $openaiModels[$key] = [
+                    'name' => $config['model'] ?? $key,
+                    'provider' => 'OpenAI',
+                    'configured' => !empty($config['api_key'])
+                ];
+            }
+        }
+        
+        return $openaiModels;
+    }
+
+    /**
+     * Pakartoti analizę su konkrečiu modeliu.
+     */
+    public function retryWithModel(string $modelKey, string $text, ?string $customPrompt = null): array
+    {
+        $originalConfig = $this->config;
+        $originalClient = $this->client;
+        
+        try {
+            if ($this->setModel($modelKey)) {
+                return $this->analyzeText($text, $customPrompt);
+            } else {
+                throw new \Exception("Modelis {$modelKey} neprieinamas");
+            }
+        } finally {
+            $this->config = $originalConfig;
+            $this->client = $originalClient;
+        }
     }
 }

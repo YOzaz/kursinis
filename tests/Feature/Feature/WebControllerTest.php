@@ -142,9 +142,15 @@ class WebControllerTest extends TestCase
 
         $response->assertStatus(200)
                 ->assertViewIs('progress')
-                ->assertViewHas('job', $job)
+                ->assertViewHas('job')
                 ->assertSee('25%') // Progress percentage
-                ->assertSee('processing');
+                ->assertSee('Apdorojama');
+                
+        // Verify the job data is correct
+        $viewJob = $response->viewData('job');
+        $this->assertEquals($job->job_id, $viewJob->job_id);
+        $this->assertEquals(25, $viewJob->processed_texts);
+        $this->assertEquals(100, $viewJob->total_texts);
     }
 
     public function test_progress_page_job_not_found(): void

@@ -1,16 +1,17 @@
-# Eksperimentų vadovas
+# Custom Prompt'ų ir Analizių Pakartojimo Vadovas
 
-## 🎯 Kas yra eksperimentai?
+## 🎯 Kas yra custom prompt'ai?
 
-**Eksperimentai** - tai custom prompt'ų testavimo ir palyginimo sistema propagandos analizės AI modeliams. Leidžia testuoti skirtingus AI instrukcijų formulavimus ir palyginti jų efektyvumą.
+**Custom prompt'ai** - tai pritaikytos AI instrukcijos, kurias galite naudoti propagandos analizės AI modeliams. Sistema leidžia kurti individualius prompt'us kiekvienai analizei arba pakartoti ankstesnes analizės su naujais prompt'ais.
 
-## 🧪 Eksperimentų tikslas
+## 🧪 Custom prompt'ų tikslas
 
-### Kodėl reikalingi eksperimentai?
+### Kodėl reikalingi custom prompt'ai?
 - **Prompt optimizavimas**: Rasti geriausią AI instrukcijų formulavimą jūsų poreikiams
-- **A/B testavimas**: Palyginti skirtingų prompt'ų efektyvumą objektyviai
+- **A/B testavimas**: Palyginti skirtingų prompt'ų efektyvumą su tais pačiais tekstais
 - **Konteksto pritaikymas**: Adaptuoti AI modelius specifiniams tekstų tipams (naujienos, social media, akademiniai tekstai)
-- **Metrikų palyginimas**: Matyti, kaip prompt'ų pakeitimai paveiks Precision, Recall, F1 Score
+- **Metrikų palyginimas**: Matyti, kaip prompt'ų pakeitimai paveiks analizės rezultatus
+- **Duomenų taupymas**: Pakartoti analizę su nauju prompt'u nenaudojant failų iš naujo
 
 ### Praktiniai pavyzdžiai
 - **Vaidmens keitimas**: "Esi propagandos ekspertas" vs. "Esi žurnalistas"
@@ -53,36 +54,43 @@ Tekstai gali būti iš įvairių šaltinių: naujienų portalų, Facebook, Twitt
 Grąžinkite JSON formatą su anotacijomis pagal ATSPARA standartą.
 ```
 
-## 📋 Eksperimento kūrimo žingsniukai
+## 📋 Custom prompt'ų naudojimo žingsniukai
 
-### 1. Eksperimento planas
-1. **Eikite į "Eksperimentai" skiltį**
-2. **Spragtelėkite "Naujas eksperimentas"**
-3. **Užpildykite pagrindą informaciją:**
-   - Pavadinimas (pvz., "Griežtas vs. Lankstus prompt")
-   - Aprašymas (eksperimento tikslas)
+### 1. Nauja analizė su custom prompt'u
 
-### 2. RISEN prompt'o redagavimas
-Kiekvienai kategorijai pritaikykite tekstą:
+**API endpoint**: `POST /api/analyze`
 
-**Role pavyzdžiai:**
-- Ekspertas: "Esi propaganda analizės ekspertas"
-- Žurnalistas: "Esi tyrimas žurnalistas"
-- Analitikas: "Esi duomenų analitikas"
+```json
+{
+  "text_id": "test-123",
+  "content": "Jūsų analizuojamas tekstas...",
+  "models": ["claude-sonnet-4", "gemini-2.5-pro"],
+  "custom_prompt": "Esi propaganda analizės ekspertas. Atlikite detalų teksto tyrimą...",
+  "name": "Ekspertinio prompt'o testas",
+  "description": "Testuojame ekspertiškų instrukcijų efektyvumą"
+}
+```
 
-**Instructions pavyzdžiai:**
-- Griežtas: "Tiksliai identifikuokite propagandos technikas pagal kriterijus"
-- Lankstus: "Raskite galimus propagandos elementus tekste"
+### 2. Analizės pakartojimas su nauju prompt'u
 
-### 3. Prompt'o peržiūra
-- **Real-time preview**: Matysite galutinį prompt'ą iš karto
-- **Auto-update**: Prompt'as atsinaujins keičiant RISEN laukus
-- **Testavimas**: Galite išmėginti prompt'ą prieš išsaugant
+**API endpoint**: `POST /api/repeat-analysis`
 
-### 4. Išsaugojimas ir testavimas
-1. **Išsaugokite eksperimentą**
-2. **Naudokite jį analizės metu**
-3. **Palyginkite rezultatus** su standartiniais prompt'ais
+```json
+{
+  "reference_analysis_id": "550e8400-e29b-41d4-a716-446655440000",
+  "models": ["claude-sonnet-4"],
+  "custom_prompt": "Esi žurnalistas. Ieškokite manipuliacinių elementų...",
+  "name": "Žurnalistinio prompt'o testas",
+  "description": "Palyginimas su ekspertiniu prompt'u"
+}
+```
+
+### 3. Rezultatų palyginimas
+
+1. **Atlikite pirmą analizę** su standartiniu prompt'u
+2. **Pakartokite su custom prompt'u** naudojant `repeat-analysis`
+3. **Palyginkite rezultatus** API atsakymuose
+4. **Eksportuokite duomenis** CSV formatui
 
 ## 📊 Rezultatų analizė
 
@@ -98,32 +106,60 @@ Sistema apskaičiuoja:
 - **JSON failas**: Struktūrizuoti duomenys programiniam naudojimui
 - **Statistikos CSV**: Suvestinės metrikos palyginimui
 
-## 🎯 Praktiniai eksperimentų pavyzdžiai
+## 🎯 Praktiniai custom prompt'ų pavyzdžiai
 
-### 1. Vaidmens eksperimentas
+### 1. Vaidmens palyginimas
 **Tikslas**: Testuoti, ar AI geriau atpažįsta propagandą būdamas "ekspertu" vs. "žurnalistu"
 
-**Eksperimentas A - Ekspertas:**
+**Prompt A - Ekspertas:**
 ```
-Role: Esi propaganda analizės ekspertas su 10 metų patirtimi
-```
-
-**Eksperimentas B - Žurnalistas:**
-```
-Role: Esi investigacinio žurnalismo specialistas
+Esi propaganda analizės ekspertas su 10 metų patirtimi. Atidžiai išanalizuokite tekstą ir identifikuokite visas propagandos technikas pagal ATSPARA klasifikaciją. Būkite tikslūs ir objektyvūs.
 ```
 
-### 2. Griežtumo eksperimentas
+**Prompt B - Žurnalistas:**
+```
+Esi investigacinio žurnalismo specialistas. Ieškokite tekste manipuliacinių elementų, kurie gali klaidinti skaitytojus. Atkreipkite dėmesį į subjektyvų žodžių naudojimą ir emocinius spaudimo metodus.
+```
+
+### 2. Griežtumo palyginimas
 **Tikslas**: Palyginti griežtas vs. lankstus instrukcijas
 
-**Eksperimentas A - Griežtas:**
+**Prompt A - Griežtas:**
 ```
-Instructions: Tiksliai identifikuokite TIKTAI tuos fragmentus, kurie 100% atitinka ATSPARA kriterijus
+Analizuokite tekstą ir identifikuokite TIKTAI tuos fragmentus, kurie 100% tiksliai atitinka ATSPARA propagandos technikų kriterijus. Nežymėkite abejotinų atvejų.
 ```
 
-**Eksperimentas B - Lankstus:**
+**Prompt B - Lankstus:**
 ```
-Instructions: Raskite galimus propagandos elementus, net jei neatitinka visų kriterijų
+Raskite galimus propagandos elementus tekste, net jei jie tik iš dalies atitinka kriterijus. Geriau pažymėkite daugiau, nei praleiskite.
+```
+
+### 3. API naudojimo pavyzdys su Python
+
+```python
+import requests
+
+# 1. Pirma analizė
+response1 = requests.post('http://propaganda.local/api/analyze', json={
+    'text_id': 'comparison-test',
+    'content': 'Analizuojamas tekstas...',
+    'models': ['claude-sonnet-4'],
+    'name': 'Standartinis prompt'
+})
+job1_id = response1.json()['job_id']
+
+# 2. Pakartota analizė su custom prompt'u
+response2 = requests.post('http://propaganda.local/api/repeat-analysis', json={
+    'reference_analysis_id': job1_id,
+    'models': ['claude-sonnet-4'],
+    'custom_prompt': 'Jūsų custom prompt...',
+    'name': 'Custom prompt testas'
+})
+job2_id = response2.json()['job_id']
+
+# 3. Palyginimas rezultatų
+results1 = requests.get(f'http://propaganda.local/api/results/{job1_id}')
+results2 = requests.get(f'http://propaganda.local/api/results/{job2_id}')
 ```
 
 ### 3. Konteksto eksperimentas

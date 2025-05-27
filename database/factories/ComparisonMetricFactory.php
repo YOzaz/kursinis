@@ -27,7 +27,7 @@ class ComparisonMetricFactory extends Factory
         return [
             'job_id' => AnalysisJob::factory(),
             'text_id' => $this->faker->numberBetween(1, 1000),
-            'model_name' => $this->faker->randomElement(['claude-4', 'gemini-2.5-pro', 'gpt-4.1']),
+            'model_name' => $this->faker->randomElement(['claude-sonnet-4', 'claude-opus-4', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gpt-4.1', 'gpt-4o-latest']),
             'true_positives' => $truePositives,
             'false_positives' => $falsePositives,
             'false_negatives' => $falseNegatives,
@@ -52,7 +52,7 @@ class ComparisonMetricFactory extends Factory
     public function claude(): static
     {
         return $this->state(fn (array $attributes) => [
-            'model_name' => 'claude-4',
+            'model_name' => 'claude-sonnet-4',
         ]);
     }
 

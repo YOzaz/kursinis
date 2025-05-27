@@ -31,3 +31,15 @@ Route::get('/results/{jobId}/export', [AnalysisController::class, 'exportResults
 // Darbo statuso tikrinimas
 Route::get('/status/{jobId}', [AnalysisController::class, 'getStatus'])
     ->name('api.status.get');
+
+// Analizės pakartojimas
+Route::post('/repeat-analysis', [AnalysisController::class, 'repeatAnalysis'])
+    ->name('api.analysis.repeat');
+
+// Sistemos statusas
+Route::get('/health', [AnalysisController::class, 'health'])
+    ->name('api.health');
+
+// Galimų modelių sąrašas
+Route::get('/models', [AnalysisController::class, 'models'])
+    ->name('api.models');

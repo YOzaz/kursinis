@@ -21,7 +21,14 @@ class GeminiService implements LLMServiceInterface
     {
         $this->promptService = $promptService;
         $models = config('llm.models', []);
-        $this->config = $models['gemini-2.5-pro'] ?? null;
+        
+        // Rasti bet kurį Gemini modelį kaip numatytąjį
+        foreach ($models as $key => $config) {
+            if (str_starts_with($key, 'gemini')) {
+                $this->config = $config;
+                break;
+            }
+        }
         
         if ($this->config) {
             $this->httpClient = new Client([
@@ -157,6 +164,76 @@ class GeminiService implements LLMServiceInterface
     public function isConfigured(): bool
     {
         return !empty($this->config['api_key'] ?? '');
+    }
+
+    /**
+     * Nustatyti dabartinį modelį.
+     */
+    public function setModel(string $modelKey): bool
+    {
+        $models = config('llm.models', []);
+        $this->config = $models[$modelKey] ?? null;
+        
+        if ($this->config) {
+            $this->httpClient = new Client([
+                'base_uri' => $this->config['base_url'],
+                'timeout' => config('llm.request_timeout'),
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+            ]);
+            return true;
+        }
+        
+        return false;
+    }
+
+    /**
+     * Gauti visus galimus modelius.
+     */
+    public function getAvailableModels(): array
+    {
+        $models = config('llm.models', []);
+        $geminiModels = [];
+        
+        foreach ($models as $key => $config) {
+            if (strpos($key, 'gemini') === 0) {
+                $geminiModels[$key] = [
+                    'name' => $config['model'] ?? $key,
+                    'provider' => 'Google',
+                    'configured' => !empty($config['api_key'])
+                ];
+            }
+        }
+        
+        return $geminiModels;
+    }
+
+    /**
+     * Pakartoti analizę su konkrečiu modeliu.
+     */
+    public function retryWithModel(string $modelKey, string $text, ?string $customPrompt = null): array
+    {
+        $originalConfig = $this->config;
+        
+        try {
+            if ($this->setModel($modelKey)) {
+                return $this->analyzeText($text, $customPrompt);
+            } else {
+                throw new \Exception("Modelis {$modelKey} neprieinamas");
+            }
+        } finally {
+            $this->config = $originalConfig;
+            if ($originalConfig) {
+                $this->httpClient = new Client([
+                    'base_uri' => $originalConfig['base_url'],
+                    'timeout' => config('llm.request_timeout'),
+                    'headers' => [
+                        'Content-Type' => 'application/json',
+                    ],
+                ]);
+            }
+        }
     }
 
     /**

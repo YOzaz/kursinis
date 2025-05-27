@@ -110,12 +110,15 @@ class TextAnalysis extends Model
      */
     private function getAnnotationField(string $modelName): ?string
     {
-        return match ($modelName) {
-            'claude-4' => 'claude_annotations',
-            'gemini-2.5-pro' => 'gemini_annotations',
-            'gpt-4.1' => 'gpt_annotations',
-            default => null,
-        };
+        if (str_starts_with($modelName, 'claude')) {
+            return 'claude_annotations';
+        } elseif (str_starts_with($modelName, 'gemini')) {
+            return 'gemini_annotations';
+        } elseif (str_starts_with($modelName, 'gpt')) {
+            return 'gpt_annotations';
+        }
+        
+        return null;
     }
 
     /**
@@ -123,12 +126,15 @@ class TextAnalysis extends Model
      */
     private function getActualModelField(string $modelName): ?string
     {
-        return match ($modelName) {
-            'claude-4' => 'claude_actual_model',
-            'gemini-2.5-pro' => 'gemini_actual_model',
-            'gpt-4.1' => 'gpt_actual_model',
-            default => null,
-        };
+        if (str_starts_with($modelName, 'claude')) {
+            return 'claude_actual_model';
+        } elseif (str_starts_with($modelName, 'gemini')) {
+            return 'gemini_actual_model';
+        } elseif (str_starts_with($modelName, 'gpt')) {
+            return 'gpt_actual_model';
+        }
+        
+        return null;
     }
 
     /**

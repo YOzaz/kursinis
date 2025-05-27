@@ -58,7 +58,6 @@ class WebController extends Controller
             $jobId = Str::uuid();
             $models = $request->input('models');
             $totalTexts = count($jsonData);
-            $experimentId = $request->input('experiment_id');
 
             // Sukurti analizės darbą
             AnalysisJob::create([
@@ -66,7 +65,9 @@ class WebController extends Controller
                 'status' => AnalysisJob::STATUS_PENDING,
                 'total_texts' => $totalTexts,
                 'processed_texts' => 0,
-                'experiment_id' => $experimentId,
+                'name' => $request->input('name', 'Batch analizė'),
+                'description' => $request->input('description'),
+                'custom_prompt' => $request->input('custom_prompt'),
             ]);
 
             // Paleisti batch analizės darbą

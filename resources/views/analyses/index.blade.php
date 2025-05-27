@@ -24,7 +24,8 @@
                 <ul class="mb-0">
                     <li><strong>Su ekspertų anotacijomis</strong> - palyginamos AI ir ekspertų anotacijos, skaičiuojamos metrikos</li>
                     <li><strong>Be ekspertų anotacijų</strong> - tik AI analizė naujam tekstui</li>
-                    <li><strong>Eksperimentinės</strong> - naudojant custom prompt'us iš <a href="{{ route('experiments.index') }}" class="alert-link">eksperimentų</a></li>
+                    <li><strong>Su custom prompt'u</strong> - naudojant specialų prompt'ą</li>
+                    <li><strong>Pakartotinės</strong> - pakartoja ankstesnę analizę su naujais parametrais</li>
                 </ul>
             </div>
         </div>
@@ -37,8 +38,10 @@
                     <div class="card h-100">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h6 class="card-title mb-0">
-                                @if($analysis->experiment_id)
-                                    <i class="fas fa-flask text-warning me-1"></i>Eksperimentas
+                                @if($analysis->reference_analysis_id)
+                                    <i class="fas fa-redo text-info me-1"></i>Pakartotinė analizė
+                                @elseif($analysis->usesCustomPrompt())
+                                    <i class="fas fa-edit text-warning me-1"></i>Custom prompt
                                 @else
                                     <i class="fas fa-chart-line text-primary me-1"></i>Standartinė analizė
                                 @endif
@@ -48,16 +51,20 @@
                             </span>
                         </div>
                         <div class="card-body">
+                            @if($analysis->name)
+                                <h6 class="mb-2">{{ $analysis->name }}</h6>
+                            @endif
+                            @if($analysis->description)
+                                <p class="small text-muted mb-2">{{ Str::limit($analysis->description, 100) }}</p>
+                            @endif
+                            @if($analysis->reference_analysis_id)
+                                <div class="small text-info mb-2">
+                                    <i class="fas fa-link"></i> Nuoroda: {{ $analysis->reference_analysis_id }}
+                                </div>
+                            @endif
                             <div class="small text-muted mb-3">
                                 <div><strong>ID:</strong> {{ $analysis->job_id }}</div>
                                 <div><strong>Sukurta:</strong> {{ $analysis->created_at->format('Y-m-d H:i') }}</div>
-                                @if($analysis->started_at)
-                                    <div><strong>Pradėta:</strong> {{ $analysis->started_at->format('Y-m-d H:i') }}</div>
-                                @endif
-                                @if($analysis->completed_at)
-                                    <div><strong>Užbaigta:</strong> {{ $analysis->completed_at->format('Y-m-d H:i') }}</div>
-                                    <div><strong>Trukmė:</strong> {{ $analysis->started_at->diffInSeconds($analysis->completed_at) }}s</div>
-                                @endif
                             </div>
 
                             <div class="row text-center mb-3">

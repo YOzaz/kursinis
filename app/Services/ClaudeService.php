@@ -22,7 +22,14 @@ class ClaudeService implements LLMServiceInterface
     {
         $this->promptService = $promptService;
         $models = config('llm.models', []);
-        $this->config = $models['claude-4'] ?? null;
+        
+        // Rasti bet kurį Claude modelį kaip numatytąjį
+        foreach ($models as $key => $config) {
+            if (str_starts_with($key, 'claude')) {
+                $this->config = $config;
+                break;
+            }
+        }
         
         if ($this->config) {
             $this->httpClient = new Client([
@@ -141,6 +148,80 @@ class ClaudeService implements LLMServiceInterface
     public function isConfigured(): bool
     {
         return !empty($this->config['api_key'] ?? '');
+    }
+
+    /**
+     * Nustatyti dabartinį modelį.
+     */
+    public function setModel(string $modelKey): bool
+    {
+        $models = config('llm.models', []);
+        $this->config = $models[$modelKey] ?? null;
+        
+        if ($this->config) {
+            $this->httpClient = new Client([
+                'base_uri' => $this->config['base_url'],
+                'timeout' => config('llm.request_timeout'),
+                'headers' => [
+                    'x-api-key' => $this->config['api_key'],
+                    'Content-Type' => 'application/json',
+                    'anthropic-version' => '2023-06-01',
+                ],
+            ]);
+            return true;
+        }
+        
+        return false;
+    }
+
+    /**
+     * Gauti visus galimus modelius.
+     */
+    public function getAvailableModels(): array
+    {
+        $models = config('llm.models', []);
+        $claudeModels = [];
+        
+        foreach ($models as $key => $config) {
+            if (strpos($key, 'claude') === 0) {
+                $claudeModels[$key] = [
+                    'name' => $config['model'] ?? $key,
+                    'provider' => 'Anthropic',
+                    'configured' => !empty($config['api_key'])
+                ];
+            }
+        }
+        
+        return $claudeModels;
+    }
+
+    /**
+     * Pakartoti analizę su konkrečiu modeliu.
+     */
+    public function retryWithModel(string $modelKey, string $text, ?string $customPrompt = null): array
+    {
+        $originalConfig = $this->config;
+        
+        try {
+            if ($this->setModel($modelKey)) {
+                return $this->analyzeText($text, $customPrompt);
+            } else {
+                throw new \Exception("Modelis {$modelKey} neprieinamas");
+            }
+        } finally {
+            $this->config = $originalConfig;
+            if ($originalConfig) {
+                $this->httpClient = new Client([
+                    'base_uri' => $originalConfig['base_url'],
+                    'timeout' => config('llm.request_timeout'),
+                    'headers' => [
+                        'x-api-key' => $originalConfig['api_key'],
+                        'Content-Type' => 'application/json',
+                        'anthropic-version' => '2023-06-01',
+                    ],
+                ]);
+            }
+        }
     }
 
     /**
