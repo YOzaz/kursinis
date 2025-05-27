@@ -18,7 +18,7 @@ class ComparisonMetricTest extends TestCase
         $metric = ComparisonMetric::factory()->create([
             'job_id' => $job->job_id,
             'text_id' => 'test-123',
-            'model_name' => 'claude-4',
+            'model_name' => 'claude-sonnet-4',
             'true_positives' => 5,
             'false_positives' => 2,
             'false_negatives' => 1,
@@ -28,7 +28,7 @@ class ComparisonMetricTest extends TestCase
         $this->assertDatabaseHas('comparison_metrics', [
             'job_id' => $job->job_id,
             'text_id' => 'test-123',
-            'model_name' => 'claude-4',
+            'model_name' => 'claude-sonnet-4',
             'true_positives' => 5,
             'false_positives' => 2,
             'false_negatives' => 1,
@@ -66,7 +66,7 @@ class ComparisonMetricTest extends TestCase
         $geminiMetric = ComparisonMetric::factory()->gemini()->forJob($job)->create();
         $openaiMetric = ComparisonMetric::factory()->openai()->forJob($job)->create();
 
-        $this->assertEquals('claude-4', $claudeMetric->model_name);
+        $this->assertEquals('claude-sonnet-4', $claudeMetric->model_name);
         $this->assertEquals('gemini-2.5-pro', $geminiMetric->model_name);
         $this->assertEquals('gpt-4.1', $openaiMetric->model_name);
     }
@@ -197,13 +197,13 @@ class ComparisonMetricTest extends TestCase
         $metric3 = ComparisonMetric::factory()->forJob($job)->forText('text-2')->claude()->create();
 
         $this->assertEquals('text-1', $metric1->text_id);
-        $this->assertEquals('claude-4', $metric1->model_name);
+        $this->assertEquals('claude-sonnet-4', $metric1->model_name);
         
         $this->assertEquals('text-1', $metric2->text_id);
         $this->assertEquals('gemini-2.5-pro', $metric2->model_name);
         
         $this->assertEquals('text-2', $metric3->text_id);
-        $this->assertEquals('claude-4', $metric3->model_name);
+        $this->assertEquals('claude-sonnet-4', $metric3->model_name);
     }
 
     public function test_can_have_different_metrics_for_same_job(): void

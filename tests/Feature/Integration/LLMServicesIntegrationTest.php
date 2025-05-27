@@ -109,7 +109,7 @@ class LLMServicesIntegrationTest extends TestCase
         $claudeService = app(ClaudeService::class);
         
         $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('HTTP request failed');
+        $this->expectExceptionMessage('Claude API neprieinamas po');
         
         $claudeService->analyzeText('Test text');
     }

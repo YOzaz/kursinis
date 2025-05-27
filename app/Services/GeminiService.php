@@ -16,6 +16,7 @@ class GeminiService implements LLMServiceInterface
     private Client $httpClient;
     private PromptService $promptService;
     private ?array $config;
+    private ?string $modelKey;
 
     public function __construct(PromptService $promptService)
     {
@@ -26,6 +27,7 @@ class GeminiService implements LLMServiceInterface
         foreach ($models as $key => $config) {
             if (str_starts_with($key, 'gemini')) {
                 $this->config = $config;
+                $this->modelKey = $key;
                 break;
             }
         }
@@ -147,7 +149,7 @@ class GeminiService implements LLMServiceInterface
      */
     public function getModelName(): string
     {
-        return 'gemini-2.5-pro';
+        return $this->modelKey ?? 'gemini-2.5-pro';
     }
 
     /**

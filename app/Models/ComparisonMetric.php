@@ -35,6 +35,7 @@ class ComparisonMetric extends Model
         'precision',
         'recall',
         'f1_score',
+        'analysis_execution_time_ms',
     ];
 
     /**
@@ -48,6 +49,7 @@ class ComparisonMetric extends Model
         'precision' => 'decimal:4',
         'recall' => 'decimal:4',
         'f1_score' => 'decimal:4',
+        'analysis_execution_time_ms' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

@@ -525,4 +525,113 @@ class AnalysisController extends Controller
 
         return true;
     }
+
+    /**
+     * Pakartoti analizę su tais pačiais tekstais ir modeliais.
+     */
+    public function repeat(Request $request)
+    {
+        $request->validate([
+            'reference_job_id' => 'required|string|exists:analysis_jobs,job_id',
+            'prompt_type' => 'required|in:keep,standard,custom',
+            'custom_prompt' => 'nullable|string|max:10000',
+            'name' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            // Gauti originalią analizę
+            $originalJob = AnalysisJob::where('job_id', $request->reference_job_id)
+                ->with('textAnalyses')
+                ->firstOrFail();
+
+            if ($originalJob->status !== 'completed') {
+                return redirect()->back()->with('error', 'Galima pakartoti tik sėkmingai baigtą analizę.');
+            }
+
+            // Nustatyti prompt'ą
+            $customPrompt = null;
+            switch ($request->prompt_type) {
+                case 'keep':
+                    $customPrompt = $originalJob->custom_prompt;
+                    break;
+                case 'custom':
+                    $customPrompt = $request->custom_prompt;
+                    break;
+                case 'standard':
+                default:
+                    $customPrompt = null;
+                    break;
+            }
+
+            // Sukurti naują analizės darbą
+            $newJobId = Str::uuid();
+            $newJob = AnalysisJob::create([
+                'job_id' => $newJobId,
+                'status' => 'pending',
+                'custom_prompt' => $customPrompt,
+                'reference_analysis_id' => $request->reference_job_id,
+                'name' => $request->name,
+                'description' => $request->description,
+                'total_texts' => $originalJob->textAnalyses->count(),
+                'processed_texts' => 0,
+            ]);
+
+            // Kopijuoti tekstų analizės su tais pačiais duomenimis
+            $textAnalysesToCreate = [];
+            $modelsUsed = [];
+
+            foreach ($originalJob->textAnalyses as $originalTextAnalysis) {
+                $textAnalysesToCreate[] = [
+                    'job_id' => $newJobId,
+                    'text_id' => $originalTextAnalysis->text_id,
+                    'content' => $originalTextAnalysis->content,
+                    'expert_annotations' => json_encode($originalTextAnalysis->expert_annotations),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+
+                // Surinkti naudotus modelius
+                $models = $originalTextAnalysis->getAllModelAnnotations();
+                $modelsUsed = array_merge($modelsUsed, array_keys($models));
+            }
+
+            // Sukurti naujus tekstų analizės įrašus
+            TextAnalysis::insert($textAnalysesToCreate);
+            
+            $modelsUsed = array_unique($modelsUsed);
+
+            // Paleisti analizės darbus
+            $createdTextAnalyses = TextAnalysis::where('job_id', $newJobId)->get();
+            
+            foreach ($createdTextAnalyses as $textAnalysis) {
+                foreach ($modelsUsed as $modelName) {
+                    AnalyzeTextJob::dispatch($textAnalysis->id, $modelName, $newJobId)
+                        ->onQueue('analysis');
+                }
+            }
+
+            // Atnaujinti darbo statusą
+            $newJob->update(['status' => 'processing']);
+
+            Log::info('Pakartotinė analizė paleista', [
+                'original_job_id' => $request->reference_job_id,
+                'new_job_id' => $newJobId,
+                'texts_count' => count($textAnalysesToCreate),
+                'models_count' => count($modelsUsed),
+                'prompt_type' => $request->prompt_type
+            ]);
+
+            return redirect()->route('progress', ['jobId' => $newJobId])
+                ->with('success', 'Pakartotinė analizė sėkmingai paleista!');
+
+        } catch (\Exception $e) {
+            Log::error('Pakartotinės analizės klaida', [
+                'reference_job_id' => $request->reference_job_id,
+                'error' => $e->getMessage()
+            ]);
+
+            return redirect()->back()->with('error', 'Įvyko klaida paleidžiant pakartotinę analizę: ' . $e->getMessage());
+        }
+    }
 }

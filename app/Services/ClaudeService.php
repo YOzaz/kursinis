@@ -17,6 +17,7 @@ class ClaudeService implements LLMServiceInterface
     private Client $httpClient;
     private PromptService $promptService;
     private ?array $config;
+    private ?string $modelKey;
 
     public function __construct(PromptService $promptService)
     {
@@ -27,6 +28,7 @@ class ClaudeService implements LLMServiceInterface
         foreach ($models as $key => $config) {
             if (str_starts_with($key, 'claude')) {
                 $this->config = $config;
+                $this->modelKey = $key;
                 break;
             }
         }
@@ -131,7 +133,7 @@ class ClaudeService implements LLMServiceInterface
      */
     public function getModelName(): string
     {
-        return 'claude-4';
+        return $this->modelKey ?? 'claude-opus-4';
     }
 
     /**

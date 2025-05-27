@@ -20,6 +20,11 @@
                             <i class="fas fa-file-csv me-1"></i>CSV
                         </a>
                     @endif
+                    @if($analysis->status === 'completed')
+                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#repeatAnalysisModal">
+                            <i class="fas fa-redo me-2"></i>Pakartoti analizę
+                        </button>
+                    @endif
                     <a href="{{ route('analyses.index') }}" class="btn btn-outline-secondary">
                         <i class="fas fa-arrow-left me-2"></i>Grįžti į sąrašą
                     </a>
@@ -110,7 +115,7 @@
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
-                                    <table class="table table-striped">
+                                    <table class="table table-striped" id="analysisResultsTable">
                                         <thead>
                                             <tr>
                                                 <th>Tekstas</th>
@@ -149,16 +154,20 @@
                                                        data-bs-placement="top" 
                                                        title="Tikslumas/Atsaukimas/F1 - palyginimas su ekspertų anotacijomis (tik jei yra ekspertų duomenys)"></i>
                                                 </th>
+                                                <th>
+                                                    Vykdymo laikas
+                                                    <i class="fas fa-question-circle text-muted ms-1" 
+                                                       data-bs-toggle="tooltip" 
+                                                       data-bs-placement="top" 
+                                                       title="Kiek laiko užtruko AI modelio analizė"></i>
+                                                </th>
                                                 <th>Veiksmai</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach($analysis->textAnalyses as $textAnalysis)
                                                 @php
-                                                    $models = [];
-                                                    if($textAnalysis->claude_annotations) $models['claude-opus-4'] = $textAnalysis->claude_annotations;
-                                                    if($textAnalysis->gemini_annotations) $models['gemini-2.5-pro'] = $textAnalysis->gemini_annotations;
-                                                    if($textAnalysis->gpt_annotations) $models['gpt-4.1'] = $textAnalysis->gpt_annotations;
+                                                    $models = $textAnalysis->getAllModelAnnotations();
                                                 @endphp
                                                 
                                                 @foreach($models as $modelName => $annotations)
@@ -237,6 +246,21 @@
                                                                 </small>
                                                             @else
                                                                 <span class="text-muted">Nėra ekspertų anotacijų</span>
+                                                            @endif
+                                                        </td>
+                                                        <td>
+                                                            @php
+                                                                $executionTime = $textAnalysis->getModelExecutionTime($modelName);
+                                                            @endphp
+                                                            
+                                                            @if($executionTime)
+                                                                @if($executionTime < 1000)
+                                                                    {{ $executionTime }}ms
+                                                                @else
+                                                                    {{ number_format($executionTime / 1000, 1) }}s
+                                                                @endif
+                                                            @else
+                                                                <span class="text-muted">-</span>
                                                             @endif
                                                         </td>
                                                         <td>
@@ -451,6 +475,13 @@
                                                        data-bs-placement="top" 
                                                        title="Teisingi teigiami / Klaidingi teigiami / Klaidingi neigiami rezultatai"></i>
                                                 </th>
+                                                <th>
+                                                    Vykdymo laikas
+                                                    <i class="fas fa-question-circle text-muted ms-1" 
+                                                       data-bs-toggle="tooltip" 
+                                                       data-bs-placement="top" 
+                                                       title="Kiek laiko užtruko šio modelio analizė"></i>
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -472,6 +503,17 @@
                                                             <span class="text-warning">{{ $metric->false_positives }}</span> / 
                                                             <span class="text-danger">{{ $metric->false_negatives }}</span>
                                                         </small>
+                                                    </td>
+                                                    <td>
+                                                        @if($metric->analysis_execution_time_ms)
+                                                            @if($metric->analysis_execution_time_ms < 1000)
+                                                                {{ $metric->analysis_execution_time_ms }}ms
+                                                            @else
+                                                                {{ number_format($metric->analysis_execution_time_ms / 1000, 1) }}s
+                                                            @endif
+                                                        @else
+                                                            <span class="text-muted">-</span>
+                                                        @endif
                                                     </td>
                                                 </tr>
                                             @endforeach
@@ -513,12 +555,50 @@ function toggleFullText(textId) {
     }
 }
 
-// Initialize Bootstrap tooltips
-document.addEventListener('DOMContentLoaded', function() {
+// Initialize Bootstrap tooltips and DataTables
+$(document).ready(function() {
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
+
+    // Initialize DataTable for analysis results
+    if ($('#analysisResultsTable').length) {
+        $('#analysisResultsTable').DataTable({
+            responsive: true,
+            pageLength: 25,
+            order: [[0, 'asc']], // Sort by text content
+            columnDefs: [
+                { 
+                    targets: [0], // Text column
+                    type: 'string'
+                },
+                {
+                    targets: [1, 2, 3, 4, 5], // Other columns
+                    orderable: true
+                },
+                {
+                    targets: [-1], // Last column (actions)
+                    orderable: false
+                }
+            ],
+            language: {
+                "search": "Ieškoti:",
+                "lengthMenu": "Rodyti _MENU_ eilučių puslapyje",
+                "info": "Rodoma _START_ - _END_ iš _TOTAL_ eilučių",
+                "infoEmpty": "Nėra duomenų",
+                "infoFiltered": "(išfiltruota iš _MAX_ eilučių)",
+                "paginate": {
+                    "first": "Pirmas",
+                    "last": "Paskutinis",
+                    "next": "Kitas",
+                    "previous": "Ankstesnis"
+                },
+                "emptyTable": "Nėra duomenų lentelėje"
+            },
+            dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rt<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+        });
+    }
 });
 
 // Modal text expansion functions
@@ -534,6 +614,11 @@ function loadFullText(textId, button) {
     setTimeout(function() {
         preview.classList.add('d-none');
         full.classList.remove('d-none');
+        
+        // Reset button
+        button.innerHTML = 'Sutrumpinti tekstą';
+        button.disabled = false;
+        button.onclick = function() { hideFullText(textId, button); };
     }, 300);
 }
 
@@ -543,6 +628,219 @@ function hideFullText(textId, button) {
     
     full.classList.add('d-none');
     preview.classList.remove('d-none');
+    
+    // Reset button
+    button.innerHTML = 'Išplėsti tekstą';
+    button.onclick = function() { loadFullText(textId, button); };
 }
 </script>
+
+<!-- Repeat Analysis Modal -->
+<div class="modal fade" id="repeatAnalysisModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Pakartoti analizę</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('analysis.repeat') }}" method="POST" id="repeatAnalysisForm">
+                @csrf
+                <input type="hidden" name="reference_job_id" value="{{ $analysis->job_id }}">
+                
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Pakartotinė analizė</strong> naudos tuos pačius tekstus ir pasirinktus modelius, bet galėsite modifikuoti prompt'ą.
+                    </div>
+
+                    <!-- Current analysis info -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-header">
+                            <h6 class="mb-0">Dabartinės analizės informacija</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Tekstų skaičius:</strong> {{ $analysis->textAnalyses->count() }}<br>
+                                    <strong>Modeliai:</strong> 
+                                    @php
+                                        $usedModels = [];
+                                        foreach($analysis->textAnalyses as $textAnalysis) {
+                                            $models = $textAnalysis->getAllModelAnnotations();
+                                            $usedModels = array_merge($usedModels, array_keys($models));
+                                        }
+                                        $usedModels = array_unique($usedModels);
+                                    @endphp
+                                    @foreach($usedModels as $model)
+                                        <span class="badge bg-primary me-1">{{ $model }}</span>
+                                    @endforeach
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Prompt tipas:</strong>
+                                    @if($analysis->custom_prompt)
+                                        <span class="badge bg-warning">Custom prompt</span>
+                                    @else
+                                        <span class="badge bg-primary">Standartinis</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- New analysis configuration -->
+                    <h6>Naujos analizės konfigūracija</h6>
+
+                    <!-- Prompt configuration -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Prompt konfigūracija</label>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="prompt_type" id="keep_prompt" value="keep" 
+                                       @if($analysis->custom_prompt) checked @endif>
+                                <label class="form-check-label" for="keep_prompt">
+                                    <strong>Naudoti tą patį prompt'ą</strong>
+                                    @if($analysis->custom_prompt)
+                                        <small class="d-block text-muted">Dabartinis custom prompt</small>
+                                    @else
+                                        <small class="d-block text-muted">Standartinis ATSPARA prompt</small>
+                                    @endif
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="prompt_type" id="standard_repeat" value="standard" 
+                                       @if(!$analysis->custom_prompt) checked @endif>
+                                <label class="form-check-label" for="standard_repeat">
+                                    <strong>Standartinis ATSPARA prompt'as</strong>
+                                    <small class="d-block text-muted">Sistemos numatytasis prompt</small>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="prompt_type" id="modify_repeat" value="custom">
+                                <label class="form-check-label" for="modify_repeat">
+                                    <strong>Modifikuoti prompt'ą</strong>
+                                    <small class="d-block text-muted">Keisti esamą arba sukurti naują</small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Current prompt display -->
+                        @if($analysis->custom_prompt)
+                            <div id="current_prompt_section">
+                                <label class="form-label">Dabartinis custom prompt:</label>
+                                <div class="bg-light p-3 mb-3" style="max-height: 150px; overflow-y: auto;">
+                                    <pre style="white-space: pre-wrap; margin: 0;">{{ $analysis->custom_prompt }}</pre>
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Custom prompt editor -->
+                        <div id="custom_prompt_repeat_section" style="display: none;">
+                            <div class="mb-3">
+                                @if($analysis->custom_prompt)
+                                    <button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="loadCurrentPrompt()">
+                                        <i class="fas fa-copy me-1"></i>Kopijuoti dabartinį prompt'ą
+                                    </button>
+                                @endif
+                                <button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="loadDefaultPromptRepeat()">
+                                    <i class="fas fa-copy me-1"></i>Kopijuoti standartinį prompt'ą
+                                </button>
+                            </div>
+                            <textarea class="form-control" id="new_custom_prompt" name="custom_prompt" rows="8" 
+                                      placeholder="Įveskite modifikuotą prompt'ą..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Analysis naming -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="repeat_name" class="form-label">Naujos analizės pavadinimas</label>
+                            <input type="text" class="form-control" id="repeat_name" name="name" 
+                                   value="{{ $analysis->name ? $analysis->name . ' (pakartotinė)' : 'Pakartotinė analizė' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="repeat_description" class="form-label">Aprašymas</label>
+                            <input type="text" class="form-control" id="repeat_description" name="description" 
+                                   placeholder="Pakartotinės analizės aprašymas">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Atšaukti</button>
+                    <button type="submit" class="btn btn-primary" id="repeatSubmitBtn">
+                        <i class="fas fa-redo me-2"></i>Pradėti pakartotinę analizę
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Repeat analysis modal functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const keepRadio = document.getElementById('keep_prompt');
+    const standardRadio = document.getElementById('standard_repeat');
+    const modifyRadio = document.getElementById('modify_repeat');
+    const customSection = document.getElementById('custom_prompt_repeat_section');
+    const currentSection = document.getElementById('current_prompt_section');
+
+    if (keepRadio) {
+        keepRadio.addEventListener('change', function() {
+            if (this.checked) {
+                customSection.style.display = 'none';
+                if (currentSection) currentSection.style.display = 'block';
+            }
+        });
+    }
+
+    if (standardRadio) {
+        standardRadio.addEventListener('change', function() {
+            if (this.checked) {
+                customSection.style.display = 'none';
+                if (currentSection) currentSection.style.display = 'none';
+            }
+        });
+    }
+
+    if (modifyRadio) {
+        modifyRadio.addEventListener('change', function() {
+            if (this.checked) {
+                customSection.style.display = 'block';
+                if (currentSection) currentSection.style.display = 'none';
+            }
+        });
+    }
+
+    // Form submission
+    const repeatForm = document.getElementById('repeatAnalysisForm');
+    const repeatBtn = document.getElementById('repeatSubmitBtn');
+    
+    if (repeatForm) {
+        repeatForm.addEventListener('submit', function() {
+            repeatBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Paleidžiama...';
+            repeatBtn.disabled = true;
+        });
+    }
+});
+
+function loadCurrentPrompt() {
+    const currentPrompt = @json($analysis->custom_prompt ?? '');
+    document.getElementById('new_custom_prompt').value = currentPrompt;
+}
+
+function loadDefaultPromptRepeat() {
+    fetch('/api/default-prompt')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('new_custom_prompt').value = data.prompt;
+        })
+        .catch(error => {
+            console.error('Error loading default prompt:', error);
+            alert('Nepavyko įkelti standartinio prompt\'o');
+        });
+}
+</script>
+
 @endsection

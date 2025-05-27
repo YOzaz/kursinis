@@ -26,7 +26,7 @@ class AnalysisControllerTest extends TestCase
         $response = $this->postJson('/api/analyze', [
             'text_id' => 'test-123',
             'content' => 'This is a test propaganda text that needs analysis.',
-            'models' => ['claude-4', 'gemini-2.5-pro']
+            'models' => ['claude-opus-4', 'gemini-2.5-pro']
         ]);
 
         $response->assertStatus(200)
@@ -92,7 +92,7 @@ class AnalysisControllerTest extends TestCase
 
         $response = $this->postJson('/api/batch-analyze', [
             'file_content' => $batchData,
-            'models' => ['claude-4', 'gpt-4.1']
+            'models' => ['claude-opus-4', 'gpt-4.1']
         ]);
 
         $response->assertStatus(200)
@@ -161,7 +161,7 @@ class AnalysisControllerTest extends TestCase
         ComparisonMetric::factory()->create([
             'job_id' => $job->job_id,
             'text_id' => 'test-1',
-            'model_name' => 'claude-4',
+            'model_name' => 'claude-opus-4',
             'true_positives' => 1,
             'false_positives' => 0,
             'false_negatives' => 0,
@@ -205,7 +205,7 @@ class AnalysisControllerTest extends TestCase
         ComparisonMetric::factory()->create([
             'job_id' => $job->job_id,
             'text_id' => 'test-1',
-            'model_name' => 'claude-4',
+            'model_name' => 'claude-opus-4',
         ]);
 
         $response = $this->get("/api/results/{$job->job_id}/export");
@@ -233,7 +233,7 @@ class AnalysisControllerTest extends TestCase
         $response = $this->post('/api/analyze', [
             'text_id' => 'test-123',
             'content' => 'Test content',
-            'models' => ['claude-4']
+            'models' => ['claude-opus-4']
         ]);
 
         // Should work with regular POST as well, not require JSON
@@ -260,7 +260,7 @@ class AnalysisControllerTest extends TestCase
 
         $response = $this->postJson('/api/batch-analyze', [
             'file_content' => $batchData,
-            'models' => ['claude-4']
+            'models' => ['claude-opus-4']
         ]);
 
         $response->assertStatus(200);
@@ -273,7 +273,7 @@ class AnalysisControllerTest extends TestCase
         $response = $this->postJson('/api/analyze', [
             'text_id' => 'test-123',
             'content' => 'This is a test propaganda text that needs analysis.',
-            'models' => ['claude-4']
+            'models' => ['claude-opus-4']
         ]);
 
         $response->assertStatus(200);
@@ -291,7 +291,7 @@ class AnalysisControllerTest extends TestCase
         $response = $this->postJson('/api/analyze', [
             'text_id' => 'test-123',
             'content' => 'This is a test propaganda text that needs analysis.',
-            'models' => ['claude-4'],
+            'models' => ['claude-opus-4'],
             'custom_prompt' => 'Custom analysis prompt for this specific test',
             'name' => 'Test Analysis with Custom Prompt',
             'description' => 'Testing custom prompt functionality'
@@ -330,7 +330,7 @@ class AnalysisControllerTest extends TestCase
 
         $response = $this->postJson('/api/repeat-analysis', [
             'reference_analysis_id' => $originalJob->job_id,
-            'models' => ['claude-4', 'gemini-2.5-pro'],
+            'models' => ['claude-opus-4', 'gemini-2.5-pro'],
             'custom_prompt' => 'New custom prompt for repeated analysis',
             'name' => 'Repeated Analysis',
             'description' => 'This is a repeated analysis with new prompt'
@@ -375,7 +375,7 @@ class AnalysisControllerTest extends TestCase
 
         $response = $this->postJson('/api/repeat-analysis', [
             'reference_analysis_id' => $originalJob->job_id,
-            'models' => ['claude-4'],
+            'models' => ['claude-opus-4'],
             'name' => 'Repeated Analysis'
         ]);
 
@@ -404,7 +404,7 @@ class AnalysisControllerTest extends TestCase
 
         $response = $this->postJson('/api/batch-analyze', [
             'file_content' => $batchData,
-            'models' => ['claude-4'],
+            'models' => ['claude-opus-4'],
             'custom_prompt' => 'Custom batch analysis prompt',
             'name' => 'Custom Batch Analysis',
             'description' => 'Testing batch analysis with custom parameters'

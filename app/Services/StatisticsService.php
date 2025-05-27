@@ -17,11 +17,15 @@ class StatisticsService
         // Get model performance statistics
         $modelPerformance = $this->getModelPerformanceStats();
         
+        // Get execution time statistics
+        $avgExecutionTimes = $this->getAverageExecutionTimes();
+        
         return [
             'total_analyses' => $totalAnalyses,
             'total_texts' => $totalTexts,
             'total_metrics' => $totalMetrics,
             'model_performance' => $modelPerformance,
+            'avg_execution_times' => $avgExecutionTimes,
         ];
     }
     
@@ -84,6 +88,58 @@ class StatisticsService
             'f1_score' => round($allMetrics->avg('f1_score') ?? 0, 2),
             'total_texts' => $textAnalyses->count(),
             'with_expert_annotations' => $withExpertAnnotations,
+        ];
+    }
+
+    /**
+     * Get average execution times per model.
+     */
+    private function getAverageExecutionTimes(): array
+    {
+        $executionTimes = [];
+        
+        // Get execution times from comparison metrics
+        $metrics = ComparisonMetric::whereNotNull('analysis_execution_time_ms')
+            ->get()
+            ->groupBy('model_name');
+            
+        foreach ($metrics as $model => $modelMetrics) {
+            $avgTime = $modelMetrics->avg('analysis_execution_time_ms');
+            $executionTimes[$model] = round($avgTime, 0);
+        }
+        
+        return $executionTimes;
+    }
+
+    /**
+     * Get dashboard export data.
+     */
+    public function getDashboardExportData(): array
+    {
+        $globalStats = $this->getGlobalStatistics();
+        $recentAnalyses = AnalysisJob::with(['textAnalyses', 'comparisonMetrics'])
+            ->orderBy('created_at', 'desc')
+            ->limit(20)
+            ->get();
+            
+        return [
+            'global_statistics' => $globalStats,
+            'model_performance' => $globalStats['model_performance'],
+            'execution_times' => $globalStats['avg_execution_times'],
+            'recent_analyses' => $recentAnalyses->map(function ($analysis) {
+                return [
+                    'job_id' => $analysis->job_id,
+                    'name' => $analysis->name,
+                    'status' => $analysis->status,
+                    'total_texts' => $analysis->textAnalyses->count(),
+                    'models_used' => $analysis->comparisonMetrics->pluck('model_name')->unique()->values(),
+                    'created_at' => $analysis->created_at->format('Y-m-d H:i:s'),
+                    'avg_f1_score' => $analysis->comparisonMetrics->avg('f1_score'),
+                    'avg_precision' => $analysis->comparisonMetrics->avg('precision'),
+                    'avg_recall' => $analysis->comparisonMetrics->avg('recall'),
+                ];
+            }),
+            'generated_at' => now()->format('Y-m-d H:i:s'),
         ];
     }
 }

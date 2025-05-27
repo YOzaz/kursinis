@@ -88,12 +88,15 @@ class AnalyzeTextJob implements ShouldQueue
                 $customPrompt = $job->custom_prompt;
             }
 
-            // Analizuoti tekstą
+            // Analizuoti tekstą su laiko sekimu
+            $startTime = microtime(true);
             $annotations = $service->analyzeText($textAnalysis->content, $customPrompt);
+            $endTime = microtime(true);
+            $executionTimeMs = (int) round(($endTime - $startTime) * 1000);
             
-            // Išsaugoti rezultatus su tikru modelio pavadinimu
+            // Išsaugoti rezultatus su tikru modelio pavadinimu ir vykdymo laiku
             $actualModelName = $service->getActualModelName();
-            $textAnalysis->setModelAnnotations($this->modelName, $annotations, $actualModelName);
+            $textAnalysis->setModelAnnotations($this->modelName, $annotations, $actualModelName, $executionTimeMs);
             $textAnalysis->save();
 
             // Apskaičiuoti metrikas, jei yra ekspertų anotacijos

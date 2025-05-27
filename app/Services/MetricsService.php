@@ -59,6 +59,9 @@ class MetricsService
         // Apskaičiuoti pozicijos tikslumą
         $positionAccuracy = $this->calculatePositionAccuracy($expertLabels, $modelLabels);
 
+        // Gauti vykdymo laiką iš tekstų analizės
+        $executionTimeMs = $textAnalysis->getModelExecutionTime($modelName);
+        
         // Sukurti metrikų įrašą
         $metric = ComparisonMetric::create([
             'job_id' => $jobId,
@@ -69,6 +72,7 @@ class MetricsService
             'false_positives' => $stats['false_positives'],
             'false_negatives' => $stats['false_negatives'],
             'position_accuracy' => $positionAccuracy,
+            'analysis_execution_time_ms' => $executionTimeMs,
         ]);
 
         // Apskaičiuoti ir išsaugoti metrikas

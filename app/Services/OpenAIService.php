@@ -17,6 +17,7 @@ class OpenAIService implements LLMServiceInterface
     private ?Client $client;
     private PromptService $promptService;
     private ?array $config;
+    private ?string $modelKey;
 
     public function __construct(PromptService $promptService)
     {
@@ -27,6 +28,7 @@ class OpenAIService implements LLMServiceInterface
         foreach ($models as $key => $config) {
             if (str_starts_with($key, 'gpt')) {
                 $this->config = $config;
+                $this->modelKey = $key;
                 break;
             }
         }
@@ -131,7 +133,7 @@ class OpenAIService implements LLMServiceInterface
      */
     public function getModelName(): string
     {
-        return 'gpt-4.1';
+        return $this->modelKey ?? 'gpt-4.1';
     }
 
     /**

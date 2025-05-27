@@ -1,68 +1,101 @@
 @extends('layout')
 
-@section('title', 'Dashboard')
+@section('title', 'Dashboard - Propagandos analizės sistema')
 
 @section('content')
-<div class="container mt-4">
-    <h1 class="mb-4">Dashboard</h1>
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">
+            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+        </h1>
+        <div>
+            <button class="btn btn-outline-primary" id="exportStatsBtn">
+                <i class="fas fa-download me-1"></i>Eksportuoti statistikas
+            </button>
+            <a href="{{ route('home') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i>Nauja analizė
+            </a>
+        </div>
+    </div>
 
-    <!-- Global Statistics -->
+    <!-- Global KPI Cards -->
     <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card bg-primary text-white">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-gradient-primary text-white h-100">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between">
+                    <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h4>{{ $globalStats['total_analyses'] ?? 0 }}</h4>
-                            <p class="mb-0">Analizių</p>
+                            <h2 class="mb-1">{{ $globalStats['total_analyses'] ?? 0 }}</h2>
+                            <p class="mb-0 opacity-75">Viso analizių</p>
+                            <small class="opacity-50">Su {{ $globalStats['total_texts'] ?? 0 }} tekstų</small>
                         </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-chart-line fa-2x"></i>
+                        <div class="text-end">
+                            <i class="fas fa-chart-line fa-2x opacity-50"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card bg-success text-white">
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-gradient-success text-white h-100">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between">
+                    <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h4>{{ $globalStats['total_texts'] ?? 0 }}</h4>
-                            <p class="mb-0">Tekstų</p>
+                            @php
+                                $avgF1 = 0;
+                                $modelCount = count($globalStats['model_performance'] ?? []);
+                                if ($modelCount > 0) {
+                                    $totalF1 = array_sum(array_column($globalStats['model_performance'], 'avg_f1_score'));
+                                    $avgF1 = $totalF1 / $modelCount;
+                                }
+                            @endphp
+                            <h2 class="mb-1">{{ number_format($avgF1 * 100, 1) }}%</h2>
+                            <p class="mb-0 opacity-75">Vidutinis F1 balas</p>
+                            <small class="opacity-50">Visų modelių</small>
                         </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-file-text fa-2x"></i>
+                        <div class="text-end">
+                            <i class="fas fa-bullseye fa-2x opacity-50"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card bg-info text-white">
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-gradient-info text-white h-100">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between">
+                    <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h4>{{ count($globalStats['model_performance'] ?? []) }}</h4>
-                            <p class="mb-0">Modelių</p>
+                            <h2 class="mb-1">{{ count($globalStats['model_performance'] ?? []) }}</h2>
+                            <p class="mb-0 opacity-75">Aktyvūs modeliai</p>
+                            <small class="opacity-50">Claude, Gemini, GPT</small>
                         </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-robot fa-2x"></i>
+                        <div class="text-end">
+                            <i class="fas fa-robot fa-2x opacity-50"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card bg-warning text-white">
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-gradient-warning text-white h-100">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between">
+                    <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h4>{{ $globalStats['total_metrics'] ?? 0 }}</h4>
-                            <p class="mb-0">Metrikų</p>
+                            @php
+                                $avgExecutionTime = 0;
+                                if (!empty($globalStats['avg_execution_times'])) {
+                                    $avgExecutionTime = array_sum($globalStats['avg_execution_times']) / count($globalStats['avg_execution_times']);
+                                }
+                            @endphp
+                            <h2 class="mb-1">{{ number_format($avgExecutionTime / 1000, 1) }}s</h2>
+                            <p class="mb-0 opacity-75">Vidutinis laikas</p>
+                            <small class="opacity-50">Analizės trukmė</small>
                         </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-chart-bar fa-2x"></i>
+                        <div class="text-end">
+                            <i class="fas fa-clock fa-2x opacity-50"></i>
                         </div>
                     </div>
                 </div>
@@ -71,41 +104,147 @@
     </div>
 
     <div class="row">
-        <!-- Recent Analyses -->
-        <div class="col-lg-6">
+        <!-- Model Performance Comparison Table -->
+        <div class="col-lg-8">
             <div class="card mb-4">
-                <div class="card-header">
-                    <h6>Paskutinės analizės</h6>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-trophy me-2"></i>Modelių našumo palyginimas
+                    </h5>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <input type="radio" class="btn-check" name="metricType" id="f1Score" checked>
+                        <label class="btn btn-outline-primary" for="f1Score">F1 balas</label>
+                        
+                        <input type="radio" class="btn-check" name="metricType" id="precision">
+                        <label class="btn btn-outline-primary" for="precision">Tikslumas</label>
+                        
+                        <input type="radio" class="btn-check" name="metricType" id="recall">
+                        <label class="btn btn-outline-primary" for="recall">Atsaukimas</label>
+                        
+                        <input type="radio" class="btn-check" name="metricType" id="speed">
+                        <label class="btn btn-outline-primary" for="speed">Greitis</label>
+                    </div>
                 </div>
                 <div class="card-body">
-                    @if($recentAnalyses->count() > 0)
-                        @foreach($recentAnalyses as $analysis)
-                            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-                                <div>
-                                    <strong>{{ Str::limit($analysis->name ?? 'Analizė '.$analysis->job_id, 30) }}</strong>
-                                    <br>
-                                    <small class="text-muted">{{ $analysis->created_at->format('Y-m-d H:i') }}</small>
-                                </div>
-                                <div>
-                                    <span class="badge badge-{{ $analysis->status === 'completed' ? 'success' : ($analysis->status === 'processing' ? 'warning' : 'secondary') }}">
-                                        {{ ucfirst($analysis->status) }}
-                                    </span>
-                                    <a href="{{ route('analyses.show', $analysis->job_id) }}" class="btn btn-sm btn-outline-primary ml-2">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        @endforeach
-                        <div class="text-center mt-3">
-                            <a href="{{ route('analyses.index') }}" class="btn btn-sm btn-outline-primary">
-                                Peržiūrėti visas analizės
-                            </a>
+                    @if(!empty($globalStats['model_performance']))
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="performanceTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>
+                                            <i class="fas fa-robot me-1"></i>Modelis
+                                        </th>
+                                        <th class="text-center">
+                                            <i class="fas fa-chart-line me-1"></i>Analizių
+                                            <i class="fas fa-question-circle text-muted ms-1" 
+                                               data-bs-toggle="tooltip" 
+                                               title="Kiek analizių atlikta šiuo modeliu"></i>
+                                        </th>
+                                        <th class="text-center">
+                                            <i class="fas fa-bullseye me-1"></i>F1 balas
+                                            <i class="fas fa-question-circle text-muted ms-1" 
+                                               data-bs-toggle="tooltip" 
+                                               title="Harmoninė tikslumo ir atsaukimo vidurkis"></i>
+                                        </th>
+                                        <th class="text-center">
+                                            <i class="fas fa-crosshairs me-1"></i>Tikslumas
+                                            <i class="fas fa-question-circle text-muted ms-1" 
+                                               data-bs-toggle="tooltip" 
+                                               title="Kiek AI rastų propagandos fragmentų yra teisingi"></i>
+                                        </th>
+                                        <th class="text-center">
+                                            <i class="fas fa-search me-1"></i>Atsaukimas
+                                            <i class="fas fa-question-circle text-muted ms-1" 
+                                               data-bs-toggle="tooltip" 
+                                               title="Kokią dalį visų propagandos fragmentų AI surado"></i>
+                                        </th>
+                                        <th class="text-center">
+                                            <i class="fas fa-tachometer-alt me-1"></i>Greitis
+                                            <i class="fas fa-question-circle text-muted ms-1" 
+                                               data-bs-toggle="tooltip" 
+                                               title="Vidutinė analizės trukmė"></i>
+                                        </th>
+                                        <th class="text-center">
+                                            <i class="fas fa-star me-1"></i>Įvertis
+                                            <i class="fas fa-question-circle text-muted ms-1" 
+                                               data-bs-toggle="tooltip" 
+                                               title="Bendras modelio įvertinimas"></i>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($globalStats['model_performance'] as $model => $stats)
+                                        @php
+                                            $f1Score = $stats['avg_f1_score'] ?? 0;
+                                            $precision = $stats['avg_precision'] ?? 0;
+                                            $recall = $stats['avg_recall'] ?? 0;
+                                            $avgTime = $globalStats['avg_execution_times'][$model] ?? 0;
+                                            
+                                            // Calculate overall score (weighted average)
+                                            $overallScore = ($f1Score * 0.5) + ($precision * 0.25) + ($recall * 0.25);
+                                            
+                                            // Determine performance level
+                                            $performanceClass = $f1Score >= 0.7 ? 'success' : ($f1Score >= 0.4 ? 'warning' : 'danger');
+                                            $performanceIcon = $f1Score >= 0.7 ? 'fas fa-check-circle' : ($f1Score >= 0.4 ? 'fas fa-exclamation-triangle' : 'fas fa-times-circle');
+                                        @endphp
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    @if(str_contains($model, 'claude'))
+                                                        <i class="fas fa-brain text-primary me-2"></i>
+                                                    @elseif(str_contains($model, 'gemini'))
+                                                        <i class="fas fa-star text-warning me-2"></i>
+                                                    @elseif(str_contains($model, 'gpt'))
+                                                        <i class="fas fa-cog text-success me-2"></i>
+                                                    @else
+                                                        <i class="fas fa-robot text-secondary me-2"></i>
+                                                    @endif
+                                                    <strong>{{ $model }}</strong>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge bg-primary">{{ $stats['total_analyses'] }}</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="d-flex align-items-center justify-content-center">
+                                                    <span class="me-2">{{ number_format($f1Score * 100, 1) }}%</span>
+                                                    <div class="progress" style="width: 60px; height: 8px;">
+                                                        <div class="progress-bar bg-{{ $performanceClass }}" 
+                                                             style="width: {{ $f1Score * 100 }}%"></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">{{ number_format($precision * 100, 1) }}%</td>
+                                            <td class="text-center">{{ number_format($recall * 100, 1) }}%</td>
+                                            <td class="text-center">
+                                                @if($avgTime > 0)
+                                                    @if($avgTime < 1000)
+                                                        {{ number_format($avgTime) }}ms
+                                                    @else
+                                                        {{ number_format($avgTime / 1000, 1) }}s
+                                                    @endif
+                                                @else
+                                                    <span class="text-muted">-</span>
+                                                @endif
+                                            </td>
+                                            <td class="text-center">
+                                                <i class="{{ $performanceIcon }} text-{{ $performanceClass }} me-1"></i>
+                                                <span class="text-{{ $performanceClass }}">
+                                                    {{ number_format($overallScore * 100, 0) }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
                     @else
-                        <p class="text-muted text-center">Nėra analizių</p>
-                        <div class="text-center">
-                            <a href="{{ route('home') }}" class="btn btn-sm btn-primary">
-                                <i class="fas fa-plus"></i> Pradėti analizę
+                        <div class="text-center py-4">
+                            <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Nėra našumo duomenų</h5>
+                            <p class="text-muted">Paleiskite analizę, kad pamatytumėte modelių našumo statistikas</p>
+                            <a href="{{ route('home') }}" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i>Pradėti analizę
                             </a>
                         </div>
                     @endif
@@ -113,40 +252,238 @@
             </div>
         </div>
 
-        <!-- Model Performance -->
-        <div class="col-lg-6">
+        <!-- Recent Activity & Quick Stats -->
+        <div class="col-lg-4">
+            <!-- Model Rankings -->
             <div class="card mb-4">
                 <div class="card-header">
-                    <h6>Modelių našumas</h6>
+                    <h6 class="mb-0">
+                        <i class="fas fa-medal me-2"></i>Modelių reitingas
+                    </h6>
                 </div>
                 <div class="card-body">
                     @if(!empty($globalStats['model_performance']))
-                        <div class="table-responsive">
-                            <table class="table table-sm">
-                                <thead>
-                                    <tr>
-                                        <th>Modelis</th>
-                                        <th>Analizių</th>
-                                        <th>Avg F1</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($globalStats['model_performance'] as $model => $stats)
-                                        <tr>
-                                            <td>{{ $model }}</td>
-                                            <td>{{ $stats['total_analyses'] }}</td>
-                                            <td>{{ number_format($stats['avg_f1_score'], 2) }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
+                        @php
+                            $sortedModels = collect($globalStats['model_performance'])
+                                ->sortByDesc('avg_f1_score')
+                                ->take(5);
+                        @endphp
+                        @foreach($sortedModels as $model => $stats)
+                            @php
+                                $rank = $loop->iteration;
+                                $medalClass = $rank === 1 ? 'text-warning' : ($rank === 2 ? 'text-secondary' : ($rank === 3 ? 'text-warning' : 'text-muted'));
+                                $medalIcon = $rank <= 3 ? 'fas fa-medal' : 'fas fa-trophy';
+                            @endphp
+                            <div class="d-flex justify-content-between align-items-center mb-2 {{ $rank <= 3 ? 'p-2 bg-light rounded' : '' }}">
+                                <div class="d-flex align-items-center">
+                                    <i class="{{ $medalIcon }} {{ $medalClass }} me-2"></i>
+                                    <span class="fw-bold">#{{ $rank }}</span>
+                                    <span class="ms-2">{{ $model }}</span>
+                                </div>
+                                <span class="badge bg-primary">{{ number_format($stats['avg_f1_score'] * 100, 1) }}%</span>
+                            </div>
+                        @endforeach
                     @else
-                        <p class="text-muted text-center">Nėra metrikų duomenų</p>
+                        <p class="text-muted text-center">Nėra duomenų reitingui</p>
                     @endif
+                </div>
+            </div>
+
+            <!-- Recent Analyses -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="fas fa-history me-2"></i>Paskutinės analizės
+                    </h6>
+                    <a href="{{ route('analyses.index') }}" class="btn btn-sm btn-outline-primary">
+                        Visos
+                    </a>
+                </div>
+                <div class="card-body">
+                    @if($recentAnalyses->count() > 0)
+                        @foreach($recentAnalyses->take(5) as $analysis)
+                            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 {{ !$loop->last ? 'border-bottom' : '' }}">
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold mb-1">
+                                        {{ Str::limit($analysis->name ?? 'Analizė '.$analysis->job_id, 25) }}
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>{{ $analysis->created_at->diffForHumans() }}
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    <div class="mb-1">
+                                        @switch($analysis->status)
+                                            @case('completed')
+                                                <span class="badge bg-success">Baigta</span>
+                                                @break
+                                            @case('processing')
+                                                <span class="badge bg-warning">Vykdoma</span>
+                                                @break
+                                            @case('failed')
+                                                <span class="badge bg-danger">Nepavyko</span>
+                                                @break
+                                            @default
+                                                <span class="badge bg-secondary">{{ ucfirst($analysis->status) }}</span>
+                                        @endswitch
+                                    </div>
+                                    <a href="{{ route('analyses.show', $analysis->job_id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        @endforeach
+                    @else
+                        <div class="text-center py-3">
+                            <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
+                            <p class="text-muted">Nėra analizių</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>Greiti veiksmai
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ route('home') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Nauja analizė
+                        </a>
+                        <a href="{{ route('analyses.index') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-list me-2"></i>Peržiūrėti analizės
+                        </a>
+                        <button class="btn btn-outline-success" id="exportDashboardBtn">
+                            <i class="fas fa-download me-2"></i>Eksportuoti duomenis
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+$(document).ready(function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Initialize DataTable for performance table
+    @if(!empty($globalStats['model_performance']))
+    const performanceTable = $('#performanceTable').DataTable({
+        responsive: true,
+        pageLength: 10,
+        order: [[2, 'desc']], // Sort by F1 score descending
+        columnDefs: [
+            { 
+                targets: [1, 2, 3, 4, 5, 6], // Numeric columns
+                type: 'num-fmt'
+            },
+            {
+                targets: [6], // Overall score column
+                render: function(data, type, row) {
+                    if (type === 'display') {
+                        return data; // Keep the formatted display with icon
+                    }
+                    return parseFloat(data); // For sorting, use numeric value
+                }
+            }
+        ],
+        language: {
+            "search": "Ieškoti:",
+            "lengthMenu": "Rodyti _MENU_ įrašų puslapyje",
+            "info": "Rodoma _START_ - _END_ iš _TOTAL_ įrašų",
+            "infoEmpty": "Nėra duomenų",
+            "infoFiltered": "(išfiltruota iš _MAX_ įrašų)",
+            "paginate": {
+                "first": "Pirmas",
+                "last": "Paskutinis",
+                "next": "Kitas",
+                "previous": "Ankstesnis"
+            },
+            "emptyTable": "Nėra duomenų lentelėje"
+        },
+        dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rt<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+    });
+    
+    // Metric type switching
+    const metricRadios = document.querySelectorAll('input[name="metricType"]');
+    metricRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            let columnIndex;
+            switch(this.id) {
+                case 'f1Score':
+                    columnIndex = 2;
+                    break;
+                case 'precision':
+                    columnIndex = 3;
+                    break;
+                case 'recall':
+                    columnIndex = 4;
+                    break;
+                case 'speed':
+                    columnIndex = 5;
+                    break;
+                default:
+                    columnIndex = 2;
+            }
+            
+            // Clear previous sorting and sort by selected metric
+            performanceTable.order([columnIndex, 'desc']).draw();
+        });
+    });
+    @endif
+
+    // Export functionality
+    $('#exportStatsBtn, #exportDashboardBtn').on('click', function() {
+        window.location.href = '/api/dashboard/export';
+    });
+});
+</script>
+
+<style>
+.bg-gradient-primary {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+}
+
+.bg-gradient-success {
+    background: linear-gradient(45deg, #28a745, #1e7e34);
+}
+
+.bg-gradient-info {
+    background: linear-gradient(45deg, #17a2b8, #117a8b);
+}
+
+.bg-gradient-warning {
+    background: linear-gradient(45deg, #ffc107, #d39e00);
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    transition: box-shadow 0.15s ease-in-out;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.075);
+}
+
+.progress {
+    background-color: #e9ecef;
+}
+</style>
 @endsection

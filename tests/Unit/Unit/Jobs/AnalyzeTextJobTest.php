@@ -4,6 +4,7 @@ namespace Tests\Unit\Unit\Jobs;
 
 use App\Jobs\AnalyzeTextJob;
 use App\Models\AnalysisJob;
+use App\Models\TextAnalysis;
 use App\Services\ClaudeService;
 use App\Services\GeminiService;
 use App\Services\OpenAIService;
@@ -53,15 +54,16 @@ class AnalyzeTextJobTest extends TestCase
         ]);
 
         $job = AnalysisJob::factory()->pending()->create();
-        $textData = [
-            'id' => '1',
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => '1',
             'content' => 'Test propaganda text',
             'expert_annotations' => [
                 ['type' => 'labels', 'value' => ['labels' => ['simplification']]]
             ]
-        ];
+        ]);
 
-        $analyzeJob = new AnalyzeTextJob($job->job_id, $textData, ['claude-4'], null);
+        $analyzeJob = new AnalyzeTextJob($textAnalysis->id, 'claude-opus-4', $job->job_id);
         $analyzeJob->handle(
             app(ClaudeService::class),
             app(GeminiService::class),
@@ -84,13 +86,14 @@ class AnalyzeTextJobTest extends TestCase
         ]);
 
         $job = AnalysisJob::factory()->pending()->create();
-        $textData = [
-            'id' => '1',
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => '1',
             'content' => 'Test text',
             'expert_annotations' => []
-        ];
+        ]);
 
-        $analyzeJob = new AnalyzeTextJob($job->job_id, $textData, ['claude-4', 'gemini-2.5-pro', 'gpt-4.1'], null);
+        $analyzeJob = new AnalyzeTextJob($textAnalysis->id, 'claude-opus-4', $job->job_id);
         $analyzeJob->handle(
             app(ClaudeService::class),
             app(GeminiService::class),
@@ -127,15 +130,17 @@ class AnalyzeTextJobTest extends TestCase
     {
         $this->mockLLMResponse('claude');
 
-        $job = AnalysisJob::factory()->pending()->create();
-        $textData = [
-            'id' => '1',
+        $job = AnalysisJob::factory()->pending()->create([
+            'custom_prompt' => 'Custom analysis prompt for testing'
+        ]);
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => '1',
             'content' => 'Test text',
             'expert_annotations' => []
-        ];
-        $customPrompt = 'Custom analysis prompt for testing';
+        ]);
 
-        $analyzeJob = new AnalyzeTextJob($job->job_id, $textData, ['claude-4'], $customPrompt);
+        $analyzeJob = new AnalyzeTextJob($textAnalysis->id, 'claude-opus-4', $job->job_id);
         $analyzeJob->handle(
             app(ClaudeService::class),
             app(GeminiService::class),
@@ -158,13 +163,14 @@ class AnalyzeTextJobTest extends TestCase
             'processed_texts' => 0
         ]);
 
-        $textData = [
-            'id' => '1',
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => '1',
             'content' => 'Test text',
             'expert_annotations' => []
-        ];
+        ]);
 
-        $analyzeJob = new AnalyzeTextJob($job->job_id, $textData, ['claude-4'], null);
+        $analyzeJob = new AnalyzeTextJob($textAnalysis->id, 'claude-opus-4', $job->job_id);
         $analyzeJob->handle(
             app(ClaudeService::class),
             app(GeminiService::class),
@@ -182,13 +188,14 @@ class AnalyzeTextJobTest extends TestCase
         $this->mockLLMResponse('claude', null); // This will cause an error
 
         $job = AnalysisJob::factory()->pending()->create();
-        $textData = [
-            'id' => '1',
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => '1',
             'content' => 'Test text',
             'expert_annotations' => []
-        ];
+        ]);
 
-        $analyzeJob = new AnalyzeTextJob($job->job_id, $textData, ['claude-4'], null);
+        $analyzeJob = new AnalyzeTextJob($textAnalysis->id, 'claude-opus-4', $job->job_id);
         
         // Job should handle errors gracefully
         try {
@@ -237,8 +244,9 @@ class AnalyzeTextJobTest extends TestCase
         ]);
 
         $job = AnalysisJob::factory()->pending()->create();
-        $textData = [
-            'id' => '1',
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => '1',
             'content' => 'Complex propaganda text with multiple techniques',
             'expert_annotations' => [
                 [
@@ -251,9 +259,9 @@ class AnalyzeTextJobTest extends TestCase
                     ]
                 ]
             ]
-        ];
+        ]);
 
-        $analyzeJob = new AnalyzeTextJob($job->job_id, $textData, ['claude-4'], null);
+        $analyzeJob = new AnalyzeTextJob($textAnalysis->id, 'claude-opus-4', $job->job_id);
         $analyzeJob->handle(
             app(ClaudeService::class),
             app(GeminiService::class),

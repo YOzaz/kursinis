@@ -55,7 +55,7 @@ class WebControllerTest extends TestCase
 
         $response = $this->post('/upload', [
             'json_file' => $file,
-            'models' => ['claude-4', 'gemini-2.5-pro']
+            'models' => ['claude-opus-4', 'gemini-2.5-pro']
         ]);
 
         $response->assertRedirect()
@@ -67,7 +67,7 @@ class WebControllerTest extends TestCase
     public function test_upload_validation_requires_file(): void
     {
         $response = $this->post('/upload', [
-            'models' => ['claude-4']
+            'models' => ['claude-opus-4']
         ]);
 
         $response->assertSessionHasErrors(['json_file']);
@@ -79,7 +79,7 @@ class WebControllerTest extends TestCase
 
         $response = $this->post('/upload', [
             'json_file' => $file,
-            'models' => ['claude-4']
+            'models' => ['claude-opus-4']
         ]);
 
         $response->assertSessionHasErrors(['json_file']);
@@ -124,7 +124,7 @@ class WebControllerTest extends TestCase
 
         $response = $this->post('/upload', [
             'json_file' => $file,
-            'models' => ['claude-4']
+            'models' => ['claude-opus-4']
         ]);
 
         $response->assertSessionHasErrors()
@@ -213,7 +213,7 @@ class WebControllerTest extends TestCase
 
         $response = $this->post('/upload', [
             'json_file' => $file,
-            'models' => ['claude-4']
+            'models' => ['claude-opus-4']
         ]);
 
         $response->assertRedirect()
@@ -237,7 +237,7 @@ class WebControllerTest extends TestCase
 
         $response = $this->post('/upload', [
             'json_file' => $file,
-            'models' => ['claude-4', 'gemini-2.5-pro', 'gpt-4.1']
+            'models' => ['claude-opus-4', 'gemini-2.5-pro', 'gpt-4.1']
         ]);
 
         $response->assertRedirect()
@@ -305,7 +305,7 @@ class WebControllerTest extends TestCase
 
         $response = $this->post('/upload', [
             'json_file' => $file,
-            'models' => ['claude-4']
+            'models' => ['claude-opus-4']
         ]);
 
         $response->assertRedirect()

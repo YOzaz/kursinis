@@ -49,6 +49,9 @@ class AnalysisJob extends Model
         'reference_analysis_id',
         'name',
         'description',
+        'total_execution_time_seconds',
+        'started_at',
+        'completed_at',
     ];
 
     /**
@@ -57,8 +60,11 @@ class AnalysisJob extends Model
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'started_at' => 'datetime',
+        'completed_at' => 'datetime',
         'total_texts' => 'integer',
         'processed_texts' => 'integer',
+        'total_execution_time_seconds' => 'integer',
     ];
 
     /**
