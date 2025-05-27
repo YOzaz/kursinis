@@ -81,8 +81,16 @@ class AnalyzeTextJob implements ShouldQueue
                 'job_id' => $this->jobId
             ]);
 
+            // Gauti custom prompt jei eksperimentas nurodytas
+            $customPrompt = null;
+            $job = AnalysisJob::where('job_id', $this->jobId)->first();
+            if ($job && $job->experiment_id) {
+                $experiment = $job->experiment;
+                $customPrompt = $experiment?->custom_prompt;
+            }
+
             // Analizuoti tekstą
-            $annotations = $service->analyzeText($textAnalysis->content);
+            $annotations = $service->analyzeText($textAnalysis->content, $customPrompt);
             
             // Išsaugoti rezultatus
             $textAnalysis->setModelAnnotations($this->modelName, $annotations);

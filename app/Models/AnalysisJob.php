@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Analizės darbo modelis.
@@ -41,6 +42,7 @@ class AnalysisJob extends Model
         'total_texts',
         'processed_texts',
         'error_message',
+        'experiment_id',
     ];
 
     /**
@@ -103,5 +105,13 @@ class AnalysisJob extends Model
         }
         
         return ($this->processed_texts / $this->total_texts) * 100;
+    }
+
+    /**
+     * Gauti eksperimentą.
+     */
+    public function experiment(): BelongsTo
+    {
+        return $this->belongsTo(Experiment::class);
     }
 }

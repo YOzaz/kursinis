@@ -38,13 +38,13 @@ class OpenAIService implements LLMServiceInterface
     /**
      * Analizuoti tekstą naudojant OpenAI API.
      */
-    public function analyzeText(string $text): array
+    public function analyzeText(string $text, ?string $customPrompt = null): array
     {
         if (!$this->isConfigured()) {
             throw new \Exception('OpenAI API nėra sukonfigūruotas');
         }
 
-        $prompt = $this->promptService->generateAnalysisPrompt($text);
+        $prompt = $this->promptService->generateAnalysisPrompt($text, $customPrompt);
         $systemMessage = $this->promptService->getSystemMessage();
 
         $retries = config('llm.retry_attempts');

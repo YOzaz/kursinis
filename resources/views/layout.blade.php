@@ -75,6 +75,12 @@
                 <i class="fas fa-search-plus me-2"></i>
                 Propagandos analizės sistema
             </a>
+            
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{{ route('home') }}">Analizė</a>
+                <a class="nav-link" href="{{ route('experiments.index') }}">Eksperimentai</a>
+                <a class="nav-link" href="{{ route('dashboard') }}">Dashboard</a>
+            </div>
         </div>
     </nav>
 

@@ -12,8 +12,12 @@ class PromptService
     /**
      * Generuoti pagrindinį prompt'ą propagandos technikų analizei.
      */
-    public function generateAnalysisPrompt(string $text): string
+    public function generateAnalysisPrompt(string $text, ?string $customPrompt = null): string
     {
+        if ($customPrompt) {
+            return $customPrompt . "\n\nAnalizuojamas tekstas:\n{$text}";
+        }
+
         $techniques = config('llm.propaganda_techniques');
         $narratives = config('llm.disinformation_narratives');
 
