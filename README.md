@@ -58,7 +58,7 @@ Universali propagandos analizės platforma, kuri veikia dviem pagrindiniais rež
 ## ⭐ Pagrindinės funkcijos
 
 ### 🤖 LLM modelių integracija
-- **Claude 3.5 Sonnet** (Anthropic) - claude-3-5-sonnet-20241022
+- **Claude 4** (Anthropic) - claude-sonnet-4-20250514
 - **Gemini 2.5 Pro Preview** (Google) - gemini-2.5-pro-preview-05-06
 - **GPT-4o** (OpenAI) - gpt-4o
 

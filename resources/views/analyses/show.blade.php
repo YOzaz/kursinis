@@ -87,9 +87,11 @@
                                         <thead>
                                             <tr>
                                                 <th>Tekstas</th>
+                                                <th>Modelis</th>
                                                 <th>Propaganda sprendimas</th>
                                                 <th>Patikimumas</th>
                                                 <th>Kategorijos</th>
+                                                <th>Ekspertų palyginimas</th>
                                                 <th>Veiksmai</th>
                                             </tr>
                                         </thead>
@@ -97,23 +99,81 @@
                                             @foreach($analysis->textAnalyses as $textAnalysis)
                                                 <tr>
                                                     <td>
-                                                        <div class="text-truncate" style="max-width: 200px;" title="{{ $textAnalysis->text_content }}">
-                                                            {{ Str::limit($textAnalysis->text_content, 100) }}
+                                                        <div class="text-truncate" style="max-width: 200px;" title="{{ $textAnalysis->content }}">
+                                                            {{ Str::limit($textAnalysis->content, 100) }}
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        @if($textAnalysis->is_propaganda)
-                                                            <span class="badge bg-danger">Propaganda</span>
+                                                        @if($textAnalysis->comparisonMetrics->isNotEmpty())
+                                                            @foreach($textAnalysis->comparisonMetrics->unique('model_name') as $metric)
+                                                                <span class="badge bg-secondary me-1">{{ $metric->model_name }}</span>
+                                                            @endforeach
                                                         @else
-                                                            <span class="badge bg-success">Ne propaganda</span>
+                                                            <span class="text-muted">-</span>
                                                         @endif
                                                     </td>
                                                     <td>
-                                                        @if($textAnalysis->confidence_score)
+                                                        @php
+                                                            // Check AI propaganda decision
+                                                            $aiHasPropaganda = false;
+                                                            if($textAnalysis->claude_annotations && isset($textAnalysis->claude_annotations['primaryChoice']['choices'])) {
+                                                                $aiHasPropaganda = in_array('yes', $textAnalysis->claude_annotations['primaryChoice']['choices']);
+                                                            } elseif($textAnalysis->gemini_annotations && isset($textAnalysis->gemini_annotations['primaryChoice']['choices'])) {
+                                                                $aiHasPropaganda = in_array('yes', $textAnalysis->gemini_annotations['primaryChoice']['choices']);
+                                                            } elseif($textAnalysis->gpt_annotations && isset($textAnalysis->gpt_annotations['primaryChoice']['choices'])) {
+                                                                $aiHasPropaganda = in_array('yes', $textAnalysis->gpt_annotations['primaryChoice']['choices']);
+                                                            }
+                                                            
+                                                            // Check expert decision
+                                                            $expertHasPropaganda = false;
+                                                            if($textAnalysis->expert_annotations && count($textAnalysis->expert_annotations) > 0) {
+                                                                foreach($textAnalysis->expert_annotations as $annotation) {
+                                                                    if(isset($annotation['result'])) {
+                                                                        foreach($annotation['result'] as $result) {
+                                                                            if($result['type'] === 'choices' && 
+                                                                               isset($result['value']['choices']) && 
+                                                                               in_array('yes', $result['value']['choices'])) {
+                                                                                $expertHasPropaganda = true;
+                                                                                break 2;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        @endphp
+                                                        
+                                                        @if($aiHasPropaganda)
+                                                            <span class="badge bg-danger">Propaganda (AI)</span>
+                                                        @else
+                                                            <span class="badge bg-success">Ne propaganda (AI)</span>
+                                                        @endif
+                                                        
+                                                        @if($textAnalysis->expert_annotations && count($textAnalysis->expert_annotations) > 0)
+                                                            <br>
+                                                            @if($expertHasPropaganda)
+                                                                <span class="badge bg-danger">Propaganda (ekspertai)</span>
+                                                            @else
+                                                                <span class="badge bg-success">Ne propaganda (ekspertai)</span>
+                                                            @endif
+                                                            
+                                                            @if($aiHasPropaganda === $expertHasPropaganda)
+                                                                <br><small class="text-success">✓ Sutampa</small>
+                                                            @else
+                                                                <br><small class="text-danger">✗ Nesutampa</small>
+                                                            @endif
+                                                        @endif
+                                                    </td>
+                                                    <td>
+                                                        @if($textAnalysis->comparisonMetrics->isNotEmpty())
+                                                            @php
+                                                                $avgConfidence = $textAnalysis->comparisonMetrics->avg(function($metric) {
+                                                                    return (float)$metric->precision;
+                                                                });
+                                                            @endphp
                                                             <div class="progress" style="width: 100px;">
                                                                 <div class="progress-bar" role="progressbar" 
-                                                                     style="width: {{ $textAnalysis->confidence_score * 100 }}%">
-                                                                    {{ round($textAnalysis->confidence_score * 100) }}%
+                                                                     style="width: {{ $avgConfidence * 100 }}%">
+                                                                    {{ round($avgConfidence * 100) }}%
                                                                 </div>
                                                             </div>
                                                         @else
@@ -121,12 +181,68 @@
                                                         @endif
                                                     </td>
                                                     <td>
-                                                        @if($textAnalysis->categories)
-                                                            @foreach(json_decode($textAnalysis->categories, true) as $category)
-                                                                <span class="badge bg-info me-1">{{ $category }}</span>
+                                                        @php
+                                                            // AI techniques
+                                                            $aiTechniques = [];
+                                                            $annotations = $textAnalysis->claude_annotations ?? $textAnalysis->gemini_annotations ?? $textAnalysis->gpt_annotations ?? null;
+                                                            if($annotations && isset($annotations['annotations'])) {
+                                                                foreach($annotations['annotations'] as $annotation) {
+                                                                    if(isset($annotation['value']['labels'])) {
+                                                                        $aiTechniques = array_merge($aiTechniques, $annotation['value']['labels']);
+                                                                    }
+                                                                }
+                                                            }
+                                                            $aiTechniques = array_unique($aiTechniques);
+                                                            
+                                                            // Expert techniques
+                                                            $expertTechniques = [];
+                                                            if($textAnalysis->expert_annotations && count($textAnalysis->expert_annotations) > 0) {
+                                                                foreach($textAnalysis->expert_annotations as $annotation) {
+                                                                    if(isset($annotation['result'])) {
+                                                                        foreach($annotation['result'] as $result) {
+                                                                            if($result['type'] === 'labels' && isset($result['value']['labels'])) {
+                                                                                $expertTechniques = array_merge($expertTechniques, $result['value']['labels']);
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                            $expertTechniques = array_unique($expertTechniques);
+                                                        @endphp
+                                                        
+                                                        @if(count($aiTechniques) > 0)
+                                                            <strong>AI:</strong><br>
+                                                            @foreach($aiTechniques as $technique)
+                                                                <span class="badge bg-primary me-1 mb-1">{{ $technique }}</span>
                                                             @endforeach
-                                                        @else
+                                                        @endif
+                                                        
+                                                        @if(count($expertTechniques) > 0)
+                                                            @if(count($aiTechniques) > 0)<br>@endif
+                                                            <strong>Ekspertai:</strong><br>
+                                                            @foreach($expertTechniques as $technique)
+                                                                <span class="badge bg-info me-1 mb-1">{{ $technique }}</span>
+                                                            @endforeach
+                                                        @endif
+                                                        
+                                                        @if(count($aiTechniques) === 0 && count($expertTechniques) === 0)
                                                             <span class="text-muted">-</span>
+                                                        @endif
+                                                    </td>
+                                                    <td>
+                                                        @if($textAnalysis->comparisonMetrics->isNotEmpty())
+                                                            @php
+                                                                $avgPrecision = $textAnalysis->comparisonMetrics->avg(function($metric) { return (float)$metric->precision; });
+                                                                $avgRecall = $textAnalysis->comparisonMetrics->avg(function($metric) { return (float)$metric->recall; });
+                                                                $avgF1 = $textAnalysis->comparisonMetrics->avg(function($metric) { return (float)$metric->f1_score; });
+                                                            @endphp
+                                                            <small class="text-muted">
+                                                                P: {{ number_format($avgPrecision, 2) }}<br>
+                                                                R: {{ number_format($avgRecall, 2) }}<br>
+                                                                F1: {{ number_format($avgF1, 2) }}
+                                                            </small>
+                                                        @else
+                                                            <span class="text-muted">Nėra palyginimo</span>
                                                         @endif
                                                     </td>
                                                     <td>
@@ -201,7 +317,7 @@
                         <div class="mb-3">
                             <label class="form-label fw-bold">Originalus tekstas:</label>
                             <div class="border p-3 rounded bg-light">
-                                {{ $textAnalysis->text_content }}
+                                {{ $textAnalysis->content }}
                             </div>
                         </div>
                         

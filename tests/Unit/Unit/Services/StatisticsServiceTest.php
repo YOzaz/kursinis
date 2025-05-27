@@ -244,7 +244,7 @@ class StatisticsServiceTest extends TestCase
         // Create experiment data
         $experiment = Experiment::factory()->create();
         ExperimentResult::factory()->forExperiment($experiment)->create([
-            'llm_model' => 'claude-3-5-sonnet-20241022',
+            'llm_model' => 'claude-sonnet-4-20250514',
             'metrics' => ['precision' => 0.8, 'recall' => 0.7, 'f1_score' => 0.75],
             'execution_time' => 2.5
         ]);
@@ -272,11 +272,11 @@ class StatisticsServiceTest extends TestCase
         $performance = $globalStats['model_performance'];
 
         // Should have both models
-        $this->assertArrayHasKey('claude-3-5-sonnet-20241022', $performance);
+        $this->assertArrayHasKey('claude-sonnet-4-20250514', $performance);
         $this->assertArrayHasKey('gemini-2.5-pro-preview-05-06', $performance);
 
         // Check that experiment and standard analysis counts are correct
-        $claudePerf = $performance['claude-3-5-sonnet-20241022'];
+        $claudePerf = $performance['claude-sonnet-4-20250514'];
         $this->assertEquals(1, $claudePerf['experiment_analyses']);
         $this->assertEquals(0, $claudePerf['standard_analyses']);
         $this->assertEquals(1, $claudePerf['total_analyses']);

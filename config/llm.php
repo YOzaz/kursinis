@@ -27,7 +27,7 @@ return [
         'claude-4' => [
             'api_key' => env('CLAUDE_API_KEY'),
             'base_url' => 'https://api.anthropic.com/v1/',
-            'model' => 'claude-3-5-sonnet-20241022',
+            'model' => 'claude-sonnet-4-20250514',
             'max_tokens' => 4096,
             'temperature' => 0.1,
             'rate_limit' => env('CLAUDE_RATE_LIMIT', 50),

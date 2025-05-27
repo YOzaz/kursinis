@@ -145,7 +145,7 @@
                             <label class="form-label">Pasirinkite modelius:</label>
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="claude" name="models[]" value="claude-4">
-                                <label class="form-check-label" for="claude">Claude 3.5 Sonnet</label>
+                                <label class="form-check-label" for="claude">Claude 4</label>
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="gemini" name="models[]" value="gemini-2.5-pro">
