@@ -2,18 +2,19 @@
 
 namespace App\Services;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
+use OpenAI;
+use OpenAI\Client;
 use Illuminate\Support\Facades\Log;
 
 /**
  * OpenAI ChatGPT API servisas.
  * 
  * Integruoja su OpenAI API propagandos analizei.
+ * Naudoja oficialų OpenAI PHP klientą.
  */
 class OpenAIService implements LLMServiceInterface
 {
-    private Client $httpClient;
+    private ?Client $client;
     private PromptService $promptService;
     private ?array $config;
 
@@ -23,15 +24,10 @@ class OpenAIService implements LLMServiceInterface
         $models = config('llm.models', []);
         $this->config = $models['gpt-4.1'] ?? null;
         
-        if ($this->config) {
-            $this->httpClient = new Client([
-                'base_uri' => $this->config['base_url'],
-                'timeout' => config('llm.request_timeout'),
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $this->config['api_key'],
-                    'Content-Type' => 'application/json',
-                ],
-            ]);
+        if ($this->config && !empty($this->config['api_key'])) {
+            $this->client = OpenAI::client($this->config['api_key']);
+        } else {
+            $this->client = null;
         }
     }
 
@@ -52,34 +48,30 @@ class OpenAIService implements LLMServiceInterface
 
         for ($attempt = 1; $attempt <= $retries; $attempt++) {
             try {
-                $response = $this->httpClient->post('/chat/completions', [
-                    'json' => [
-                        'model' => $this->config['model'],
-                        'messages' => [
-                            [
-                                'role' => 'system',
-                                'content' => $systemMessage
-                            ],
-                            [
-                                'role' => 'user',
-                                'content' => $prompt
-                            ]
+                $response = $this->client->chat()->create([
+                    'model' => $this->config['model'],
+                    'messages' => [
+                        [
+                            'role' => 'system',
+                            'content' => $systemMessage
                         ],
-                        'max_tokens' => $this->config['max_tokens'],
-                        'temperature' => $this->config['temperature'],
-                        'response_format' => [
-                            'type' => 'json_object'
+                        [
+                            'role' => 'user',
+                            'content' => $prompt
                         ]
+                    ],
+                    'max_tokens' => $this->config['max_tokens'],
+                    'temperature' => $this->config['temperature'],
+                    'response_format' => [
+                        'type' => 'json_object'
                     ]
                 ]);
 
-                $responseData = json_decode($response->getBody()->getContents(), true);
-                
-                if (!isset($responseData['choices'][0]['message']['content'])) {
-                    throw new \Exception('Neteisingas OpenAI API atsakymo formatas');
+                if (empty($response->choices)) {
+                    throw new \Exception('OpenAI API grąžino tuščią atsakymą');
                 }
 
-                $content = $responseData['choices'][0]['message']['content'];
+                $content = $response->choices[0]->message->content;
                 $jsonResponse = json_decode($content, true);
                 
                 if (json_last_error() !== JSON_ERROR_NONE) {
@@ -102,15 +94,17 @@ class OpenAIService implements LLMServiceInterface
 
                 Log::info('OpenAI sėkmingai išanalizavo tekstą', [
                     'text_length' => strlen($text),
-                    'annotations_count' => count($jsonResponse['annotations'] ?? [])
+                    'annotations_count' => count($jsonResponse['annotations'] ?? []),
+                    'model_used' => $this->config['model']
                 ]);
 
                 return $jsonResponse;
 
-            } catch (GuzzleException $e) {
+            } catch (\Exception $e) {
                 Log::error('OpenAI API klaida', [
                     'attempt' => $attempt,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
+                    'model' => $this->config['model']
                 ]);
 
                 if ($attempt < $retries) {
@@ -138,6 +132,6 @@ class OpenAIService implements LLMServiceInterface
      */
     public function isConfigured(): bool
     {
-        return !empty($this->config['api_key'] ?? '');
+        return $this->client !== null && !empty($this->config['api_key'] ?? '');
     }
 }

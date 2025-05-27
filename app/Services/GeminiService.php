@@ -51,7 +51,7 @@ class GeminiService implements LLMServiceInterface
 
         for ($attempt = 1; $attempt <= $retries; $attempt++) {
             try {
-                $response = $this->httpClient->post("/models/{$this->config['model']}:generateContent", [
+                $response = $this->httpClient->post("v1beta/models/{$this->config['model']}:generateContent", [
                     'query' => ['key' => $this->config['api_key']],
                     'json' => [
                         'contents' => [

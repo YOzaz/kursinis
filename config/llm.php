@@ -30,8 +30,8 @@ return [
         
         'gemini-2.5-pro' => [
             'api_key' => env('GEMINI_API_KEY'),
-            'base_url' => 'https://generativelanguage.googleapis.com/v1beta',
-            'model' => 'gemini-2.0-flash-exp',
+            'base_url' => 'https://generativelanguage.googleapis.com/',
+            'model' => 'gemini-2.0-flash',
             'max_tokens' => 4096,
             'temperature' => 0.1,
             'rate_limit' => env('GEMINI_RATE_LIMIT', 50),

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
  * Claude API servisas.
  * 
  * Integruoja su Anthropic Claude API propagandos analizei.
+ * Naudoja HTTP klientą su teisingais endpoint'ais.
  */
 class ClaudeService implements LLMServiceInterface
 {
@@ -93,7 +94,8 @@ class ClaudeService implements LLMServiceInterface
 
                 Log::info('Claude sėkmingai išanalizavo tekstą', [
                     'text_length' => strlen($text),
-                    'annotations_count' => count($jsonResponse['annotations'] ?? [])
+                    'annotations_count' => count($jsonResponse['annotations'] ?? []),
+                    'model_used' => $this->config['model']
                 ]);
 
                 return $jsonResponse;
@@ -101,7 +103,8 @@ class ClaudeService implements LLMServiceInterface
             } catch (GuzzleException $e) {
                 Log::error('Claude API klaida', [
                     'attempt' => $attempt,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
+                    'model' => $this->config['model']
                 ]);
 
                 if ($attempt < $retries) {

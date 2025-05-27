@@ -5,10 +5,11 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "laravel/framework": "^12.15",
-        "illuminate/redis": "^12.15",
         "guzzlehttp/guzzle": "^7.9",
+        "illuminate/redis": "^12.15",
+        "laravel/framework": "^12.15",
         "laravel/tinker": "^2.10",
+        "openai-php/client": "^0.13.0",
         "predis/predis": "^3.0"
     },
     "require-dev": {
