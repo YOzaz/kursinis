@@ -373,7 +373,7 @@ class MetricsService
      */
     public function calculateJobStatistics(AnalysisJob $job): array
     {
-        $textAnalyses = $job->textAnalyses()->with('comparisonMetrics')->get();
+        $textAnalyses = $job->textAnalyses;
         
         if ($textAnalyses->isEmpty()) {
             return [
@@ -385,9 +385,8 @@ class MetricsService
             ];
         }
 
-        $allMetrics = $textAnalyses->flatMap(function ($textAnalysis) {
-            return $textAnalysis->comparisonMetrics;
-        });
+        // Gauti visas metrikas tiesiogiai iš job
+        $allMetrics = $job->comparisonMetrics;
 
         $modelMetrics = $allMetrics->groupBy('model_name');
         $modelsUsed = $modelMetrics->keys()->toArray();
@@ -396,9 +395,9 @@ class MetricsService
         foreach ($modelMetrics as $model => $metrics) {
             $perModelMetrics[$model] = [
                 'count' => $metrics->count(),
-                'avg_precision' => round($metrics->avg('precision'), 3),
-                'avg_recall' => round($metrics->avg('recall'), 3),
-                'avg_f1' => round($metrics->avg('f1_score'), 3),
+                'avg_precision' => round($metrics->avg('precision') ?? 0, 3),
+                'avg_recall' => round($metrics->avg('recall') ?? 0, 3),
+                'avg_f1' => round($metrics->avg('f1_score') ?? 0, 3),
                 'total_tp' => $metrics->sum('true_positives'),
                 'total_fp' => $metrics->sum('false_positives'),
                 'total_fn' => $metrics->sum('false_negatives'),
@@ -406,9 +405,9 @@ class MetricsService
         }
 
         $overallMetrics = [
-            'avg_precision' => round($allMetrics->avg('precision'), 3),
-            'avg_recall' => round($allMetrics->avg('recall'), 3),
-            'avg_f1' => round($allMetrics->avg('f1_score'), 3),
+            'avg_precision' => round($allMetrics->avg('precision') ?? 0, 3),
+            'avg_recall' => round($allMetrics->avg('recall') ?? 0, 3),
+            'avg_f1' => round($allMetrics->avg('f1_score') ?? 0, 3),
             'total_comparisons' => $allMetrics->count(),
         ];
 

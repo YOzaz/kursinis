@@ -45,13 +45,27 @@ class AnalysisController extends Controller
     /**
      * Rodyti konkrečios analizės rezultatus.
      */
-    public function show(string $jobId)
+    public function show(string $jobId, Request $request)
     {
         $analysis = AnalysisJob::where('job_id', $jobId)->firstOrFail();
-        $analysis->load(['textAnalyses.comparisonMetrics']);
+        
+        // Paginate text analyses for large datasets
+        $textAnalyses = TextAnalysis::where('job_id', $analysis->job_id)
+            ->with('comparisonMetrics')
+            ->paginate(50, ['*'], 'page', $request->get('page', 1));
+            
         $statistics = $this->metricsService->calculateJobStatistics($analysis);
         
-        return view('analyses.show', compact('analysis', 'statistics'));
+        // Get used models for repeat analysis (sample from first few analyses)
+        $sampleAnalyses = TextAnalysis::where('job_id', $analysis->job_id)->take(5)->get();
+        $usedModels = [];
+        foreach($sampleAnalyses as $textAnalysis) {
+            $models = $textAnalysis->getAllModelAnnotations();
+            $usedModels = array_merge($usedModels, array_keys($models));
+        }
+        $usedModels = array_unique($usedModels);
+        
+        return view('analyses.show', compact('analysis', 'statistics', 'textAnalyses', 'usedModels'));
     }
 
     /**

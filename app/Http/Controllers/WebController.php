@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Jobs\BatchAnalysisJob;
 use App\Models\AnalysisJob;
+use App\Services\PromptService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
@@ -21,7 +22,11 @@ class WebController extends Controller
      */
     public function index()
     {
-        return view('index');
+        $recentJobs = AnalysisJob::orderBy('created_at', 'desc')->limit(5)->get();
+        $promptService = app(PromptService::class);
+        $standardPrompt = $promptService->getStandardRisenPrompt();
+        
+        return view('index', compact('recentJobs', 'standardPrompt'));
     }
 
     /**
@@ -61,6 +66,16 @@ class WebController extends Controller
             $models = $request->input('models');
             $totalTexts = count($jsonData);
 
+            // Apdoroti custom prompt
+            $customPrompt = null;
+            if ($request->has('custom_prompt_parts')) {
+                $promptService = app(PromptService::class);
+                $customParts = json_decode($request->input('custom_prompt_parts'), true);
+                $customPrompt = $promptService->generateCustomRisenPrompt($customParts);
+            } elseif ($request->has('custom_prompt')) {
+                $customPrompt = $request->input('custom_prompt');
+            }
+
             // Sukurti analizės darbą
             AnalysisJob::create([
                 'job_id' => $jobId,
@@ -69,7 +84,7 @@ class WebController extends Controller
                 'processed_texts' => 0,
                 'name' => $request->input('name', 'Batch analizė'),
                 'description' => $request->input('description'),
-                'custom_prompt' => $request->input('custom_prompt'),
+                'custom_prompt' => $customPrompt,
             ]);
 
             // Paleisti batch analizės darbą

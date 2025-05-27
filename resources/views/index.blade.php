@@ -151,15 +151,15 @@
                         </script>
                     </div>
 
-                    <!-- Custom prompt'o konfigūracija -->
+                    <!-- RISEN Prompt konfigūracija -->
                     <div class="mb-4">
                         <label class="form-label fw-bold">
                             <i class="fas fa-edit me-2"></i>
-                            Prompt konfigūracija
+                            RISEN Prompt Konfigūracija
                             <i class="fas fa-question-circle text-muted ms-2" 
                                data-bs-toggle="tooltip" 
                                data-bs-placement="top" 
-                               title="Galite naudoti standartinį ATSPARA prompt'ą arba sukurti savo. Standartinis prompt'as optimizuotas lietuvių propagandos analizei."></i>
+                               title="RISEN metodologija: Role, Instructions, Situation, Execution, Needle. Standartinis ATSPARA promptas optimizuotas lietuvių propagandos analizei."></i>
                         </label>
 
                         <!-- Prompt type selector -->
@@ -167,65 +167,138 @@
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="prompt_type" id="standard_prompt" value="standard" checked>
                                 <label class="form-check-label" for="standard_prompt">
-                                    <strong>Standartinis ATSPARA prompt'as</strong>
-                                    <small class="d-block text-muted">Optimizuotas lietuvių propagandos analizei su 21 technika</small>
+                                    <strong>Standartinis ATSPARA RISEN promptas</strong>
+                                    <small class="d-block text-muted">Profesionaliai sukurtas pagal RISEN metodologiją su 21 propaganda technika</small>
                                 </label>
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="prompt_type" id="custom_prompt_radio" value="custom">
                                 <label class="form-check-label" for="custom_prompt_radio">
-                                    <strong>Pritaikytas prompt'as</strong>
-                                    <small class="d-block text-muted">Modifikuokite standartinį arba sukurkite visiškai naują</small>
+                                    <strong>Pritaikytas RISEN promptas</strong>
+                                    <small class="d-block text-muted">Modifikuokite bet kurią RISEN dalį pagal poreikius</small>
                                 </label>
                             </div>
                         </div>
 
-                        <!-- Standard prompt preview -->
+                        <!-- RISEN prompt konfigūracija -->
                         <div id="standard_prompt_section">
                             <div class="card bg-light">
                                 <div class="card-header d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0">Standartinio prompt'o struktūra</h6>
+                                    <h6 class="mb-0">RISEN ATSPARA Promptas</h6>
                                     <button type="button" class="btn btn-sm btn-outline-primary" onclick="showFullPrompt()">
                                         <i class="fas fa-eye me-1"></i>Peržiūrėti pilną prompt'ą
                                     </button>
                                 </div>
                                 <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-3">
-                                            <strong>Role:</strong>
-                                            <small class="d-block text-muted">ATSPARA propagandos analizės ekspertas</small>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <div class="p-3 border rounded">
+                                                <strong class="text-primary"><i class="fas fa-user-tie me-2"></i>Role:</strong>
+                                                <p class="small mb-0 mt-1">{{ $standardPrompt['role'] }}</p>
+                                            </div>
                                         </div>
-                                        <div class="col-md-3">
-                                            <strong>Instructions:</strong>
-                                            <small class="d-block text-muted">Objektyviai identifikuok propagandos technikas</small>
+                                        <div class="col-md-6">
+                                            <div class="p-3 border rounded">
+                                                <strong class="text-success"><i class="fas fa-list-check me-2"></i>Instructions:</strong>
+                                                <p class="small mb-0 mt-1">{{ Str::limit($standardPrompt['instructions'], 100) }}</p>
+                                            </div>
                                         </div>
-                                        <div class="col-md-3">
-                                            <strong>Techniques:</strong>
-                                            <small class="d-block text-muted">21 ATSPARA propagandos technika</small>
+                                        <div class="col-md-4">
+                                            <div class="p-3 border rounded">
+                                                <strong class="text-info"><i class="fas fa-map-marker-alt me-2"></i>Situation:</strong>
+                                                <p class="small mb-0 mt-1">{{ Str::limit($standardPrompt['situation'], 80) }}</p>
+                                            </div>
                                         </div>
-                                        <div class="col-md-3">
-                                            <strong>Output:</strong>
-                                            <small class="d-block text-muted">Griežtas JSON formatas</small>
+                                        <div class="col-md-4">
+                                            <div class="p-3 border rounded">
+                                                <strong class="text-warning"><i class="fas fa-cogs me-2"></i>Execution:</strong>
+                                                <p class="small mb-0 mt-1">{{ Str::limit($standardPrompt['execution'], 80) }}</p>
+                                            </div>
                                         </div>
+                                        <div class="col-md-4">
+                                            <div class="p-3 border rounded">
+                                                <strong class="text-danger"><i class="fas fa-bullseye me-2"></i>Needle:</strong>
+                                                <p class="small mb-0 mt-1">{{ $standardPrompt['needle'] }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-center mt-3">
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Šis promptas apima 21 ATSPARA propagandos techniką ir JSON formato specifikaciją
+                                        </small>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Custom prompt editor -->
+                        <!-- Custom RISEN prompt editor -->
                         <div id="custom_prompt_section" style="display: none;">
-                            <div class="mb-3">
-                                <button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="loadDefaultPrompt()">
-                                    <i class="fas fa-copy me-1"></i>Kopijuoti standartinį prompt'ą
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-info" onclick="showPromptBuilder()">
-                                    <i class="fas fa-magic me-1"></i>RISEN prompt'o kūrėjas
-                                </button>
-                            </div>
-                            <textarea class="form-control" id="custom_prompt" name="custom_prompt" rows="10" 
-                                      placeholder="Įveskite savo custom prompt'ą propaganda analizei..."></textarea>
-                            <div class="form-text">
-                                <small><strong>Patarimas:</strong> Naudokite RISEN metodologiją - Role, Instructions, Situation, Execution, Needle</small>
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">RISEN Prompt Redaktorius</h6>
+                                    <small class="text-muted">Modifikuokite bet kurią RISEN dalį</small>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label for="custom_role" class="form-label">
+                                                <strong class="text-primary"><i class="fas fa-user-tie me-2"></i>Role</strong>
+                                                <small class="text-muted d-block">Kas yra AI modelis šioje užduotyje?</small>
+                                            </label>
+                                            <textarea class="form-control" id="custom_role" rows="3" 
+                                                      placeholder="Pvz: Tu esi ekspertas...">{{ $standardPrompt['role'] }}</textarea>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="custom_instructions" class="form-label">
+                                                <strong class="text-success"><i class="fas fa-list-check me-2"></i>Instructions</strong>
+                                                <small class="text-muted d-block">Ką tiksliai daryti?</small>
+                                            </label>
+                                            <textarea class="form-control" id="custom_instructions" rows="3" 
+                                                      placeholder="Pvz: Analizuok tekstą...">{{ $standardPrompt['instructions'] }}</textarea>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="custom_situation" class="form-label">
+                                                <strong class="text-info"><i class="fas fa-map-marker-alt me-2"></i>Situation</strong>
+                                                <small class="text-muted d-block">Kokiame kontekste?</small>
+                                            </label>
+                                            <textarea class="form-control" id="custom_situation" rows="4" 
+                                                      placeholder="Pvz: Tekstas iš žiniasklaidos...">{{ $standardPrompt['situation'] }}</textarea>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="custom_execution" class="form-label">
+                                                <strong class="text-warning"><i class="fas fa-cogs me-2"></i>Execution</strong>
+                                                <small class="text-muted d-block">Kaip atlikti užduotį?</small>
+                                            </label>
+                                            <textarea class="form-control" id="custom_execution" rows="4" 
+                                                      placeholder="Pvz: 1) Perskaityk, 2) Identifikuok...">{{ $standardPrompt['execution'] }}</textarea>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="custom_needle" class="form-label">
+                                                <strong class="text-danger"><i class="fas fa-bullseye me-2"></i>Needle</strong>
+                                                <small class="text-muted d-block">Kokio formato atsakymo reikia?</small>
+                                            </label>
+                                            <textarea class="form-control" id="custom_needle" rows="4" 
+                                                      placeholder="Pvz: Gražink JSON formatą...">{{ $standardPrompt['needle'] }}</textarea>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                        <div>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="resetToDefault()">
+                                                <i class="fas fa-undo me-1"></i>Atstatyti standartinį
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-info" onclick="previewCustomPrompt()">
+                                                <i class="fas fa-eye me-1"></i>Peržiūrėti pilną prompt'ą
+                                            </button>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted">
+                                                <i class="fas fa-info-circle me-1"></i>
+                                                Automatiškai pridedamos ATSPARA technikos ir JSON formatas
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -433,6 +506,25 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // Jei naudojamas custom prompt, sukurti iš RISEN dalių
+        const promptType = document.querySelector('input[name="prompt_type"]:checked').value;
+        if (promptType === 'custom') {
+            const customParts = {
+                role: document.getElementById('custom_role').value,
+                instructions: document.getElementById('custom_instructions').value,
+                situation: document.getElementById('custom_situation').value,
+                execution: document.getElementById('custom_execution').value,
+                needle: document.getElementById('custom_needle').value
+            };
+            
+            // Sukurti hidden input su custom prompt dalimis
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'custom_prompt_parts';
+            hiddenInput.value = JSON.stringify(customParts);
+            form.appendChild(hiddenInput);
+        }
+
         // Pakeisti mygtuką į loading būseną
         analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Paleidžiama analizė...';
         analyzeBtn.disabled = true;
@@ -455,7 +547,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (this.checked) {
                 standardSection.style.display = 'block';
                 customSection.style.display = 'none';
-                document.getElementById('custom_prompt').value = '';
             }
         });
 
@@ -474,24 +565,43 @@ function showFullPrompt() {
     modal.show();
 }
 
-function loadDefaultPrompt() {
-    fetch('/api/default-prompt')
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('custom_prompt').value = data.prompt;
-        })
-        .catch(error => {
-            console.error('Error loading default prompt:', error);
-            // Fallback prompt
-            const fallbackPrompt = `**Role**: Tu esi propagandos analizės ekspertas, specializuojantis ATSPARA metodologijos taikyme.
+function resetToDefault() {
+    document.getElementById('custom_role').value = @json($standardPrompt['role']);
+    document.getElementById('custom_instructions').value = @json($standardPrompt['instructions']);
+    document.getElementById('custom_situation').value = @json($standardPrompt['situation']);
+    document.getElementById('custom_execution').value = @json($standardPrompt['execution']);
+    document.getElementById('custom_needle').value = @json($standardPrompt['needle']);
+}
 
-**Instructions**: Analizuok pateiktą tekstą ir identifikuok propagandos technikas objektyviai ir tiksliai.
+function previewCustomPrompt() {
+    const modal = new bootstrap.Modal(document.getElementById('promptPreviewModal'));
+    loadCustomPromptPreview();
+    modal.show();
+}
 
-**Techniques**: Naudok ATSPARA apibrėžtas 21 propagandos techniką.
-
-**Output**: Grąžink tik JSON formatą pagal specifikaciją.`;
-            document.getElementById('custom_prompt').value = fallbackPrompt;
-        });
+function loadCustomPromptPreview() {
+    const customParts = {
+        role: document.getElementById('custom_role').value,
+        instructions: document.getElementById('custom_instructions').value,
+        situation: document.getElementById('custom_situation').value,
+        execution: document.getElementById('custom_execution').value,
+        needle: document.getElementById('custom_needle').value
+    };
+    
+    // Sukurti RISEN formatą
+    let prompt = `**ROLE**: ${customParts.role}\n\n`;
+    prompt += `**INSTRUCTIONS**: ${customParts.instructions}\n\n`;
+    prompt += `**SITUATION**: ${customParts.situation}\n\n`;
+    prompt += `**EXECUTION**: ${customParts.execution}\n\n`;
+    prompt += `**PROPAGANDOS TECHNIKOS (ATSPARA metodologija)**:\n`;
+    // Pridėti technikas (galime simuliuoti)
+    prompt += `- emotionalAppeal: Apeliavimas į jausmus\n`;
+    prompt += `- loadedLanguage: Vertinamoji, emocinė leksika\n`;
+    prompt += `... (visos 21 ATSPARA technikos)\n\n`;
+    prompt += `**NEEDLE**: ${customParts.needle}\n\n`;
+    prompt += `[JSON formato specifikacija]`;
+    
+    document.getElementById('promptPreview').textContent = prompt;
 }
 
 function showPromptBuilder() {

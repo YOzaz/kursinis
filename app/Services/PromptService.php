@@ -39,6 +39,85 @@ class PromptService
     }
 
     /**
+     * Gauti standartinį RISEN ATSPARA prompt'ą.
+     */
+    public function getStandardRisenPrompt(): array
+    {
+        return [
+            'role' => 'Tu esi ATSPARA projekto propagandos analizės ekspertas, specializuojantis lietuvių kalbos tekstų analizėje.',
+            'instructions' => 'Analizuok pateiktą tekstą ir identifikuok visas propagandos technikas bei dezinformacijos naratyvus pagal ATSPARA projekto metodologiją. Būk preciziškas ir objektyvus.',
+            'situation' => 'Analizuojamas tekstas yra iš lietuviškų žiniasklaidos šaltinių, socialinių tinklų ar viešųjų pranešimų. Tavo užduotis - identifikuoti propaganda technikas ir įvertinti tekstą.',
+            'execution' => 'Atlikdamas analizę: 1) Perskaityk tekstą atidžiai 2) Identifikuok kiekvieną propagandos techniką 3) Nurodyk tikslias teksto dalis ir jų pozicijas 4) Klasifikuok pagal ATSPARA kategoriją 5) Pateik rezultatus JSON formatu',
+            'needle' => 'Gražink TIKSLIAI šio formato JSON atsakymą be jokių papildomų komentarų ar paaiškinimų:'
+        ];
+    }
+
+    /**
+     * Generuoti RISEN prompt'ą su custom dalimis.
+     */
+    public function generateCustomRisenPrompt(array $customParts): string
+    {
+        $standard = $this->getStandardRisenPrompt();
+        $parts = array_merge($standard, $customParts);
+        
+        return $this->buildRisenPrompt($parts);
+    }
+
+    /**
+     * Sukonstruoti pilną RISEN prompt'ą.
+     */
+    private function buildRisenPrompt(array $parts): string
+    {
+        $techniques = config('llm.propaganda_techniques');
+        
+        $prompt = "**ROLE**: {$parts['role']}\n\n";
+        $prompt .= "**INSTRUCTIONS**: {$parts['instructions']}\n\n";
+        $prompt .= "**SITUATION**: {$parts['situation']}\n\n";
+        $prompt .= "**EXECUTION**: {$parts['execution']}\n\n";
+        
+        // Pridėti technikas
+        $prompt .= "**PROPAGANDOS TECHNIKOS (ATSPARA metodologija)**:\n";
+        foreach ($techniques as $key => $description) {
+            $prompt .= "- {$key}: {$description}\n";
+        }
+        
+        $prompt .= "\n**NEEDLE**: {$parts['needle']}\n\n";
+        $prompt .= $this->getJsonFormat();
+        
+        return $prompt;
+    }
+
+    /**
+     * Gauti JSON formato specifikaciją.
+     */
+    private function getJsonFormat(): string
+    {
+        return '```json
+{
+  "primaryChoice": {
+    "choices": ["yes"] // arba ["no"] - ar propaganda dominuoja (>40% teksto)
+  },
+  "annotations": [
+    {
+      "type": "labels",
+      "value": {
+        "start": 0,
+        "end": 50,
+        "text": "tikslus tekstas iš dokumento be pakeitimų",
+        "labels": ["konkretūs_technikų_pavadinimai"]
+      }
+    }
+  ],
+  "desinformationTechnique": {
+    "choices": ["naratyvo_pavadinimas"] // arba []
+  }
+}
+```
+
+**SVARBU**: Analizuojamas tekstas lietuvių kalba. Atsakyk TIK JSON formatu.';
+    }
+
+    /**
      * Generuoti detalų analizės prompt'ą remiantis ATSPARA instrukcijomis.
      */
     private function generateDetailedAnalysisPrompt(string $text, string $modelName): string
@@ -54,69 +133,10 @@ class PromptService
             return "   - {$key}: {$description}";
         })->implode("\n");
 
-        return "**ATSPARA Propagandos analizės sistema**
-
-**Role**: Tu esi tikslus propagandos ir dezinformacijos analizės ekspertas, specializuojantis lietuvių kalbos tekstų vertinime pagal ATSPARA projekto metodologiją.
-
-**Instructions**: Išanalizuok pateiktą lietuvių kalbos tekstą ir objektyviai identifikuok propagandos technikas nepriklausomai nuo politinės stovyklos ar šaltinio. Vadovaukis ATSPARA projekto anotavimo principais:
-
-1. **Objektyvumas**: Žymi tik aiškiai identifikuojamas technikas be šališkumo
-2. **Tikslumas**: Kiekviena anotacija turi turėti tikslią teksto poziciją simboliais
-3. **Konservatyvumas**: Jei abejoji, geriau praleisk - būk griežtas kriterijų atžvilgiu
-4. **Proporcingumas**: Vertink ar propaganda sudaro >40% teksto (jei taip, tada primaryChoice = \"yes\")
-
-**Steps**:
-1. **Susipažinimas**: Atidžiai perskaityk visą tekstą lietuvių kalba
-2. **Technikų identifikavimas**: Ieškokių šių ATSPARA apibrėžtų propagandos technikų:
-
-{$techniquesList}
-
-3. **Pozicijų nustatymas**: Kiekvienai technikai rask tikslią poziciją simboliais nuo teksto pradžios
-4. **Ištraukų pateikimas**: Kopijuok tikslų tekstą be pakeitimų
-5. **Dezinformacijos naratyvų identifikavimas**:
-
-{$narrativesList}
-
-6. **Bendro sprendimo formavimas**: Ar propaganda sudaro didesnę teksto dalį (>40%)?
-
-**End goal**: Grąžink tik JSON formatą su tiksliais rezultatais pagal ATSPARA struktūrą.
-
-**Narrowness**: 
-- Analizuok TIK aiškiai matomą, nepriešginį propagandą
-- Žymi tik tuos fragmentus, kur 100% tikras propagandos technikos buvimu
-- Neinterpretuko dviprasmiškai - jei neaišku, praleisk
-- Tiksliai nurodyk pradžios ir pabaigos pozicijas
-- Kopijuok teksto fragmentą TIKSLIAI kaip parašyta originale
-
-**Reikalaujamas JSON formatas (grąžink TIK JSON, nieko daugiau):**
-```json
-{
-  \"primaryChoice\": {
-    \"choices\": [\"yes\"] // arba [\"no\"] - ar propaganda dominuoja (>40% teksto)
-  },
-  \"annotations\": [
-    {
-      \"type\": \"labels\",
-      \"value\": {
-        \"start\": 0,
-        \"end\": 50,
-        \"text\": \"tikslus tekstas iš dokumento be pakeitimų\",
-        \"labels\": [\"konkretūs_technikų_pavadinimai\"]
-      }
-    }
-  ],
-  \"desinformationTechnique\": {
-    \"choices\": [\"naratyvo_pavadinimas\"] // arba []
-  }
-}
-```
-
-**SVARBU**: Analizuojamas tekstas lietuvių kalba. Atsakyk TIK JSON formatu.
-
----
-
-**Analizuojamas tekstas:**
-{$text}";
+        $standard = $this->getStandardRisenPrompt();
+        $prompt = $this->buildRisenPrompt($standard);
+        
+        return $prompt . "\n\n---\n\n**Analizuojamas tekstas:**\n{$text}";
     }
 
     /**

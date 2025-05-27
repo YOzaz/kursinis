@@ -108,7 +108,7 @@
                         </div>
                     </div>
 
-                    @if($analysis->status === 'completed' && $analysis->textAnalyses->isNotEmpty())
+                    @if($analysis->status === 'completed' && $textAnalyses->isNotEmpty())
                         <div class="card">
                             <div class="card-header">
                                 <h5 class="card-title mb-0">Analizės rezultatai</h5>
@@ -118,165 +118,147 @@
                                     <table class="table table-striped" id="analysisResultsTable">
                                         <thead>
                                             <tr>
-                                                <th>Tekstas</th>
-                                                <th>
-                                                    Modelis 
+                                                <th style="width: 35%;">Tekstas</th>
+                                                <th style="width: 15%;">
+                                                    Modeliai
                                                     <i class="fas fa-question-circle text-muted ms-1" 
                                                        data-bs-toggle="tooltip" 
                                                        data-bs-placement="top" 
-                                                       title="AI modelis, kuris atliko analizę (Claude, Gemini arba GPT)"></i>
+                                                       title="AI modelių skaičius, analizavęs tekstą"></i>
                                                 </th>
-                                                <th>
-                                                    Propaganda sprendimas 
+                                                <th style="width: 20%;">
+                                                    Bendrieji rezultatai
                                                     <i class="fas fa-question-circle text-muted ms-1" 
                                                        data-bs-toggle="tooltip" 
                                                        data-bs-placement="top" 
-                                                       title="AI sprendimas ar tekste dominuoja propaganda (>40% teksto)"></i>
+                                                       title="Suvestinė visų modelių sprendimų ir rastų technikų"></i>
                                                 </th>
-                                                <th>
-                                                    Anotacijų kiekis 
+                                                <th style="width: 15%;">
+                                                    Vidutinės metrikos
                                                     <i class="fas fa-question-circle text-muted ms-1" 
                                                        data-bs-toggle="tooltip" 
                                                        data-bs-placement="top" 
-                                                       title="Kiek propagandos fragmentų AI identifikavo tekste"></i>
+                                                       title="P/R/F1 vidurkis visų modelių, jei yra ekspertų duomenys"></i>
                                                 </th>
-                                                <th>
-                                                    Pagrindinės kategorijos 
-                                                    <i class="fas fa-question-circle text-muted ms-1" 
-                                                       data-bs-toggle="tooltip" 
-                                                       data-bs-placement="top" 
-                                                       title="Propagandos technikos pagal ATSPARA metodologiją (pvz., loadedLanguage, blackAndWhite)"></i>
-                                                </th>
-                                                <th>
-                                                    Metrikos (P/R/F1) 
-                                                    <i class="fas fa-question-circle text-muted ms-1" 
-                                                       data-bs-toggle="tooltip" 
-                                                       data-bs-placement="top" 
-                                                       title="Tikslumas/Atsaukimas/F1 - palyginimas su ekspertų anotacijomis (tik jei yra ekspertų duomenys)"></i>
-                                                </th>
-                                                <th>
-                                                    Vykdymo laikas
-                                                    <i class="fas fa-question-circle text-muted ms-1" 
-                                                       data-bs-toggle="tooltip" 
-                                                       data-bs-placement="top" 
-                                                       title="Kiek laiko užtruko AI modelio analizė"></i>
-                                                </th>
-                                                <th>Veiksmai</th>
+                                                <th style="width: 15%;">Veiksmai</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach($analysis->textAnalyses as $textAnalysis)
+                                            @foreach($textAnalyses as $textAnalysis)
                                                 @php
                                                     $models = $textAnalysis->getAllModelAnnotations();
-                                                @endphp
-                                                
-                                                @foreach($models as $modelName => $annotations)
-                                                    <tr>
-                                                        @if($loop->first)
-                                                            <td rowspan="{{ count($models) }}">
-                                                                <div class="text-truncate" style="max-width: 200px;">
-                                                                    <span class="text-preview" data-text-id="{{ $textAnalysis->id }}">
-                                                                        {{ Str::limit($textAnalysis->content, 50) }}
-                                                                    </span>
-                                                                    <button class="btn btn-sm btn-link p-0 ms-1" onclick="toggleFullText({{ $textAnalysis->id }})">
-                                                                        <i class="fas fa-expand-alt"></i>
-                                                                    </button>
-                                                                    <div class="full-text d-none" id="full-text-{{ $textAnalysis->id }}">
-                                                                        {{ $textAnalysis->content }}
-                                                                    </div>
-                                                                </div>
-                                                            </td>
-                                                        @endif
-                                                        <td>
-                                                            <span class="badge bg-primary">{{ $modelName }}</span>
-                                                        </td>
-                                                        <td>
-                                                            @php
-                                                                $propagandaDecision = isset($annotations['primaryChoice']['choices']) && 
-                                                                                     in_array('yes', $annotations['primaryChoice']['choices']);
-                                                            @endphp
-                                                            
-                                                            @if($propagandaDecision)
-                                                                <span class="badge bg-danger">Propaganda</span>
-                                                            @else
-                                                                <span class="badge bg-success">Ne propaganda</span>
-                                                            @endif
-                                                        </td>
-                                                        <td>
-                                                            @php
-                                                                $annotationsCount = isset($annotations['annotations']) ? count($annotations['annotations']) : 0;
-                                                            @endphp
-                                                            <span class="badge bg-info">{{ $annotationsCount }}</span>
-                                                        </td>
-                                                        <td>
-                                                            @php
-                                                                $techniques = [];
-                                                                if(isset($annotations['annotations'])) {
-                                                                    foreach($annotations['annotations'] as $annotation) {
-                                                                        if(isset($annotation['value']['labels'])) {
-                                                                            $techniques = array_merge($techniques, $annotation['value']['labels']);
-                                                                        }
-                                                                    }
+                                                    $totalModels = count($models);
+                                                    
+                                                    // Apskaičiuoti suvestines metrikas
+                                                    $textMetrics = $textAnalysis->comparisonMetrics;
+                                                    $avgPrecision = $textMetrics->avg('precision') ?? 0;
+                                                    $avgRecall = $textMetrics->avg('recall') ?? 0;
+                                                    $avgF1 = $textMetrics->avg('f1_score') ?? 0;
+                                                    
+                                                    // Propagandos sprendimai
+                                                    $propagandaCount = 0;
+                                                    $allTechniques = [];
+                                                    
+                                                    foreach($models as $annotations) {
+                                                        if(isset($annotations['primaryChoice']['choices']) && 
+                                                           in_array('yes', $annotations['primaryChoice']['choices'])) {
+                                                            $propagandaCount++;
+                                                        }
+                                                        
+                                                        if(isset($annotations['annotations'])) {
+                                                            foreach($annotations['annotations'] as $annotation) {
+                                                                if(isset($annotation['value']['labels'])) {
+                                                                    $allTechniques = array_merge($allTechniques, $annotation['value']['labels']);
                                                                 }
-                                                                $techniques = array_unique($techniques);
-                                                                $topTechniques = array_slice($techniques, 0, 3); // Show only top 3
-                                                            @endphp
-                                                            
-                                                            @if(count($topTechniques) > 0)
-                                                                @foreach($topTechniques as $technique)
-                                                                    <span class="badge bg-secondary me-1 mb-1">{{ $technique }}</span>
-                                                                @endforeach
-                                                                @if(count($techniques) > 3)
-                                                                    <small class="text-muted">+{{ count($techniques) - 3 }} daugiau</small>
-                                                                @endif
+                                                            }
+                                                        }
+                                                    }
+                                                    
+                                                    $topTechniques = array_slice(array_unique($allTechniques), 0, 5);
+                                                @endphp
+                                                <tr>
+                                                    <td>
+                                                        <div class="text-truncate" style="max-width: 300px;">
+                                                            <span class="text-preview" data-text-id="{{ $textAnalysis->id }}">
+                                                                {{ Str::limit($textAnalysis->content, 100) }}
+                                                            </span>
+                                                            <button class="btn btn-sm btn-link p-0 ms-1" onclick="toggleFullText({{ $textAnalysis->id }})">
+                                                                <i class="fas fa-expand-alt"></i>
+                                                            </button>
+                                                            <div class="full-text d-none" id="full-text-{{ $textAnalysis->id }}">
+                                                                {{ $textAnalysis->content }}
+                                                            </div>
+                                                        </div>
+                                                        <small class="text-muted d-block mt-1">ID: {{ $textAnalysis->text_id }}</small>
+                                                    </td>
+                                                    <td>
+                                                        <div class="d-flex flex-wrap gap-1 mb-2">
+                                                            @foreach($models as $modelName => $annotations)
+                                                                <span class="badge bg-primary">{{ $modelName }}</span>
+                                                            @endforeach
+                                                        </div>
+                                                        <small class="text-muted">{{ $totalModels }} modeliai</small>
+                                                    </td>
+                                                    <td>
+                                                        <div class="mb-2">
+                                                            <strong>Propaganda:</strong> 
+                                                            @if($propagandaCount > 0)
+                                                                <span class="badge bg-danger">{{ $propagandaCount }}/{{ $totalModels }}</span>
                                                             @else
-                                                                <span class="text-muted">-</span>
+                                                                <span class="badge bg-success">0/{{ $totalModels }}</span>
                                                             @endif
-                                                        </td>
-                                                        <td>
-                                                            @php
-                                                                $modelMetric = $textAnalysis->comparisonMetrics->where('model_name', $modelName)->first();
-                                                            @endphp
-                                                            
-                                                            @if($modelMetric)
-                                                                <small>
-                                                                    <strong>P:</strong> {{ number_format($modelMetric->precision * 100, 1) }}%<br>
-                                                                    <strong>R:</strong> {{ number_format($modelMetric->recall * 100, 1) }}%<br>
-                                                                    <strong>F1:</strong> {{ number_format($modelMetric->f1_score * 100, 1) }}%
-                                                                </small>
-                                                            @else
-                                                                <span class="text-muted">Nėra ekspertų anotacijų</span>
-                                                            @endif
-                                                        </td>
-                                                        <td>
-                                                            @php
-                                                                $executionTime = $textAnalysis->getModelExecutionTime($modelName);
-                                                            @endphp
-                                                            
-                                                            @if($executionTime)
-                                                                @if($executionTime < 1000)
-                                                                    {{ $executionTime }}ms
-                                                                @else
-                                                                    {{ number_format($executionTime / 1000, 1) }}s
-                                                                @endif
-                                                            @else
-                                                                <span class="text-muted">-</span>
-                                                            @endif
-                                                        </td>
-                                                        <td>
-                                                            @if($loop->first)
-                                                                <button class="btn btn-sm btn-outline-primary" 
-                                                                        data-bs-toggle="modal" 
-                                                                        data-bs-target="#analysisModal{{ $textAnalysis->id }}">
-                                                                    Detalės
-                                                                </button>
-                                                            @endif
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
+                                                        </div>
+                                                        @if(count($topTechniques) > 0)
+                                                            <div>
+                                                                <strong>Technikos:</strong>
+                                                                <div class="mt-1">
+                                                                    @foreach($topTechniques as $technique)
+                                                                        <span class="badge bg-secondary me-1 mb-1">{{ $technique }}</span>
+                                                                    @endforeach
+                                                                    @if(count($allTechniques) > 5)
+                                                                        <small class="text-muted">+{{ count($allTechniques) - 5 }}</small>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                        @else
+                                                            <small class="text-muted">Technikų nerasta</small>
+                                                        @endif
+                                                    </td>
+                                                    <td>
+                                                        @if($textMetrics->isNotEmpty())
+                                                            <small>
+                                                                <strong>P:</strong> {{ number_format($avgPrecision * 100, 1) }}%<br>
+                                                                <strong>R:</strong> {{ number_format($avgRecall * 100, 1) }}%<br>
+                                                                <strong>F1:</strong> {{ number_format($avgF1 * 100, 1) }}%
+                                                            </small>
+                                                        @else
+                                                            <span class="text-muted">Nėra ekspertų duomenų</span>
+                                                        @endif
+                                                    </td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-outline-primary" 
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#analysisModal{{ $textAnalysis->id }}">
+                                                            <i class="fas fa-eye me-1"></i>Detalės
+                                                        </button>
+                                                    </td>
+                                                </tr>
                                             @endforeach
                                         </tbody>
                                     </table>
+                                </div>
+                                
+                                <!-- Pagination -->
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <div>
+                                        <small class="text-muted">
+                                            Rodoma {{ $textAnalyses->firstItem() }}-{{ $textAnalyses->lastItem() }} 
+                                            iš {{ $textAnalyses->total() }} tekstų
+                                        </small>
+                                    </div>
+                                    <div>
+                                        {{ $textAnalyses->links() }}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -343,8 +325,8 @@
     </div>
 </div>
 
-@if($analysis->status === 'completed' && $analysis->textAnalyses->isNotEmpty())
-    @foreach($analysis->textAnalyses as $textAnalysis)
+@if($analysis->status === 'completed' && $textAnalyses->isNotEmpty())
+    @foreach($textAnalyses as $textAnalysis)
         <div class="modal fade" id="analysisModal{{ $textAnalysis->id }}" tabindex="-1">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -661,16 +643,8 @@ function hideFullText(textId, button) {
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <strong>Tekstų skaičius:</strong> {{ $analysis->textAnalyses->count() }}<br>
+                                    <strong>Tekstų skaičius:</strong> {{ $analysis->total_texts }}<br>
                                     <strong>Modeliai:</strong> 
-                                    @php
-                                        $usedModels = [];
-                                        foreach($analysis->textAnalyses as $textAnalysis) {
-                                            $models = $textAnalysis->getAllModelAnnotations();
-                                            $usedModels = array_merge($usedModels, array_keys($models));
-                                        }
-                                        $usedModels = array_unique($usedModels);
-                                    @endphp
                                     @foreach($usedModels as $model)
                                         <span class="badge bg-primary me-1">{{ $model }}</span>
                                     @endforeach
@@ -695,33 +669,46 @@ function hideFullText(textId, button) {
                         <label class="form-label fw-bold">Prompt konfigūracija</label>
                         
                         <div class="mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="prompt_type" id="keep_prompt" value="keep" 
-                                       @if($analysis->custom_prompt) checked @endif>
-                                <label class="form-check-label" for="keep_prompt">
-                                    <strong>Naudoti tą patį prompt'ą</strong>
-                                    @if($analysis->custom_prompt)
-                                        <small class="d-block text-muted">Dabartinis custom prompt</small>
-                                    @else
-                                        <small class="d-block text-muted">Standartinis ATSPARA prompt</small>
-                                    @endif
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="prompt_type" id="standard_repeat" value="standard" 
-                                       @if(!$analysis->custom_prompt) checked @endif>
-                                <label class="form-check-label" for="standard_repeat">
-                                    <strong>Standartinis ATSPARA prompt'as</strong>
-                                    <small class="d-block text-muted">Sistemos numatytasis prompt</small>
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="prompt_type" id="modify_repeat" value="custom">
-                                <label class="form-check-label" for="modify_repeat">
-                                    <strong>Modifikuoti prompt'ą</strong>
-                                    <small class="d-block text-muted">Keisti esamą arba sukurti naują</small>
-                                </label>
-                            </div>
+                            @if($analysis->custom_prompt)
+                                <!-- When original analysis used custom prompt, show all options -->
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="prompt_type" id="keep_prompt" value="keep" checked>
+                                    <label class="form-check-label" for="keep_prompt">
+                                        <strong>Naudoti tą patį custom prompt'ą</strong>
+                                        <small class="d-block text-muted">Pakartoti su dabartinio analizės custom prompt'u</small>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="prompt_type" id="standard_repeat" value="standard">
+                                    <label class="form-check-label" for="standard_repeat">
+                                        <strong>Pereiti į standartinį ATSPARA prompt'ą</strong>
+                                        <small class="d-block text-muted">Naudoti sistemos numatytąjį prompt'ą</small>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="prompt_type" id="modify_repeat" value="custom">
+                                    <label class="form-check-label" for="modify_repeat">
+                                        <strong>Modifikuoti prompt'ą</strong>
+                                        <small class="d-block text-muted">Keisti esamą arba sukurti naują custom prompt'ą</small>
+                                    </label>
+                                </div>
+                            @else
+                                <!-- When original analysis used standard prompt, only show relevant options -->
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="prompt_type" id="standard_repeat" value="standard" checked>
+                                    <label class="form-check-label" for="standard_repeat">
+                                        <strong>Naudoti standartinį ATSPARA prompt'ą</strong>
+                                        <small class="d-block text-muted">Pakartoti su tuo pačiu standartiniu prompt'u</small>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="prompt_type" id="modify_repeat" value="custom">
+                                    <label class="form-check-label" for="modify_repeat">
+                                        <strong>Sukurti custom prompt'ą</strong>
+                                        <small class="d-block text-muted">Modifikuoti standartinį prompt'ą arba sukurti naują</small>
+                                    </label>
+                                </div>
+                            @endif
                         </div>
 
                         <!-- Current prompt display -->
@@ -748,6 +735,75 @@ function hideFullText(textId, button) {
                             </div>
                             <textarea class="form-control" id="new_custom_prompt" name="custom_prompt" rows="8" 
                                       placeholder="Įveskite modifikuotą prompt'ą..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Model selection -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Modelių pasirinkimas</label>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Galite keisti modelius, kuriuos naudos pakartotinė analizė. Pažymėkite bent vieną modelį.
+                        </div>
+                        
+                        <div class="row">
+                            @php
+                                $llmConfig = config('llm');
+                                $allModels = $llmConfig['models'];
+                                $providers = $llmConfig['providers'];
+                                
+                                // Convert model names to keys (Claude -> claude-opus-4, etc)
+                                $currentModelKeys = [];
+                                foreach($usedModels as $modelName) {
+                                    foreach($allModels as $key => $config) {
+                                        if (stripos($modelName, $config['provider']) !== false || 
+                                            stripos($key, strtolower($modelName)) !== false) {
+                                            $currentModelKeys[] = $key;
+                                            break;
+                                        }
+                                    }
+                                }
+                            @endphp
+                            
+                            @foreach($allModels as $key => $model)
+                                @php
+                                    $provider = $providers[$model['provider']];
+                                    $isCurrentlyUsed = in_array($key, $currentModelKeys);
+                                    $tier = $model['tier'] === 'premium' ? 
+                                        '<span class="badge bg-warning text-dark ms-1">Premium</span>' : '';
+                                @endphp
+                                
+                                <div class="col-md-6 mb-2">
+                                    <div class="model-checkbox">
+                                        <input type="checkbox" class="form-check-input" 
+                                               id="repeat_{{ $key }}" name="models[]" value="{{ $key }}" 
+                                               @if($isCurrentlyUsed) checked @endif>
+                                        <label class="form-check-label w-100" for="repeat_{{ $key }}">
+                                            <div class="d-flex align-items-center">
+                                                <i class="{{ $provider['icon'] }} text-{{ $provider['color'] }} me-2"></i>
+                                                <div class="flex-grow-1">
+                                                    <strong>{{ $model['model'] }}</strong>
+                                                    @if($model['tier'] === 'premium')
+                                                        <span class="badge bg-warning text-dark ms-1">Premium</span>
+                                                    @endif
+                                                    @if($isCurrentlyUsed)
+                                                        <span class="badge bg-info ms-1">Naudotas</span>
+                                                    @endif
+                                                    <small class="d-block text-muted">{{ $model['description'] ?? '' }}</small>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                        
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Modeliai pažymėti "Naudotas" buvo naudojami originalios analizės metu.
+                            </small>
                         </div>
                     </div>
 
@@ -780,12 +836,13 @@ function hideFullText(textId, button) {
 <script>
 // Repeat analysis modal functionality
 document.addEventListener('DOMContentLoaded', function() {
-    const keepRadio = document.getElementById('keep_prompt');
+    const keepRadio = document.getElementById('keep_prompt'); // Only exists for custom prompts
     const standardRadio = document.getElementById('standard_repeat');
     const modifyRadio = document.getElementById('modify_repeat');
     const customSection = document.getElementById('custom_prompt_repeat_section');
     const currentSection = document.getElementById('current_prompt_section');
 
+    // Only set up keep_prompt listener if it exists (custom prompt scenarios)
     if (keepRadio) {
         keepRadio.addEventListener('change', function() {
             if (this.checked) {
@@ -813,12 +870,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Form submission
+    // Form submission with validation
     const repeatForm = document.getElementById('repeatAnalysisForm');
     const repeatBtn = document.getElementById('repeatSubmitBtn');
     
     if (repeatForm) {
-        repeatForm.addEventListener('submit', function() {
+        repeatForm.addEventListener('submit', function(e) {
+            // Validate that at least one model is selected
+            const modelCheckboxes = repeatForm.querySelectorAll('input[name="models[]"]:checked');
+            
+            if (modelCheckboxes.length === 0) {
+                e.preventDefault();
+                alert('Prašome pasirinkti bent vieną modelį analizei.');
+                return false;
+            }
+            
+            // If validation passes, proceed with submission
             repeatBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Paleidžiama...';
             repeatBtn.disabled = true;
         });
