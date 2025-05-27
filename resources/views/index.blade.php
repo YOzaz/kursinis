@@ -13,9 +13,25 @@
                 </h3>
             </div>
             <div class="card-body">
+                <div class="alert alert-info mb-4">
+                    <div class="d-flex">
+                        <div class="me-3">
+                            <i class="fas fa-info-circle fa-lg"></i>
+                        </div>
+                        <div>
+                            <h6 class="alert-heading mb-2">Sistemos galimybės</h6>
+                            <p class="mb-1">Propaganda analizės sistema veikia dviem režimais:</p>
+                            <ul class="mb-2">
+                                <li><strong>Su ekspertų anotacijomis</strong> - palygina AI ir ekspertų rezultatus, skaičiuoja metrikas</li>
+                                <li><strong>Be ekspertų anotacijų</strong> - analizuoja naują tekstą ir identifikuoja propagandos technikas</li>
+                            </ul>
+                            <p class="mb-0">Rezultatai eksportuojami CSV ir JSON formatais. Jei norite testuoti custom prompt'us, eikite į <a href="{{ route('experiments.index') }}" class="alert-link">Eksperimentų</a> skiltį.</p>
+                        </div>
+                    </div>
+                </div>
+                
                 <p class="text-muted mb-4">
-                    Įkelkite JSON failą su ekspertų anotacijomis ir pasirinkite LLM modelius analizei.
-                    Sistema palyginsir ekspertų ir dirbtinio intelekto anotacijas bei apskaičiuos tikslumo metrikas.
+                    Įkelkite JSON failą (su arba be ekspertų anotacijų) ir pasirinkite LLM modelius analizei.
                 </p>
 
                 <form action="{{ route('upload') }}" method="POST" enctype="multipart/form-data" id="uploadForm">
@@ -25,7 +41,7 @@
                     <div class="mb-4">
                         <label for="json_file" class="form-label fw-bold">
                             <i class="fas fa-file-code me-2"></i>
-                            JSON failas su ekspertų anotacijomis
+                            JSON failas (su arba be ekspertų anotacijų)
                         </label>
                         <div class="upload-area" id="uploadArea">
                             <input type="file" class="form-control d-none" id="json_file" name="json_file" accept=".json" required>

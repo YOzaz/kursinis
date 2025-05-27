@@ -32,19 +32,25 @@ Sistema naudoja ATSPARA projekto sukurtą **anotavimo ir klasifikavimo metodolog
 
 ## 🎯 Sistemos tikslas
 
-Universali propagandos analizės platforma, kuri veikia dviem režimais:
+Universali propagandos analizės platforma, kuri veikia dviem pagrindiniais režimais:
 
 ### 🔬 Tyrimų režimas (Research Mode)
-- Palygina LLM rezultatus su ATSPARA ekspertų anotacijomis
+- **Su ekspertų anotacijomis**: Palygina LLM rezultatus su ATSPARA ekspertų anotacijomis
 - Apskaičiuoja tikslumo metrikas (Precision, Recall, F1, Cohen's Kappa)
 - Generuoja detalizuotas palyginimo ataskaitas mokslo tyrimams
 
 ### 🛠️ Praktinio naudojimo režimas (Practical Mode)  
-- Analizuoja naują lietuvių kalbos tekstą be ekspertų anotacijų
-- Identifikuoja 21 ATSPARA propagandos techniką 10 kategorijų
+- **Be ekspertų anotacijų**: Analizuoja naują lietuvių kalbos tekstą
+- Identifikuoja ATSPARA propagandos technikas ir disinformacijos naratyvus
 - Generuoja struktūrizuotus analizės rezultatus praktiniam naudojimui
 
-**Abiem atvejais:**
+### 🧪 Eksperimentų režimas (Experiments Mode)
+- **Custom prompt'ų testavimas**: Redaguokite AI instrukcijas naudojant RISEN metodologiją
+- **Prompt'ų palyginimas**: Testuokite, kaip skirtingi prompt'ai paveiks analizės rezultatus
+- **Optimizavimas**: Raskite optimalų AI instrukcijų formulavimą jūsų poreikiams
+- **Metrikų stebėjimas**: Automatinis skirtingų prompt'ų efektyvumo palyginimas
+
+**Visais atvejais:**
 - Naudoja tris LLM modelius (Claude, Gemini, ChatGPT) lyginimui
 - Eksportuoja rezultatus CSV/JSON formatais
 - Palaiko batch analizę dideliems duomenų kiekiams
@@ -55,6 +61,13 @@ Universali propagandos analizės platforma, kuri veikia dviem režimais:
 - **Claude 4** (Anthropic)
 - **Gemini 2.5 Pro** (Google) 
 - **GPT-4.1** (OpenAI)
+
+### 🧪 Prompt eksperimentų sistema
+- **RISEN metodologija**: Role, Instructions, Situation, Execution, Needle
+- **Real-time preview**: Matyti sugeneruotą prompt'ą iš karto
+- **A/B testavimas**: Palyginti skirtingų prompt'ų efektyvumą
+- **Metrikų automatinis skaičiavimas**: Precision, Recall, F1 Score kiekvienam eksperimentui
+- **Eksportavimo galimybės**: CSV ir JSON formatuose
 
 ### 🏷️ Propagandos technikos (ATSPARA klasifikacija)
 1. **Emocinė raiška** - Stiprių jausmų kėlimas, emocinė leksika
@@ -150,11 +163,26 @@ OPENAI_API_KEY=your_openai_api_key
 ## 📖 Naudojimas
 
 ### Web sąsaja
+
+#### 📊 Standartinė analizė
 1. Atidaryti http://propaganda.local
-2. Įkelti JSON failą su ekspertų anotacijomis
-3. Pasirinkti LLM modelius analizei
-4. Stebėti progresą
+2. Įkelti JSON failą su ekspertų anotacijomis arba be jų
+3. Pasirinkti LLM modelius analizei  
+4. Stebėti progresą queue sistemoje
 5. Eksportuoti rezultatus CSV formatu
+
+#### 🧪 Prompt eksperimentai
+1. Eiti į **Eksperimentai** skiltį
+2. Spausti **"Naujas eksperimentas"**
+3. **Redaguoti RISEN prompt'ą:**
+   - **Role**: Nustatyti AI vaidmenį (ekspertas, analitikas)
+   - **Instructions**: Detaliai aprašyti užduotį
+   - **Situation**: Paaiškinti kontekstą (Lietuvos medijos)
+   - **Execution**: Nurodyti vykdymo žingsnius
+   - **Needle**: Apibrėžti pagrindinį tikslą
+4. **Peržiūrėti prompt'ą** real-time
+5. **Išsaugoti** ir **testuoti** su teksto duomenimis
+6. **Palyginti** rezultatus su standartiniais prompt'ais
 
 ### API naudojimas
 
@@ -361,6 +389,7 @@ tail -f storage/logs/worker.log
 - **[DEPLOYMENT.md](DEPLOYMENT.md)** - Išsami diegimo instrukcija
 - **[REQUIREMENTS.md](REQUIREMENTS.md)** - Detalūs sistemos reikalavimai
 - **[ATSPARA Anotavimo metodologija](docs/ATSPARA-ANNOTATION-METHODOLOGY.md)** - Propagandos technikų klasifikavimo kriterijai
+- **[Eksperimentų vadovas](docs/EXPERIMENTS-GUIDE.md)** - Custom prompt'ų kūrimas ir testavimas
 - **[API dokumentacija](docs/api.md)** - API endpointų aprašymas
 
 ## 🤝 Prisidėjimas

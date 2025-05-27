@@ -231,21 +231,16 @@ class StatisticsService
 
     public function getGlobalStatistics(): array
     {
-        $allResults = ExperimentResult::with(['experiment', 'analysisJob'])->get();
+        // Gauti ir eksperimentų rezultatus, ir standartinės analizės duomenis
+        $experimentResults = ExperimentResult::with(['experiment', 'analysisJob'])->get();
+        $standardAnalyses = \App\Models\TextAnalysis::with(['analysisJob'])->get();
         
-        if ($allResults->isEmpty()) {
-            return [
-                'total_experiments' => 0,
-                'total_analyses' => 0,
-                'model_performance' => [],
-                'recent_activity' => [],
-            ];
-        }
-
         return [
             'total_experiments' => Experiment::count(),
-            'total_analyses' => $allResults->count(),
-            'model_performance' => $this->getGlobalModelPerformance($allResults),
+            'total_analyses' => $standardAnalyses->count() + $experimentResults->count(),
+            'total_standard_analyses' => $standardAnalyses->count(),
+            'total_experiment_analyses' => $experimentResults->count(),
+            'model_performance' => $this->getCombinedModelPerformance($experimentResults, $standardAnalyses),
             'recent_activity' => $this->getRecentActivity(),
         ];
     }
@@ -265,6 +260,60 @@ class StatisticsService
                 'avg_execution_time' => round($modelResults->avg('execution_time'), 2),
                 'reliability_score' => $this->calculateReliabilityScore($metrics),
             ];
+        }
+
+        return $performance;
+    }
+
+    private function getCombinedModelPerformance(Collection $experimentResults, Collection $standardAnalyses): array
+    {
+        $performance = [];
+        
+        // Iš eksperimentų rezultatų
+        foreach ($experimentResults->groupBy('llm_model') as $model => $modelResults) {
+            $metrics = $modelResults->pluck('metrics')->flatten(1);
+            
+            $performance[$model] = [
+                'total_analyses' => $modelResults->count(),
+                'experiment_analyses' => $modelResults->count(),
+                'standard_analyses' => 0,
+                'avg_precision' => $this->calculateAverageMetric($metrics, 'precision'),
+                'avg_recall' => $this->calculateAverageMetric($metrics, 'recall'),
+                'avg_f1' => $this->calculateAverageMetric($metrics, 'f1_score'),
+                'avg_execution_time' => round($modelResults->avg('execution_time'), 2),
+                'reliability_score' => $this->calculateReliabilityScore($metrics),
+            ];
+        }
+        
+        // Iš standartinių analizių (per ComparisonMetric)
+        $jobIds = $standardAnalyses->pluck('analysis_job_id')->unique();
+        $comparisonMetrics = ComparisonMetric::whereIn('job_id', $jobIds)
+            ->get()
+            ->groupBy('model_name');
+            
+        foreach ($comparisonMetrics as $model => $modelMetrics) {
+            if (!isset($performance[$model])) {
+                $performance[$model] = [
+                    'total_analyses' => 0,
+                    'experiment_analyses' => 0,
+                    'standard_analyses' => 0,
+                    'avg_precision' => 0,
+                    'avg_recall' => 0,
+                    'avg_f1' => 0,
+                    'avg_execution_time' => 0,
+                    'reliability_score' => 0,
+                ];
+            }
+            
+            $performance[$model]['standard_analyses'] = $modelMetrics->count();
+            $performance[$model]['total_analyses'] += $modelMetrics->count();
+            
+            // Skaičiuoti metrikas iš ComparisonMetric
+            if ($modelMetrics->count() > 0) {
+                $performance[$model]['avg_precision'] = round($modelMetrics->avg('precision'), 3);
+                $performance[$model]['avg_recall'] = round($modelMetrics->avg('recall'), 3);
+                $performance[$model]['avg_f1'] = round($modelMetrics->avg('f1_score'), 3);
+            }
         }
 
         return $performance;

@@ -5,10 +5,31 @@
 @section('content')
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Eksperimentai</h1>
+        <div>
+            <h1>Eksperimentai</h1>
+            <p class="text-muted mb-0">Skirtingų prompt'ų testavimas ir palyginimas</p>
+        </div>
         <a href="{{ route('experiments.create') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Naujas eksperimentas
         </a>
+    </div>
+
+    <div class="alert alert-info mb-4">
+        <div class="d-flex">
+            <div class="me-3">
+                <i class="fas fa-info-circle fa-lg"></i>
+            </div>
+            <div>
+                <h6 class="alert-heading mb-2">Kas yra eksperimentai?</h6>
+                <p class="mb-1">Eksperimentai leidžia testuoti skirtingus prompt'us ir palyginti jų efektyvumą:</p>
+                <ul class="mb-2">
+                    <li><strong>Prompt redagavimas</strong> - keiskite AI instrukcijas naudojant RISEN metodologiją</li>
+                    <li><strong>Rezultatų palyginimas</strong> - matysite, kaip skirtingi prompt'ai keičia analizės rezultatus</li>
+                    <li><strong>Metrikų apskaičiavimas</strong> - automatinis tikslumas, precizija ir F1 score skaičiavimas</li>
+                </ul>
+                <p class="mb-0"><strong>Pavyzdys:</strong> galite testuoti, ar AI geriau atpažįsta propagandą, kai prašote "identifikuoti propagandos technikas" vs. "rasti manipuliacijos būdus".</p>
+            </div>
+        </div>
     </div>
 
     @if($experiments->count() > 0)
@@ -71,9 +92,12 @@
         <div class="text-center py-5">
             <i class="fas fa-flask fa-4x text-muted mb-3"></i>
             <h3>Nėra eksperimentų</h3>
-            <p class="text-muted">Sukurkite naują eksperimentą, kad pradėtumėte analizę.</p>
+            <p class="text-muted">
+                Sukurkite naują eksperimentą, kad galėtumėte testuoti skirtingus prompt'us.<br>
+                Eksperimentai padės rasti optimalų AI instrukcijų formulavimą propagandos analizei.
+            </p>
             <a href="{{ route('experiments.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Sukurti eksperimentą
+                <i class="fas fa-plus"></i> Sukurti pirmą eksperimentą
             </a>
         </div>
     @endif

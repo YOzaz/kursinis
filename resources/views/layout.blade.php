@@ -77,9 +77,15 @@
             </a>
             
             <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="{{ route('home') }}">Analizė</a>
-                <a class="nav-link" href="{{ route('experiments.index') }}">Eksperimentai</a>
-                <a class="nav-link" href="{{ route('dashboard') }}">Dashboard</a>
+                <a class="nav-link" href="{{ route('home') }}" title="Įkelti tekstus analizei">
+                    <i class="fas fa-file-upload me-1"></i>Analizė
+                </a>
+                <a class="nav-link" href="{{ route('experiments.index') }}" title="Custom prompt'ų testavimas">
+                    <i class="fas fa-flask me-1"></i>Eksperimentai
+                </a>
+                <a class="nav-link" href="{{ route('dashboard') }}" title="Rezultatų peržiūra ir statistikos">
+                    <i class="fas fa-chart-bar me-1"></i>Dashboard
+                </a>
             </div>
         </div>
     </nav>

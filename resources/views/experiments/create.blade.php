@@ -5,10 +5,32 @@
 @section('content')
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Naujas eksperimentas</h1>
+        <div>
+            <h1>Naujas eksperimentas</h1>
+            <p class="text-muted mb-0">Sukurkite custom prompt'ą propagandos analizės AI modeliams</p>
+        </div>
         <a href="{{ route('experiments.index') }}" class="btn btn-secondary">
             <i class="fas fa-arrow-left"></i> Atgal
         </a>
+    </div>
+
+    <div class="alert alert-warning mb-4">
+        <div class="d-flex">
+            <div class="me-3">
+                <i class="fas fa-lightbulb fa-lg"></i>
+            </div>
+            <div>
+                <h6 class="alert-heading mb-2">Prompt eksperimento tikslas</h6>
+                <p class="mb-1">Eksperimentas leidžia testuoti, kaip AI modeliai (Claude, Gemini, ChatGPT) reaguoja į skirtingus prompt'ų formulavimus:</p>
+                <ul class="mb-2">
+                    <li>Keiskite AI vaidmenį (ekspertas, analitikas, žurnalistas)</li>
+                    <li>Formuokite skirtingas instrukcijas (griežtas vs. lankstus)</li>
+                    <li>Aprašykite kontekstą (Lietuvos medijos, akademiniai tyrimai)</li>
+                    <li>Nurodykite vykdymo būdą (žingsnis po žingsnio vs. bendras)</li>
+                </ul>
+                <p class="mb-0">Rezultatai bus palyginti su standartiniais prompt'ais ir ekspertų anotacijomis.</p>
+            </div>
+        </div>
     </div>
 
     <div class="row">
