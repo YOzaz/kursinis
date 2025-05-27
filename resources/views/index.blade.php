@@ -75,7 +75,7 @@
                                             <i class="fas fa-brain text-primary me-2"></i>
                                             <div>
                                                 <strong>Claude 4</strong>
-                                                <small class="d-block text-muted">Anthropic AI (claude-3-opus-20240229)</small>
+                                                <small class="d-block text-muted">Anthropic AI (claude-sonnet-4-20250514)</small>
                                             </div>
                                         </div>
                                     </label>

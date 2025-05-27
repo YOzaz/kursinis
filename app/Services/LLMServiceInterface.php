@@ -20,6 +20,11 @@ interface LLMServiceInterface
     public function getModelName(): string;
 
     /**
+     * Gauti tikrą modelio pavadinimą (pvz., claude-sonnet-4-20250514).
+     */
+    public function getActualModelName(): string;
+
+    /**
      * Patikrinti ar servisas yra konfigūruotas.
      */
     public function isConfigured(): bool;

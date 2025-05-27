@@ -27,6 +27,7 @@ class ComparisonMetric extends Model
         'job_id',
         'text_id',
         'model_name',
+        'actual_model_name',
         'true_positives',
         'false_positives',
         'false_negatives',

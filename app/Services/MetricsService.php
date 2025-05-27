@@ -32,7 +32,8 @@ class MetricsService
     public function calculateMetricsForText(
         TextAnalysis $textAnalysis, 
         string $modelName, 
-        string $jobId
+        string $jobId,
+        ?string $actualModelName = null
     ): ComparisonMetric {
         $expertAnnotations = $textAnalysis->expert_annotations;
         $modelAnnotations = $textAnalysis->getModelAnnotations($modelName);
@@ -63,6 +64,7 @@ class MetricsService
             'job_id' => $jobId,
             'text_id' => $textAnalysis->text_id,
             'model_name' => $modelName,
+            'actual_model_name' => $actualModelName,
             'true_positives' => $stats['true_positives'],
             'false_positives' => $stats['false_positives'],
             'false_negatives' => $stats['false_negatives'],

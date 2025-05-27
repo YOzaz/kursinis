@@ -103,7 +103,7 @@ class ClaudeServiceTest extends TestCase
             return $request->url() === 'https://api.anthropic.com/v1/messages' &&
                    $request->hasHeader('x-api-key') &&
                    $request->hasHeader('anthropic-version') &&
-                   $request['model'] === 'claude-3-5-sonnet-20241022' &&
+                   $request['model'] === 'claude-sonnet-4-20250514' &&
                    $request['max_tokens'] === 4096 &&
                    isset($request['messages']) &&
                    is_array($request['messages']);

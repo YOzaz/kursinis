@@ -144,6 +144,14 @@ class GeminiService implements LLMServiceInterface
     }
 
     /**
+     * Gauti tikrą modelio pavadinimą.
+     */
+    public function getActualModelName(): string
+    {
+        return $this->config['model'] ?? 'gemini-2.5-pro-preview-05-06';
+    }
+
+    /**
      * Patikrinti ar servisas sukonfigūruotas.
      */
     public function isConfigured(): bool

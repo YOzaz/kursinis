@@ -92,8 +92,9 @@ class AnalyzeTextJob implements ShouldQueue
             // Analizuoti tekstą
             $annotations = $service->analyzeText($textAnalysis->content, $customPrompt);
             
-            // Išsaugoti rezultatus
-            $textAnalysis->setModelAnnotations($this->modelName, $annotations);
+            // Išsaugoti rezultatus su tikru modelio pavadinimu
+            $actualModelName = $service->getActualModelName();
+            $textAnalysis->setModelAnnotations($this->modelName, $annotations, $actualModelName);
             $textAnalysis->save();
 
             // Apskaičiuoti metrikas, jei yra ekspertų anotacijos
@@ -101,7 +102,8 @@ class AnalyzeTextJob implements ShouldQueue
                 $metricsService->calculateMetricsForText(
                     $textAnalysis,
                     $this->modelName,
-                    $this->jobId
+                    $this->jobId,
+                    $actualModelName
                 );
             }
 

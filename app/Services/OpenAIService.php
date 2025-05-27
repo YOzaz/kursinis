@@ -128,6 +128,14 @@ class OpenAIService implements LLMServiceInterface
     }
 
     /**
+     * Gauti tikrą modelio pavadinimą.
+     */
+    public function getActualModelName(): string
+    {
+        return $this->config['model'] ?? 'gpt-4o';
+    }
+
+    /**
      * Patikrinti ar servisas sukonfigūruotas.
      */
     public function isConfigured(): bool

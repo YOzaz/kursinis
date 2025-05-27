@@ -128,6 +128,14 @@ class ClaudeService implements LLMServiceInterface
     }
 
     /**
+     * Gauti tikrą modelio pavadinimą.
+     */
+    public function getActualModelName(): string
+    {
+        return $this->config['model'] ?? 'claude-sonnet-4-20250514';
+    }
+
+    /**
      * Patikrinti ar servisas sukonfigūruotas.
      */
     public function isConfigured(): bool

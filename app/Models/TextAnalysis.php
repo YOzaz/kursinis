@@ -30,8 +30,11 @@ class TextAnalysis extends Model
         'content',
         'expert_annotations',
         'claude_annotations',
+        'claude_actual_model',
         'gemini_annotations',
+        'gemini_actual_model',
         'gpt_annotations',
+        'gpt_actual_model',
     ];
 
     /**
@@ -77,11 +80,19 @@ class TextAnalysis extends Model
     /**
      * Nustatyti modelio anotacijas.
      */
-    public function setModelAnnotations(string $modelName, array $annotations): void
+    public function setModelAnnotations(string $modelName, array $annotations, ?string $actualModelName = null): void
     {
         $field = $this->getAnnotationField($modelName);
         if ($field) {
             $this->$field = $annotations;
+            
+            // Store actual model name if provided
+            if ($actualModelName) {
+                $actualField = $this->getActualModelField($modelName);
+                if ($actualField) {
+                    $this->$actualField = $actualModelName;
+                }
+            }
         }
     }
 
@@ -103,6 +114,19 @@ class TextAnalysis extends Model
             'claude-4' => 'claude_annotations',
             'gemini-2.5-pro' => 'gemini_annotations',
             'gpt-4.1' => 'gpt_annotations',
+            default => null,
+        };
+    }
+
+    /**
+     * Gauti tikrojo modelio lauko pavadinimą pagal modelio pavadinimą.
+     */
+    private function getActualModelField(string $modelName): ?string
+    {
+        return match ($modelName) {
+            'claude-4' => 'claude_actual_model',
+            'gemini-2.5-pro' => 'gemini_actual_model',
+            'gpt-4.1' => 'gpt_actual_model',
             default => null,
         };
     }
