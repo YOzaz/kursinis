@@ -3,7 +3,7 @@
 ## 🏗️ High-Level Architecture
 
 ### System Overview
-The Propaganda and Disinformation Analysis System is a Laravel-based web application that processes Lithuanian text through multiple Large Language Models (LLMs) to detect propaganda techniques and disinformation narratives.
+The Propaganda and Disinformation Analysis System is a Laravel-based web application that processes Lithuanian text through multiple Large Language Models (LLMs) to detect propaganda techniques and disinformation narratives. The system supports custom prompts for optimizing analysis results and allows repetition of analysis with different parameters.
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -146,21 +146,21 @@ Reference Analysis ID
           ↓
 ┌─────────────────┐
 │ AnalyzeTextJob  │
-│ - Build RISEN   │
-│ - Generate final│
-│   prompt        │
+│ - Build prompt  │
+│ - Apply custom  │
+│   modifications │
 └─────────┬───────┘
           ↓
 ┌─────────────────┐
-│ ExperimentJob   │
-│ - Test prompt   │
-│ - Multiple models │
+│ LLM Services    │
+│ - Process with  │
+│ - Custom prompt │
 └─────────┬───────┘
           ↓
 ┌─────────────────┐
 │ Results Analysis│
 │ - Performance   │
-│ - Optimization  │
+│ - Comparison    │
 └─────────────────┘
 ```
 
@@ -176,23 +176,12 @@ Reference Analysis ID
 │ status          │    │ text_id         │    │ text_id         │
 │ total_texts     │    │ content         │    │ model_name      │
 │ processed_texts │    │ expert_annotations │ │ precision       │
-│ experiment_id   │    │ claude_annotations │ │ recall          │
-│ created_at      │    │ gemini_annotations │ │ f1_score        │
-│ completed_at    │    │ gpt_annotations │    │ true_positives  │
-│ error_message   │    │ created_at      │    │ false_positives │
-└─────────────────┘    └─────────────────┘    │ false_negatives │
-          │                                   └─────────────────┘
-          │
-┌─────────────────┐    ┌─────────────────┐
-│   Experiment    │    │ ExperimentResult│
-│─────────────────│    │─────────────────│
-│ id (PK)         │───▶│ experiment_id   │
-│ name            │    │ llm_model       │
-│ description     │    │ metrics (JSON)  │
-│ risen_prompt    │    │ execution_time  │
-│ created_at      │    │ created_at      │
-│ updated_at      │    └─────────────────┘
-└─────────────────┘
+│ custom_prompt   │    │ claude_annotations │ │ recall          │
+│ reference_id    │    │ gemini_annotations │ │ f1_score        │
+│ created_at      │    │ gpt_annotations │    │ true_positives  │
+│ completed_at    │    │ created_at      │    │ false_positives │
+│ error_message   │    └─────────────────┘    │ false_negatives │
+└─────────────────┘                           └─────────────────┘
 ```
 
 ### Table Descriptions
@@ -202,7 +191,8 @@ Reference Analysis ID
 - **Key Fields**: 
   - `job_id`: UUID primary key
   - `status`: pending/processing/completed/failed
-  - `experiment_id`: Links to experiments if applicable
+  - `custom_prompt`: Optional custom prompt for analysis
+  - `reference_id`: Links to previous analysis for repetition
 
 #### `text_analyses`
 - **Purpose**: Store individual text analysis results
@@ -218,16 +208,6 @@ Reference Analysis ID
   - `precision`, `recall`, `f1_score`: Performance metrics
   - `true_positives`, `false_positives`, `false_negatives`: Confusion matrix data
 
-#### `experiments`
-- **Purpose**: Store custom RISEN prompt configurations
-- **Key Fields**:
-  - `risen_prompt`: JSON with Role, Instructions, Situation, Execution, Needle
-
-#### `experiment_results`
-- **Purpose**: Performance data for experiment runs
-- **Key Fields**:
-  - `metrics`: JSON with comprehensive performance data
-  - `execution_time`: Processing duration
 
 ## 🔧 Service Layer Architecture
 
@@ -323,16 +303,12 @@ HTTP Request
 ### Job Types and Priorities
 
 1. **AnalyzeTextJob** - Priority: Normal
-   - Single text analysis
+   - Single text analysis with optional custom prompts
    - Quick turnaround expected
 
 2. **BatchAnalysisJob** - Priority: Low
    - Multiple text processing
    - Longer processing time acceptable
-
-3. **ExperimentJob** - Priority: High
-   - Custom prompt testing
-   - Interactive user experience
 
 ## 🔐 Security Architecture
 
@@ -465,8 +441,8 @@ tests/
 │   └── Jobs/               # Queue job tests
 ├── Feature/
 │   ├── Analysis/           # End-to-end analysis tests
-│   ├── Experiments/        # RISEN experiment tests
-│   └── API/                # API endpoint tests
+│   ├── API/                # API endpoint tests
+│   └── CustomPrompts/      # Custom prompt functionality tests
 └── Integration/
     ├── LLM/                # LLM service integration
     ├── Database/           # DB relationship tests

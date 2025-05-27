@@ -191,7 +191,7 @@ Visos propagandos technikos ir naratyvai konfigūruojami `config/llm.php` faile 
 ## Naudojimas sistemoje
 
 Ši metodologija įgyvendinta:
-- **PromptService** klasėje - sukuria RISEN struktūros prompt'us
+- **PromptService** klasėje - sukuria struktūrizuotus prompt'us
 - **LLM servisuose** - Claude, Gemini, OpenAI analizė
 - **MetricsService** klasėje - rezultatų palyginimas su ekspertų anotacijomis
 - **Testų sistemoje** - automatizuotas metodologijos validavimas

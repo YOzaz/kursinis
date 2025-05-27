@@ -83,9 +83,6 @@
                 <a class="nav-link" href="{{ route('analyses.index') }}" title="Visų analizių sąrašas">
                     <i class="fas fa-list me-1"></i>Analizės
                 </a>
-                <a class="nav-link" href="{{ route('experiments.index') }}" title="Custom prompt'ų testavimas">
-                    <i class="fas fa-flask me-1"></i>Eksperimentai
-                </a>
                 <a class="nav-link" href="{{ route('dashboard') }}" title="Rezultatų peržiūra ir statistikos">
                     <i class="fas fa-chart-bar me-1"></i>Dashboard
                 </a>

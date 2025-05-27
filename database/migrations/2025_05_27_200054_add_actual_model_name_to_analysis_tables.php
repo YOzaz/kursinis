@@ -27,11 +27,7 @@ return new class extends Migration
                   ->comment('Actual GPT model used (e.g., gpt-4o)');
         });
 
-        // Add actual model name to experiment_results table
-        Schema::table('experiment_results', function (Blueprint $table) {
-            $table->string('actual_model_name')->nullable()->after('llm_model')
-                  ->comment('The actual model name used in the experiment');
-        });
+        // Experiment tables were removed, so skip this section
     }
 
     /**
@@ -47,8 +43,6 @@ return new class extends Migration
             $table->dropColumn(['claude_actual_model', 'gemini_actual_model', 'gpt_actual_model']);
         });
 
-        Schema::table('experiment_results', function (Blueprint $table) {
-            $table->dropColumn('actual_model_name');
-        });
+        // Experiment tables were removed, so skip this section
     }
 };

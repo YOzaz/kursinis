@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\AnalysisJob;
-use App\Models\Experiment;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -35,7 +34,6 @@ class AnalysisJobFactory extends Factory
             'total_texts' => $totalTexts,
             'processed_texts' => $processedTexts,
             'error_message' => null,
-            'experiment_id' => null,
         ];
     }
 
@@ -75,12 +73,7 @@ class AnalysisJobFactory extends Factory
         ]);
     }
 
-    public function forExperiment(Experiment $experiment): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'experiment_id' => $experiment->id,
-        ]);
-    }
+    // Experiment functionality has been removed
 
     public function withTexts(int $count): static
     {

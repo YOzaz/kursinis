@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WebController;
-use App\Http\Controllers\ExperimentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AnalysisController;
 
@@ -22,12 +21,4 @@ Route::get('/progress/{jobId}', [WebController::class, 'progress'])->name('progr
 Route::get('/analyses', [AnalysisController::class, 'index'])->name('analyses.index');
 Route::get('/analyses/{jobId}', [AnalysisController::class, 'show'])->name('analyses.show');
 
-Route::resource('experiments', ExperimentController::class);
-Route::post('/experiments/preview-prompt', [ExperimentController::class, 'previewPrompt'])->name('experiments.preview-prompt');
-Route::get('/experiments/{experiment}/export/csv', [ExperimentController::class, 'exportCsv'])->name('experiments.export-csv');
-Route::get('/experiments/{experiment}/export/stats-csv', [ExperimentController::class, 'exportStatsCsv'])->name('experiments.export-stats-csv');
-Route::get('/experiments/{experiment}/export/json', [ExperimentController::class, 'exportJson'])->name('experiments.export-json');
-
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-Route::get('/dashboard/experiment/{experiment}/stats', [DashboardController::class, 'experimentStats'])->name('dashboard.experiment-stats');
-Route::post('/dashboard/compare-experiments', [DashboardController::class, 'compareExperiments'])->name('dashboard.compare-experiments');

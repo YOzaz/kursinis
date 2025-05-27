@@ -1,10 +1,15 @@
-# Custom Prompt'ų ir Analizių Pakartojimo Vadovas
+# Custom Prompt'ų Vadovas
 
 ## 🎯 Kas yra custom prompt'ai?
 
-**Custom prompt'ai** - tai pritaikytos AI instrukcijos, kurias galite naudoti propagandos analizės AI modeliams. Sistema leidžia kurti individualius prompt'us kiekvienai analizei arba pakartoti ankstesnes analizės su naujais prompt'ais.
+**Custom prompt'ai** - tai pritaikytos AI instrukcijos, kurias galite naudoti propagandos analizės AI modeliams. Sistema leidžia pridėti individualius prompt'us prie kiekvienos analizės arba pakartoti ankstesnes analizės su naujais prompt'ais, siekiant optimizuoti analizės rezultatus.
 
-## 🧪 Custom prompt'ų tikslas
+## 🧪 Custom prompt'ų naudojimas
+
+### Kaip naudoti custom prompt'us?
+1. **Naujoje analizėje**: Pridėkite custom prompt'ą prie najos analizės formos lauke "Custom prompt"
+2. **Analizės pakartojimas**: Naudokite `/api/repeat-analysis` endpoint'ą su nauju custom prompt'u
+3. **API užklausos**: Pridėkite `custom_prompt` parametrą prie `/api/analyze` arba `/api/batch-analyze` užklausų
 
 ### Kodėl reikalingi custom prompt'ai?
 - **Prompt optimizavimas**: Rasti geriausią AI instrukcijų formulavimą jūsų poreikiams
@@ -18,9 +23,9 @@
 - **Griežtumo lygis**: Griežtos instrukcijos vs. lankstūs nurodymai
 - **Konteksto specifika**: "Lietuvos medijos analizė" vs. "Bendras teksto tyrimas"
 
-## 🏗️ RISEN metodologija
+## 🏗️ Prompt struktūravimas
 
-Sistema naudoja **RISEN** prompt struktūravimo metodologiją:
+Rekomenduojama naudoti struktūrizuotą prompt'ų kūrimo metodologiją (RISEN):
 
 ### **R** - Role (Vaidmuo)
 ```
@@ -64,7 +69,7 @@ Grąžinkite JSON formatą su anotacijomis pagal ATSPARA standartą.
 {
   "text_id": "test-123",
   "content": "Jūsų analizuojamas tekstas...",
-  "models": ["claude-sonnet-4", "gemini-2.5-pro"],
+  "models": ["claude-opus-4", "gemini-2.5-pro"],
   "custom_prompt": "Esi propaganda analizės ekspertas. Atlikite detalų teksto tyrimą...",
   "name": "Ekspertinio prompt'o testas",
   "description": "Testuojame ekspertiškų instrukcijų efektyvumą"
@@ -78,7 +83,7 @@ Grąžinkite JSON formatą su anotacijomis pagal ATSPARA standartą.
 ```json
 {
   "reference_analysis_id": "550e8400-e29b-41d4-a716-446655440000",
-  "models": ["claude-sonnet-4"],
+  "models": ["claude-opus-4"],
   "custom_prompt": "Esi žurnalistas. Ieškokite manipuliacinių elementų...",
   "name": "Žurnalistinio prompt'o testas",
   "description": "Palyginimas su ekspertiniu prompt'u"
@@ -143,42 +148,42 @@ import requests
 response1 = requests.post('http://propaganda.local/api/analyze', json={
     'text_id': 'comparison-test',
     'content': 'Analizuojamas tekstas...',
-    'models': ['claude-sonnet-4'],
+    'models': ['claude-opus-4'],
     'name': 'Standartinis prompt'
 })
-job1_id = response1.json()['job_id']
+job1_id = response1.json()['data']['job_id']
 
 # 2. Pakartota analizė su custom prompt'u
 response2 = requests.post('http://propaganda.local/api/repeat-analysis', json={
     'reference_analysis_id': job1_id,
-    'models': ['claude-sonnet-4'],
+    'models': ['claude-opus-4'],
     'custom_prompt': 'Jūsų custom prompt...',
     'name': 'Custom prompt testas'
 })
-job2_id = response2.json()['job_id']
+job2_id = response2.json()['data']['job_id']
 
 # 3. Palyginimas rezultatų
 results1 = requests.get(f'http://propaganda.local/api/results/{job1_id}')
 results2 = requests.get(f'http://propaganda.local/api/results/{job2_id}')
 ```
 
-### 3. Konteksto eksperimentas
+### 3. Konteksto testas
 **Tikslas**: Testuoti, ar konteksto nurodymas pagerina rezultatus
 
-**Eksperimentas A - Su kontekstu:**
+**Testas A - Su kontekstu:**
 ```
 Situation: Analizuojate Lietuvos politinių partijų komunikaciją rinkimų laikotarpiu
 ```
 
-**Eksperimentas B - Be konteksto:**
+**Testas B - Be konteksto:**
 ```
 Situation: Analizuojate bendrus lietuvių kalbos tekstus
 ```
 
-## 📈 Eksperimentų vertinimas
+## 📈 Custom prompt'ų vertinimas
 
 ### Gerų rezultatų kriterijai
-- **F1 Score > 0.75**: Eksperimentas efektyvus
+- **F1 Score > 0.75**: Custom prompt efektyvus
 - **Precision > 0.80**: Mažai klaidingų atpažinimų  
 - **Recall > 0.70**: Nepraleista daug propagandos atvejų
 - **Cohen's Kappa > 0.60**: Geras sutarimas su ekspertais
@@ -205,25 +210,25 @@ Situation: Analizuojate bendrus lietuvių kalbos tekstus
 
 ## 🔗 Integracija su sistema
 
-### Eksperimentų naudojimas
-1. **Sukurkite eksperimentą**
-2. **Nurodykite jį batch analizės metu**
+### Custom prompt'ų naudojimas
+1. **Sukurkite custom prompt'ą**
+2. **Nurodykite jį analizės metu**
 3. **Palyginkite su standartiniais prompt'ais**
 4. **Eksportuokite rezultatus analizei**
 
 ### API naudojimas
 ```bash
-# Eksperimento naudojimas per API
+# Custom prompt naudojimas per API
 curl -X POST /api/analyze \
   -H "Content-Type: application/json" \
   -d '{
     "text_id": "test-1",
     "content": "Tekstas analizei...",
-    "models": ["claude-4"],
-    "experiment_id": 123
+    "models": ["claude-opus-4"],
+    "custom_prompt": "Jūsų pritaikytas prompt..."
   }'
 ```
 
 ---
 
-**💡 Atminkite**: Eksperimentai - tai galinga priemonė AI instrukcijų optimizavimui. Investuokite laiką į promtp'ų tobulinimą, ir jūsų analizės rezultatai žymiai pagerės!
+**💡 Atminkite**: Custom prompt'ai - tai galinga priemonė AI instrukcijų optimizavimui. Investuokite laiką į prompt'ų tobulinimą, ir jūsų analizės rezultatai žymiai pagerės!

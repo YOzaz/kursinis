@@ -3,7 +3,6 @@
 namespace Tests\Unit\Unit\Models;
 
 use App\Models\AnalysisJob;
-use App\Models\Experiment;
 use App\Models\TextAnalysis;
 use App\Models\ComparisonMetric;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -53,14 +52,7 @@ class AnalysisJobTest extends TestCase
         $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\HasMany::class, $analysisJob->comparisonMetrics());
     }
 
-    public function test_analysis_job_has_experiment_relationship(): void
-    {
-        $experiment = Experiment::factory()->create();
-        $analysisJob = AnalysisJob::factory()->forExperiment($experiment)->create();
-        
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class, $analysisJob->experiment());
-        $this->assertEquals($experiment->id, $analysisJob->experiment->id);
-    }
+    // Experiment functionality has been removed
 
     public function test_analysis_job_status_constants(): void
     {

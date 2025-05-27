@@ -29,10 +29,12 @@ class WebController extends Controller
      */
     public function upload(Request $request)
     {
+        $availableModels = collect(config('llm.models', []))->keys()->implode(',');
+        
         $validator = Validator::make($request->all(), [
             'json_file' => 'required|file|mimes:json|max:10240', // 10MB
             'models' => 'required|array|min:1',
-            'models.*' => 'required|string|in:claude-4,gemini-2.5-pro,gpt-4.1'
+            'models.*' => "required|string|in:{$availableModels}"
         ]);
 
         if ($validator->fails()) {

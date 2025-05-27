@@ -2,7 +2,7 @@
 
 ## 📋 Overview
 
-The Propaganda Analysis API provides programmatic access to Lithuanian text analysis using multiple Large Language Models (LLMs). The API supports both single text analysis and batch processing with expert annotation comparisons.
+The Propaganda Analysis API provides programmatic access to Lithuanian text analysis using multiple Large Language Models (LLMs). The API supports both single text analysis and batch processing with expert annotation comparisons. Custom prompts can be provided directly in analysis requests to optimize results.
 
 **Base URL**: `https://your-domain.com/api`  
 **Authentication**: API keys configured in environment  
@@ -25,9 +25,12 @@ No additional authentication is required for API endpoints in the current implem
 
 | Model Key | Provider | Actual Model | Description |
 |-----------|----------|--------------|-------------|
-| `claude-4` | Anthropic | `claude-sonnet-4-20250514` | Claude 4 Sonnet |
-| `gemini-2.5-pro` | Google | `gemini-2.5-pro-preview-05-06` | Gemini 2.5 Pro Preview |
-| `gpt-4.1` | OpenAI | `gpt-4o` | GPT-4o |
+| `claude-opus-4` | Anthropic | `claude-opus-4-20250514` | Claude Opus 4 (Premium) |
+| `claude-sonnet-4` | Anthropic | `claude-sonnet-4-20250514` | Claude Sonnet 4 |
+| `gpt-4.1` | OpenAI | `gpt-4.1` | GPT-4.1 (Latest) |
+| `gpt-4o-latest` | OpenAI | `gpt-4o` | GPT-4o |
+| `gemini-2.5-pro` | Google | `gemini-2.5-pro-experimental` | Gemini 2.5 Pro |
+| `gemini-2.5-flash` | Google | `gemini-2.5-flash-preview-04-17` | Gemini 2.5 Flash |
 
 ## 📝 Request/Response Format
 
@@ -70,7 +73,7 @@ Analyze a single text with selected LLM models.
 {
   "text_id": "37735",
   "content": "Tekstas analizei su propaganda technikų pavyzdžiais...",
-  "models": ["claude-4", "gemini-2.5-pro"],
+  "models": ["claude-opus-4", "gemini-2.5-pro"],
   "expert_annotations": [
     {
       "type": "labels",
@@ -110,7 +113,7 @@ Analyze a single text with selected LLM models.
     "job_id": "550e8400-e29b-41d4-a716-446655440000",
     "status": "processing",
     "text_id": "37735",
-    "models": ["claude-4", "gemini-2.5-pro"],
+    "models": ["claude-opus-4", "gemini-2.5-pro"],
     "created_at": "2025-05-27T19:00:00Z"
   }
 }
@@ -124,7 +127,7 @@ curl -X POST https://your-domain.com/api/analyze \
   -d '{
     "text_id": "test-123",
     "content": "Lietuva yra priklausoma valstybė...",
-    "models": ["claude-4"]
+    "models": ["claude-opus-4"]
   }'
 ```
 
@@ -187,7 +190,7 @@ Process multiple texts with expert annotations in ATSPARA format.
     "job_id": "550e8400-e29b-41d4-a716-446655440001",
     "status": "processing",
     "total_texts": 100,
-    "models": ["claude-4", "gemini-2.5-pro", "gpt-4.1"],
+    "models": ["claude-opus-4", "gemini-2.5-pro", "gpt-4.1"],
     "estimated_completion": "2025-05-27T19:30:00Z"
   }
 }
@@ -249,7 +252,7 @@ Retrieve detailed analysis results.
       {
         "text_id": "37735",
         "models": {
-          "claude-4": {
+          "claude-opus-4": {
             "primaryChoice": {
               "choices": ["yes"]
             },
@@ -270,7 +273,7 @@ Retrieve detailed analysis results.
           }
         },
         "comparison_metrics": {
-          "claude-4": {
+          "claude-opus-4": {
             "precision": 0.85,
             "recall": 0.78,
             "f1_score": 0.81,
@@ -303,21 +306,21 @@ Export analysis results as CSV.
 
 ```csv
 text_id,technique,expert_start,expert_end,expert_text,model,model_start,model_end,model_text,match,position_accuracy,precision,recall,f1_score
-37735,simplification,0,360,"Visų pirma nusiimkim...",claude-4,0,196,"Visų pirma nusiimkim...",true,0.92,0.85,0.78,0.81
+37735,simplification,0,360,"Visų pirma nusiimkim...",claude-opus-4,0,196,"Visų pirma nusiimkim...",true,0.92,0.85,0.78,0.81
 ```
 
 ### 6. Repeat Analysis
 
 **Endpoint**: `POST /api/repeat-analysis`
 
-Repeat a previous analysis with new parameters (such as different prompt or models) while reusing the same text data.
+Repeat a previous analysis with new parameters (such as different custom prompt or models) while reusing the same text data. This is useful for testing different prompt strategies on the same dataset.
 
 #### Request
 
 ```json
 {
   "reference_analysis_id": "550e8400-e29b-41d4-a716-446655440000",
-  "models": ["claude-4", "gemini-2.5-pro"],
+  "models": ["claude-opus-4", "gemini-2.5-pro"],
   "custom_prompt": "Naujasis custom prompt'as pakartotinei analizei",
   "name": "Pakartotinė analizė su nauju prompt'u",
   "description": "Testuojame skirtingus prompt'us"
@@ -338,10 +341,13 @@ Repeat a previous analysis with new parameters (such as different prompt or mode
 
 ```json
 {
-  "job_id": "550e8400-e29b-41d4-a716-446655440002",
-  "status": "processing",
-  "reference_analysis_id": "550e8400-e29b-41d4-a716-446655440000",
-  "total_texts": 100
+  "success": true,
+  "data": {
+    "job_id": "550e8400-e29b-41d4-a716-446655440002",
+    "status": "processing",
+    "reference_analysis_id": "550e8400-e29b-41d4-a716-446655440000",
+    "total_texts": 100
+  }
 }
 ```
 
@@ -365,7 +371,7 @@ Check system status and model availability.
       "queue": "operational"
     },
     "models": {
-      "claude-4": {
+      "claude-opus-4": {
         "status": "available",
         "configured": true,
         "rate_limit": 50
@@ -375,7 +381,7 @@ Check system status and model availability.
         "configured": true,
         "rate_limit": 50
       },
-      "gpt-4.1": {
+      "gpt-4o-latest": {
         "status": "available",
         "configured": true,
         "rate_limit": 50
@@ -404,10 +410,10 @@ Get list of available LLM models and their configuration.
   "data": {
     "models": [
       {
-        "key": "claude-4",
-        "name": "Claude 4",
+        "key": "claude-opus-4",
+        "name": "Claude Opus 4",
         "provider": "Anthropic",
-        "model": "claude-sonnet-4-20250514",
+        "model": "claude-opus-4-20250514",
         "configured": true,
         "available": true,
         "rate_limit": 50,
@@ -417,7 +423,7 @@ Get list of available LLM models and their configuration.
         "key": "gemini-2.5-pro",
         "name": "Gemini 2.5 Pro Preview",
         "provider": "Google",
-        "model": "gemini-2.5-pro-preview-05-06",
+        "model": "gemini-2.5-pro-experimental",
         "configured": true,
         "available": true,
         "rate_limit": 50,
@@ -425,9 +431,9 @@ Get list of available LLM models and their configuration.
       },
       {
         "key": "gpt-4.1",
-        "name": "GPT-4o",
+        "name": "GPT-4.1",
         "provider": "OpenAI",
-        "model": "gpt-4o",
+        "model": "gpt-4.1",
         "configured": true,
         "available": true,
         "rate_limit": 50,
@@ -523,8 +529,11 @@ Rate limits are applied per model:
 
 | Model | Requests/Minute | Burst Limit |
 |-------|----------------|-------------|
-| Claude 4 | 50 | 10 |
+| Claude Opus 4 | 50 | 10 |
+| Claude Sonnet 4 | 50 | 10 |
 | Gemini 2.5 Pro | 50 | 10 |
+| Gemini 2.5 Flash | 50 | 10 |
+| GPT-4.1 | 50 | 10 |
 | GPT-4o | 50 | 10 |
 
 Rate limit headers are included in responses:
@@ -547,7 +556,7 @@ import json
 payload = {
     "text_id": "example-001",
     "content": "Lietuva yra nepriklausoma valstybė.",
-    "models": ["claude-4", "gemini-2.5-pro"]
+    "models": ["claude-opus-4", "gemini-2.5-pro"]
 }
 
 response = requests.post(
@@ -582,7 +591,7 @@ const batchData = {
       annotations: [/* expert annotations */]
     }
   ],
-  models: ["claude-4"]
+  models: ["claude-opus-4"]
 };
 
 fetch("https://your-domain.com/api/batch-analyze", {
@@ -623,7 +632,7 @@ fetch("https://your-domain.com/api/batch-analyze", {
 $data = [
     'text_id' => 'php-example-001',
     'content' => 'Tekstas propagandos analizei...',
-    'models' => ['claude-4'],
+    'models' => ['claude-opus-4'],
     'expert_annotations' => [
         [
             'type' => 'labels',

@@ -25,7 +25,7 @@
                                 <li><strong>Su ekspertų anotacijomis</strong> - palygina AI ir ekspertų rezultatus, skaičiuoja metrikas</li>
                                 <li><strong>Be ekspertų anotacijų</strong> - analizuoja naują tekstą ir identifikuoja propagandos technikas</li>
                             </ul>
-                            <p class="mb-0">Rezultatai eksportuojami CSV ir JSON formatais. Jei norite testuoti custom prompt'us, eikite į <a href="{{ route('experiments.index') }}" class="alert-link">Eksperimentų</a> skiltį.</p>
+                            <p class="mb-0">Rezultatai eksportuojami CSV ir JSON formatais. Custom prompt'ą galite nurodyti žemiau formos lauke.</p>
                         </div>
                     </div>
                 </div>
@@ -141,6 +141,32 @@
                             container.innerHTML = html;
                         }
                         </script>
+                    </div>
+
+                    <!-- Custom prompt'o konfigūracija -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-edit me-2"></i>
+                            Custom prompt (neprivalomas)
+                        </label>
+                        <p class="text-muted small">Jei nepridėsite custom prompt'o, bus naudojamas standartinis sistemos prompt'as</p>
+                        <textarea class="form-control" id="custom_prompt" name="custom_prompt" rows="6" 
+                                  placeholder="Įveskite savo custom prompt'ą propaganda analizei..."></textarea>
+                        <div class="form-text">
+                            <small><strong>Patarimas:</strong> Galite naudoti RISEN metodologiją - Role, Instructions, Situation, Execution, Needle</small>
+                        </div>
+                    </div>
+
+                    <!-- Analizės informacija -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="name" class="form-label">Analizės pavadinimas (neprivalomas)</label>
+                            <input type="text" class="form-control" id="name" name="name" placeholder="Pvz.: Propagandos analizė 2025-01">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="description" class="form-label">Aprašymas (neprivalomas)</label>
+                            <input type="text" class="form-control" id="description" name="description" placeholder="Trumpas analizės aprašymas">
+                        </div>
                     </div>
 
                     <!-- Analizės paleidimo mygtukas -->
