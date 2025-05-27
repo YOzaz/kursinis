@@ -18,35 +18,58 @@ Sistema naudoja:
 
 ### 🏗️ Testų tipai
 
-1. **Unit testai** - Testavimo vienetai (models, services)
-2. **Feature testai** - API endpoint'ų ir funkcionalumo testai  
-3. **Integration testai** - LLM servisų integracijos testai
-4. **Browser testai** - Vartotojo sąsajos testai
+1. **Unit testai** (9 testai) - Modelių, servisų ir jobs testavimas
+2. **Feature testai** (7 testai) - API endpoint'ų ir kontrolerių testai  
+3. **Integration testai** (1 testas) - LLM servisų integracijos testai
+4. **Browser testai** - UI workflow testai (integruoti feature testuose)
 
 ### 📁 Direktorijų struktūra
 
 ```
 tests/
 ├── Unit/
+│   ├── Jobs/
+│   │   └── AnalyzeTextJobTest.php       # Teksto analizės job testai
 │   ├── Models/
-│   │   └── ExperimentTest.php          # Experiment modelio testai
+│   │   ├── AnalysisJobTest.php          # AnalysisJob modelio testai
+│   │   ├── ExperimentTest.php           # Experiment modelio testai
+│   │   └── ExperimentResultTest.php     # ExperimentResult modelio testai
 │   └── Services/
+│       ├── ExportServiceTest.php        # CSV/JSON eksporto testai
+│       ├── MetricsServiceTest.php       # Metrikų skaičiavimo testai
 │       ├── PromptBuilderServiceTest.php # RISEN prompt kūrimo testai
-│       └── StatisticsServiceTest.php    # Statistikos skaičiavimo testai
+│       └── StatisticsServiceTest.php    # Statistikos agregavimo testai
 ├── Feature/
-│   ├── ExperimentControllerTest.php     # Eksperimentų CRUD testai
+│   ├── AnalysisControllerTest.php       # API analizės endpoint testai
 │   ├── DashboardControllerTest.php      # Dashboard funkcionalumo testai
-│   ├── ExperimentBrowserTest.php        # Browser funkcionalumo testai
+│   ├── ExperimentBrowserTest.php        # Browser workflow testai
+│   ├── ExperimentControllerTest.php     # Eksperimentų CRUD testai
+│   ├── WebControllerTest.php            # Upload ir progress testai
 │   └── Integration/
 │       └── LLMServicesIntegrationTest.php # LLM API integracijos testai
-├── Factories/
-│   ├── ExperimentFactory.php            # Eksperimentų test duomenys
-│   ├── ExperimentResultFactory.php      # Rezultatų test duomenys
-│   └── AnalysisJobFactory.php           # Analizės darbų test duomenys
-└── TestCase.php                         # Bendrasis testų klasės
+└── TestCase.php                         # Bazinis test klasė su helper metodais
+
+database/factories/
+├── AnalysisJobFactory.php               # Analizės darbų test duomenys
+├── ComparisonMetricFactory.php          # Metrikų test duomenys
+├── ExperimentFactory.php                # Eksperimentų test duomenys
+├── ExperimentResultFactory.php          # Rezultatų test duomenys
+└── TextAnalysisFactory.php              # Tekstų analizės test duomenys
 ```
 
 ## 🎯 Test Coverage
+
+Testų aprėpties statistika (nuo 2025-05-27):
+
+- **Kontroleriai**: 4/4 (100%) ✅
+- **Modeliai**: 3/5 (60%) - Trūksta: ComparisonMetric, TextAnalysis
+- **Servisai**: 4/8 (50%) - Trūksta: Claude, Gemini, OpenAI, PromptService
+- **Jobs**: 1/2 (50%) - Trūksta: BatchAnalysisJob
+- **Factory**: 5/5 (100%) ✅
+
+### Testų aprėpties analizė
+
+Naudokite `./check-test-coverage.sh` skriptą, kad gautumėte detalų testų aprėpties raportą.
 
 ### Unit testai (models & services)
 - ✅ Experiment model relationships ir casting

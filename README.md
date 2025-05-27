@@ -74,7 +74,7 @@ Web Browser ──► Nginx ──► Laravel App
 
 ### Reikalavimai
 - PHP 8.2+
-- MySQL 8.0+
+- MySQL 8.0+ arba SQLite 3.8+
 - **Redis 6.0+** ⭐ BŪTINA
 - Composer 2.0+
 
@@ -94,6 +94,8 @@ php artisan key:generate
 
 # 4. Konfigūruoti duomenų bazę ir Redis
 # Redaguoti .env failą su DB ir Redis nustatymais
+# SQLite: DB_CONNECTION=sqlite, DB_DATABASE=/absolute/path/to/database.sqlite
+# MySQL: DB_CONNECTION=mysql, DB_DATABASE=database_name
 
 # 5. Paleisti migracijas
 php artisan migrate
@@ -105,11 +107,15 @@ php artisan queue:work redis
 ### Konfigūracija (.env)
 
 ```env
-# Duomenų bazė
+# Duomenų bazė (MySQL)
 DB_CONNECTION=mysql
 DB_DATABASE=propaganda_analysis
 DB_USERNAME=your_username
 DB_PASSWORD=your_password
+
+# Arba SQLite (paprasčiau vystymo tikslams)
+# DB_CONNECTION=sqlite
+# DB_DATABASE=/absolute/path/to/database.sqlite
 
 # Redis (BŪTINA)
 REDIS_HOST=127.0.0.1
