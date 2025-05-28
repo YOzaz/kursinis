@@ -155,6 +155,9 @@
                                                     $avgRecall = $textMetrics->avg('recall') ?? 0;
                                                     $avgF1 = $textMetrics->avg('f1_score') ?? 0;
                                                     
+                                                    // Debug: check if we have expert annotations
+                                                    $hasExpertAnnotations = !empty($textAnalysis->expert_annotations);
+                                                    
                                                     // Propagandos sprendimai
                                                     $propagandaCount = 0;
                                                     $allTechniques = [];
@@ -226,13 +229,19 @@
                                                     </td>
                                                     <td>
                                                         @if($textMetrics->isNotEmpty())
-                                                            <small>
-                                                                <strong>P:</strong> {{ number_format($avgPrecision * 100, 1) }}%<br>
-                                                                <strong>R:</strong> {{ number_format($avgRecall * 100, 1) }}%<br>
-                                                                <strong>F1:</strong> {{ number_format($avgF1 * 100, 1) }}%
-                                                            </small>
+                                                            @if($hasExpertAnnotations)
+                                                                <small>
+                                                                    <strong>P:</strong> {{ number_format($avgPrecision * 100, 1) }}%<br>
+                                                                    <strong>R:</strong> {{ number_format($avgRecall * 100, 1) }}%<br>
+                                                                    <strong>F1:</strong> {{ number_format($avgF1 * 100, 1) }}%
+                                                                </small>
+                                                            @else
+                                                                <small class="text-muted">
+                                                                    <i class="fas fa-info-circle"></i> Nėra ekspertų anotacijų
+                                                                </small>
+                                                            @endif
                                                         @else
-                                                            <span class="text-muted">Nėra ekspertų duomenų</span>
+                                                            <span class="text-muted">Nėra metrikų</span>
                                                         @endif
                                                     </td>
                                                     <td>
@@ -417,6 +426,13 @@
                         @if($textAnalysis->comparisonMetrics->isNotEmpty())
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Palyginimo metrikos:</label>
+                                @if(empty($textAnalysis->expert_annotations))
+                                    <div class="alert alert-info mt-2">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <strong>Pastaba:</strong> Šiam tekstui nėra ekspertų anotacijų, todėl metrikų tikslumas negali būti apskaičiuotas. 
+                                        Rodomi 0% rezultatai reiškia, kad nėra palyginimo duomenų.
+                                    </div>
+                                @endif
                                 <div class="table-responsive">
                                     <table class="table table-sm">
                                         <thead>

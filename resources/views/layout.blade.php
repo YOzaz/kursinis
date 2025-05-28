@@ -91,6 +91,12 @@
                 <a class="nav-link" href="{{ route('dashboard') }}" title="Rezultatų peržiūra ir statistikos">
                     <i class="fas fa-chart-bar me-1"></i>Dashboard
                 </a>
+                <a class="nav-link" href="{{ route('settings.index') }}" title="Sistemos nustatymai">
+                    <i class="fas fa-cogs me-1"></i>Nustatymai
+                </a>
+                <a class="nav-link" href="{{ route('help.index') }}" title="Pagalba ir dokumentacija">
+                    <i class="fas fa-question-circle me-1"></i>Pagalba
+                </a>
             </div>
         </div>
     </nav>
@@ -119,12 +125,29 @@
         @yield('content')
     </main>
 
-    <footer class="bg-dark text-light text-center py-3 mt-5">
+    <footer class="bg-dark text-light py-4 mt-5">
         <div class="container">
-            <p class="mb-0">
-                <i class="fas fa-university me-2"></i>
-                Vilniaus universitetas - Propagandos ir dezinformacijos analizės sistema
-            </p>
+            <div class="row">
+                <div class="col-md-8">
+                    <p class="mb-1">
+                        <i class="fas fa-university me-2"></i>
+                        <strong>Vilniaus universitetas</strong> - Propagandos ir dezinformacijos analizės sistema
+                    </p>
+                    <small class="text-muted">
+                        ATSPARA projektas | Magistro baigiamasis darbas, 2025
+                    </small>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <div class="footer-links">
+                        <a href="{{ route('contact') }}" class="text-light me-3">
+                            <i class="fas fa-envelope me-1"></i>Kontaktai
+                        </a>
+                        <a href="{{ route('legal') }}" class="text-light">
+                            <i class="fas fa-balance-scale me-1"></i>Teisinė info
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </footer>
 
@@ -140,6 +163,48 @@
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+    
+    <!-- Global tooltip initialization -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips globally
+        function initializeTooltips() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
+        
+        // Initialize on page load
+        initializeTooltips();
+        
+        // Re-initialize tooltips when content is dynamically added
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                    // Check if any added nodes contain tooltip triggers
+                    mutation.addedNodes.forEach(function(node) {
+                        if (node.nodeType === 1) { // Element node
+                            const tooltipTriggers = node.querySelectorAll('[data-bs-toggle="tooltip"]');
+                            tooltipTriggers.forEach(function(trigger) {
+                                if (!trigger.hasAttribute('data-tooltip-initialized')) {
+                                    new bootstrap.Tooltip(trigger);
+                                    trigger.setAttribute('data-tooltip-initialized', 'true');
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        });
+        
+        // Start observing
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    });
+    </script>
     
     @yield('scripts')
 </body>

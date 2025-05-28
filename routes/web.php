@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WebController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AnalysisController;
+use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\HelpController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,3 +25,13 @@ Route::get('/analyses/{jobId}', [AnalysisController::class, 'show'])->name('anal
 Route::post('/analysis/repeat', [AnalysisController::class, 'repeat'])->name('analysis.repeat');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+Route::post('/settings/defaults', [SettingsController::class, 'updateDefaults'])->name('settings.updateDefaults');
+Route::post('/settings/reset', [SettingsController::class, 'resetDefaults'])->name('settings.resetDefaults');
+
+Route::get('/help', [HelpController::class, 'index'])->name('help.index');
+Route::get('/help/faq', [HelpController::class, 'faq'])->name('help.faq');
+
+Route::get('/contact', function() { return view('contact'); })->name('contact');
+Route::get('/legal', function() { return view('legal'); })->name('legal');

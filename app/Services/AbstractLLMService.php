@@ -27,11 +27,12 @@ abstract class AbstractLLMService implements LLMServiceInterface
     abstract protected function getProviderName(): string;
 
     /**
-     * Įkelti modelius iš konfigūracijos.
+     * Įkelti modelius iš konfigūracijos su nustatymų perrašymais.
      */
     protected function loadModels(): void
     {
-        $allModels = config('llm.models', []);
+        // Get models with settings overrides
+        $allModels = \App\Http\Controllers\SettingsController::getModelSettings();
         $providerName = $this->getProviderName();
         
         foreach ($allModels as $key => $config) {

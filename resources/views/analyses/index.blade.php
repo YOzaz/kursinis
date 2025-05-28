@@ -86,18 +86,24 @@
                                     <i class="fas fa-check-circle"></i> Analizė baigta sėkmingai
                                 </small>
                             @elseif($analysis->status === 'processing')
+                                @php
+                                    $progressPercent = $analysis->getProgressPercentage();
+                                @endphp
                                 <div class="progress mb-2" style="height: 8px;">
-                                    <div class="progress-bar bg-warning progress-bar-striped progress-bar-animated" style="width: 60%"></div>
+                                    <div class="progress-bar bg-warning progress-bar-striped progress-bar-animated" style="width: {{ $progressPercent }}%"></div>
                                 </div>
                                 <small class="text-warning">
-                                    <i class="fas fa-cog fa-spin"></i> Analizė vykdoma...
+                                    <i class="fas fa-cog fa-spin"></i> Analizė vykdoma... ({{ round($progressPercent, 1) }}%)
                                 </small>
                             @elseif($analysis->status === 'failed')
+                                @php
+                                    $failedProgressPercent = $analysis->getProgressPercentage();
+                                @endphp
                                 <div class="progress mb-2" style="height: 8px;">
-                                    <div class="progress-bar bg-danger" style="width: 30%"></div>
+                                    <div class="progress-bar bg-danger" style="width: {{ max($failedProgressPercent, 10) }}%"></div>
                                 </div>
                                 <small class="text-danger">
-                                    <i class="fas fa-exclamation-triangle"></i> Analizė nepavyko
+                                    <i class="fas fa-exclamation-triangle"></i> Analizė nepavyko ({{ round($failedProgressPercent, 1) }}%)
                                 </small>
                             @endif
                         </div>

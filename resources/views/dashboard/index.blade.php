@@ -372,11 +372,7 @@
 @section('scripts')
 <script>
 $(document).ready(function() {
-    // Initialize tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
+    // Tooltips are now initialized globally in layout.blade.php
 
     // Initialize DataTable for performance table
     @if(!empty($globalStats['model_performance']))

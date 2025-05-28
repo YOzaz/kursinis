@@ -16,16 +16,35 @@
                 <div class="alert alert-info mb-4">
                     <div class="d-flex">
                         <div class="me-3">
-                            <i class="fas fa-info-circle fa-lg"></i>
+                            <i class="fas fa-lightbulb fa-lg"></i>
                         </div>
                         <div>
-                            <h6 class="alert-heading mb-2">Sistemos galimybės</h6>
-                            <p class="mb-1">Propaganda analizės sistema veikia dviem režimais:</p>
-                            <ul class="mb-2">
-                                <li><strong>Su ekspertų anotacijomis</strong> - palygina AI ir ekspertų rezultatus, skaičiuoja metrikas</li>
-                                <li><strong>Be ekspertų anotacijų</strong> - analizuoja naują tekstą ir identifikuoja propagandos technikas</li>
-                            </ul>
-                            <p class="mb-0">Rezultatai eksportuojami CSV ir JSON formatais. Custom prompt'ą galite nurodyti žemiau formos lauke.</p>
+                            <h6 class="alert-heading mb-2">Kaip naudoti sistemą</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>1. Duomenų tipai:</strong></p>
+                                    <ul class="mb-2 small">
+                                        <li><strong>Su ekspertų anotacijomis</strong> - skaičiuoja tikslumas metrikas</li>
+                                        <li><strong>Be anotacijų</strong> - tik AI analizė</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>2. Rezultatai:</strong></p>
+                                    <ul class="mb-2 small">
+                                        <li>21 ATSPARA propaganda technika</li>
+                                        <li>CSV/JSON eksportas</li>
+                                        <li>Realaus laiko progresas</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <a href="{{ route('help.index') }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-question-circle me-1"></i>Išsami dokumentacija
+                                </a>
+                                <a href="{{ route('help.faq') }}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-list me-1"></i>FAQ
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -116,7 +135,7 @@
                                 `;
                                 
                                 providerModels.forEach(model => {
-                                    const isDefault = model.is_default ? 'checked' : '';
+                                    const isDefault = model.tier === 'premium' ? 'checked' : '';
                                     const tier = model.tier === 'premium' ? 
                                         '<span class="badge bg-warning text-dark ms-1">Premium</span>' : '';
                                     
@@ -324,38 +343,6 @@
                     </div>
                 </form>
 
-                <!-- Informacija apie sistemos galimybes -->
-                <hr class="my-4">
-                <div class="row text-center">
-                    <div class="col-md-3">
-                        <div class="p-3">
-                            <i class="fas fa-tags fa-2x text-primary mb-2"></i>
-                            <h6>21 propagandos technika</h6>
-                            <small class="text-muted">Automatinis atpažinimas</small>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="p-3">
-                            <i class="fas fa-chart-line fa-2x text-success mb-2"></i>
-                            <h6>Tikslumas metrikos</h6>
-                            <small class="text-muted">Precision, Recall, F1</small>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="p-3">
-                            <i class="fas fa-download fa-2x text-info mb-2"></i>
-                            <h6>CSV eksportas</h6>
-                            <small class="text-muted">Detalūs rezultatai</small>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="p-3">
-                            <i class="fas fa-clock fa-2x text-warning mb-2"></i>
-                            <h6>Realaus laiko progresas</h6>
-                            <small class="text-muted">Stebėjimas</small>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -574,6 +561,9 @@ function resetToDefault() {
 }
 
 function previewCustomPrompt() {
+    // Update modal title
+    document.querySelector('#promptPreviewModal .modal-title').textContent = 'Custom RISEN prompt\'o peržiūra';
+    
     const modal = new bootstrap.Modal(document.getElementById('promptPreviewModal'));
     loadCustomPromptPreview();
     modal.show();
@@ -588,20 +578,40 @@ function loadCustomPromptPreview() {
         needle: document.getElementById('custom_needle').value
     };
     
+    // Gauti ATSPARA propagandos technikas iš konfigūracijos
+    const atsparaTechniques = @json(config('llm.propaganda_techniques'));
+    
     // Sukurti RISEN formatą
     let prompt = `**ROLE**: ${customParts.role}\n\n`;
     prompt += `**INSTRUCTIONS**: ${customParts.instructions}\n\n`;
     prompt += `**SITUATION**: ${customParts.situation}\n\n`;
     prompt += `**EXECUTION**: ${customParts.execution}\n\n`;
     prompt += `**PROPAGANDOS TECHNIKOS (ATSPARA metodologija)**:\n`;
-    // Pridėti technikas (galime simuliuoti)
-    prompt += `- emotionalAppeal: Apeliavimas į jausmus\n`;
-    prompt += `- loadedLanguage: Vertinamoji, emocinė leksika\n`;
-    prompt += `... (visos 21 ATSPARA technikos)\n\n`;
-    prompt += `**NEEDLE**: ${customParts.needle}\n\n`;
-    prompt += `[JSON formato specifikacija]`;
     
-    document.getElementById('promptPreview').textContent = prompt;
+    // Pridėti visas ATSPARA technikas
+    Object.entries(atsparaTechniques).forEach(([key, description]) => {
+        prompt += `- ${key}: ${description}\n`;
+    });
+    
+    prompt += `\n**NEEDLE**: ${customParts.needle}\n\n`;
+    prompt += `**ATSAKYMO FORMATAS**: Grąžink JSON objektą su šiais laukais:\n`;
+    prompt += `{\n`;
+    prompt += `  "primaryChoice": {\n`;
+    prompt += `    "choices": ["yes" arba "no"]\n`;
+    prompt += `  },\n`;
+    prompt += `  "annotations": [\n`;
+    prompt += `    {\n`;
+    prompt += `      "value": {\n`;
+    prompt += `        "start": pozicijos_pradžia,\n`;
+    prompt += `        "end": pozicijos_pabaiga,\n`;
+    prompt += `        "text": "anotacijos_tekstas",\n`;
+    prompt += `        "labels": ["techniką1", "techniką2"]\n`;
+    prompt += `      }\n`;
+    prompt += `    }\n`;
+    prompt += `  ]\n`;
+    prompt += `}`;
+    
+    document.getElementById('promptPreviewContent').textContent = prompt;
 }
 
 function showPromptBuilder() {
