@@ -40,6 +40,9 @@ class WebController extends Controller
             'json_file' => 'required|file|mimes:json|max:10240', // 10MB
             'models' => 'required|array|min:1',
             'models.*' => "required|string|in:{$availableModels}"
+        ], [
+            'models.min' => 'Pasirinkite bent vieną modelį.',
+            'models.required' => 'Pasirinkite bent vieną modelį.',
         ]);
 
         if ($validator->fails()) {

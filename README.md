@@ -84,12 +84,22 @@ Universali propagandos analizės platforma, kuri veikia dviem pagrindiniais rež
 *Čia pateiktos pagrindinės kategorijos. Pilna sistema apima 21 detalų technikos kriterijų ir 2 dezinformacijos naratyvus.*  
 *Detalūs kriterijai: [ATSPARA Anotavimo metodologija](docs/ATSPARA-ANNOTATION-METHODOLOGY.md)*
 
+### 🎨 Interaktyvi teksto analizės vizualizacija
+- **Teksto žymėjimas**: Propagandos technikos pažymėtos tiesiogiai analizuojamame tekste spalvotais fragmentais
+- **AI vs Ekspertų perjungimas**: Galimybė persijungti tarp AI modelių anotacijų ir ekspertų vertinimų
+- **Spalvų kodavimas**: Kiekviena propaganda technika turi unikalią spalvą ir numerį
+- **Legendos sistema**: Aiškus visų rastų technikų sąrašas su spalvomis ir aprašymais
+- **Pozicijos tikslumas**: Žymimi tikslūs teksto fragmentai, kaip juos identifikavo modeliai
+- **Responsive dizainas**: Optimizuota peržiūra kompiuteriuose ir mobiliuosiuose įrenginiuose
+
 ### 📊 Metrikų skaičiavimas
-- **Precision** - LLM teisingų anotacijų dalis
-- **Recall** - Rastos ekspertų anotacijų dalis  
+- **Precision** - LLM teisingų anotacijų dalis iš visų LLM identifikuotų
+- **Recall** - Rastos ekspertų anotacijų dalis iš visų ekspertų anotacijų  
 - **F1 Score** - Harmoninis precision ir recall vidurkis
-- **Cohen's Kappa** - Sutarimo tarp LLM ir ekspertų koeficientas
-- **Pozicijos tikslumas** - Teksto pozicijų atitikimas
+- **Cohen's Kappa** - Sutarimo tarp LLM ir ekspertų koeficientas (atsižvelgiant į atsitiktinį sutarimą)
+- **Pozicijos tikslumas** - Teksto pozicijų atitikimas su ±10 simbolių tolerancija
+
+**Detali metrikų analizė**: [Metrikų vadovas](docs/METRICS-GUIDE.md)
 
 ## 🏗️ Sistemos architektūra
 
@@ -390,8 +400,11 @@ tail -f storage/logs/worker.log
 - **[DEPLOYMENT.md](DEPLOYMENT.md)** - Išsami diegimo instrukcija
 - **[REQUIREMENTS.md](REQUIREMENTS.md)** - Detalūs sistemos reikalavimai
 - **[ATSPARA Anotavimo metodologija](docs/ATSPARA-ANNOTATION-METHODOLOGY.md)** - Propagandos technikų klasifikavimo kriterijai
+- **[Metrikų vadovas](docs/METRICS-GUIDE.md)** - Išsami metrikų analizė ir interpretacija
 - **[Eksperimentų vadovas](docs/EXPERIMENTS-GUIDE.md)** - Custom prompt'ų kūrimas ir testavimas
-- **[API dokumentacija](docs/api.md)** - API endpointų aprašymas
+- **[API dokumentacija](docs/API.md)** - API endpointų aprašymas
+- **[Architektūros dokumentacija](docs/ARCHITECTURE.md)** - Sistemos architektūros aprašymas
+- **[Problemų sprendimas](docs/TROUBLESHOOTING.md)** - Dažniausių problemų sprendimo vadovas
 
 ## 🤝 Prisidėjimas
 

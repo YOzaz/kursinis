@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Unit\Models;
+namespace Tests\Unit\Models;
 
 use App\Models\ComparisonMetric;
 use App\Models\AnalysisJob;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Unit\Services;
+namespace Tests\Unit\Services;
 
 use App\Services\GeminiService;
 use App\Services\PromptService;

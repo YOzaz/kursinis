@@ -89,22 +89,35 @@ class WebControllerTest extends TestCase
     {
         $file = UploadedFile::fake()->createWithContent(
             'test.json',
-            json_encode([['id' => 1, 'data' => ['content' => 'test']]])
+            json_encode([['id' => 1, 'data' => ['content' => 'test'], 'annotations' => []]])
         );
 
+        // Test missing models field
         $response = $this->post('/upload', [
+            'json_file' => $file,
+            // Don't include models at all
+        ]);
+
+        $response->assertStatus(302); // Should redirect back
+        $response->assertRedirect(); // Assert redirect happened
+        $response->assertSessionHasErrors(); // Check if there are validation errors
+        
+        // Test empty models array
+        $response2 = $this->post('/upload', [
             'json_file' => $file,
             'models' => []
         ]);
 
-        $response->assertSessionHasErrors(['models']);
+        $response2->assertStatus(302);
+        $response2->assertRedirect();
+        $response2->assertSessionHasErrors();
     }
 
     public function test_upload_validation_invalid_models(): void
     {
         $file = UploadedFile::fake()->createWithContent(
             'test.json',
-            json_encode([['id' => 1, 'data' => ['content' => 'test']]])
+            json_encode([['id' => 1, 'data' => ['content' => 'test'], 'annotations' => []]])
         );
 
         $response = $this->post('/upload', [

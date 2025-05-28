@@ -4,7 +4,7 @@
 
 The Propaganda Analysis API provides programmatic access to Lithuanian text analysis using multiple Large Language Models (LLMs). The API supports both single text analysis and batch processing with expert annotation comparisons. Custom prompts can be provided directly in analysis requests to optimize results.
 
-**Base URL**: `https://your-domain.com/api`  
+**Base URL**: `http://propaganda.local/api`  
 **Authentication**: API keys configured in environment  
 **Content-Type**: `application/json`  
 **Rate Limiting**: Per-model limits (configurable)
@@ -455,6 +455,55 @@ Get list of available LLM models and their configuration.
   }
 }
 ```
+
+### 9. Text Annotations for Highlighting
+
+**Endpoint**: `GET /text-annotations/{textAnalysisId}`  
+**Description**: Retrieve text annotations with highlighting information for visualization
+
+#### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `textAnalysisId` | integer | Yes | ID of the text analysis |
+| `view` | string | No | View type: `ai` (default) or `expert` |
+
+#### Response
+
+```json
+{
+  "success": true,
+  "text": "Original text content here...",
+  "annotations": [
+    {
+      "start": 25,
+      "end": 45,
+      "technique": "Emocinė raiška",
+      "text": "highlighted fragment"
+    }
+  ],
+  "legend": [
+    {
+      "technique": "Emocinė raiška",
+      "color": "#ff6b6b",
+      "number": 1
+    }
+  ],
+  "view_type": "ai"
+}
+```
+
+#### Example cURL
+
+```bash
+curl -X GET "http://propaganda.local/api/text-annotations/123?view=ai" \
+  -H "Accept: application/json"
+```
+
+#### Error Responses
+
+- `404`: Text analysis not found
+- `200` with `success: false`: No expert annotations available (for expert view)
 
 ## 📊 Data Formats
 

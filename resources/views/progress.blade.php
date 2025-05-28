@@ -47,7 +47,7 @@
                 <!-- Progreso juosta -->
                 <div class="mb-4">
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="fw-bold">Progresas:</span>
+                        <span class="fw-bold">Progresas (analizės darbai):</span>
                         <span id="progressText">{{ $job->processed_texts }} / {{ $job->total_texts }}</span>
                     </div>
                     <div class="progress" style="height: 20px;">
@@ -121,13 +121,19 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <h6 class="fw-bold">Apdoroti tekstai:</h6>
+                            <h6 class="fw-bold">Apdoroti analizės darbai:</h6>
                             <p>{{ $job->processed_texts }}</p>
                         </div>
                         <div class="col-md-6">
-                            <h6 class="fw-bold">Viso tekstų:</h6>
+                            <h6 class="fw-bold">Viso analizės darbų:</h6>
                             <p>{{ $job->total_texts }}</p>
                         </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Informacija:</strong> Kiekvienas tekstas analizuojamas su pasirinktu modelių skaičiumi. 
+                        Pavyzdžiui, 1 tekstas su 2 modeliais = 2 analizės darbai.
                     </div>
                     
                     <hr>

@@ -6,6 +6,7 @@ use App\Jobs\AnalyzeTextJob;
 use App\Jobs\BatchAnalysisJob;
 use App\Models\AnalysisJob;
 use App\Models\TextAnalysis;
+use App\Models\ComparisonMetric;
 use App\Services\MetricsService;
 use App\Services\ExportService;
 use Illuminate\Http\Request;
@@ -84,16 +85,17 @@ class AnalysisController extends Controller
             
         $statistics = $this->metricsService->calculateJobStatistics($analysis);
         
-        // Get used models for repeat analysis (sample from first few analyses)
-        $sampleAnalyses = TextAnalysis::where('job_id', $analysis->job_id)->take(5)->get();
-        $usedModels = [];
-        foreach($sampleAnalyses as $textAnalysis) {
-            $models = $textAnalysis->getAllModelAnnotations();
-            $usedModels = array_merge($usedModels, array_keys($models));
-        }
-        $usedModels = array_unique($usedModels);
+        // Get used models from comparison metrics (most accurate way)
+        $usedModels = ComparisonMetric::where('job_id', $analysis->job_id)
+            ->distinct('model_name')
+            ->pluck('model_name')
+            ->toArray();
         
-        return view('analyses.show', compact('analysis', 'statistics', 'textAnalyses', 'usedModels'));
+        // Calculate actual text count and model count for better clarity
+        $actualTextCount = TextAnalysis::where('job_id', $analysis->job_id)->distinct('text_id')->count();
+        $modelCount = count($usedModels);
+        
+        return view('analyses.show', compact('analysis', 'statistics', 'textAnalyses', 'usedModels', 'actualTextCount', 'modelCount'));
     }
 
     /**
@@ -941,5 +943,159 @@ class AnalysisController extends Controller
 
             return redirect()->back()->with('error', 'Įvyko klaida paleidžiant pakartotinę analizę: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Get text annotations for highlighting propaganda techniques
+     */
+    public function getTextAnnotations(Request $request, $textAnalysisId): JsonResponse
+    {
+        try {
+            $textAnalysis = TextAnalysis::find($textAnalysisId);
+            
+            if (!$textAnalysis) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tekstas nerastas'
+                ], 404);
+            }
+            $viewType = $request->get('view', 'ai'); // 'ai' or 'expert'
+            
+            $originalText = $textAnalysis->content;
+            $annotations = [];
+            $legend = [];
+            
+            if ($viewType === 'expert') {
+                // Get expert annotations
+                $expertAnnotations = $textAnalysis->expert_annotations;
+                
+                if (empty($expertAnnotations)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Šiam tekstui nėra ekspertų anotacijų'
+                    ]);
+                }
+                
+                // Process expert annotations
+                if (isset($expertAnnotations['annotations'])) {
+                    $techniqueCount = [];
+                    
+                    foreach ($expertAnnotations['annotations'] as $annotation) {
+                        if (isset($annotation['value'])) {
+                            $labels = $annotation['value']['labels'] ?? [];
+                            foreach ($labels as $technique) {
+                                if (!isset($techniqueCount[$technique])) {
+                                    $techniqueCount[$technique] = 0;
+                                }
+                                $techniqueCount[$technique]++;
+                                
+                                $annotations[] = [
+                                    'start' => $annotation['value']['start'],
+                                    'end' => $annotation['value']['end'],
+                                    'technique' => $technique,
+                                    'text' => $annotation['value']['text'] ?? ''
+                                ];
+                            }
+                        }
+                    }
+                    
+                    // Create legend for expert annotations
+                    $legend = $this->createLegend(array_keys($techniqueCount));
+                }
+            } else {
+                // Get AI annotations (merge from all models)
+                $modelAnnotations = $textAnalysis->getAllModelAnnotations();
+                $allTechniques = [];
+                $techniquePositions = [];
+                
+                foreach ($modelAnnotations as $modelName => $modelData) {
+                    if (isset($modelData['annotations'])) {
+                        foreach ($modelData['annotations'] as $annotation) {
+                            if (isset($annotation['value']['labels'])) {
+                                foreach ($annotation['value']['labels'] as $technique) {
+                                    $key = $annotation['value']['start'] . '-' . $annotation['value']['end'] . '-' . $technique;
+                                    
+                                    if (!isset($techniquePositions[$key])) {
+                                        $techniquePositions[$key] = [
+                                            'start' => $annotation['value']['start'],
+                                            'end' => $annotation['value']['end'],
+                                            'technique' => $technique,
+                                            'text' => $annotation['value']['text'] ?? '',
+                                            'count' => 0
+                                        ];
+                                    }
+                                    $techniquePositions[$key]['count']++;
+                                    $allTechniques[$technique] = true;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Filter annotations that appear in at least 1 model (or majority)
+                foreach ($techniquePositions as $annotation) {
+                    if ($annotation['count'] >= 1) { // At least 1 model found this
+                        $annotations[] = [
+                            'start' => $annotation['start'],
+                            'end' => $annotation['end'],
+                            'technique' => $annotation['technique'],
+                            'text' => $annotation['text']
+                        ];
+                    }
+                }
+                
+                // Create legend for AI annotations
+                $legend = $this->createLegend(array_keys($allTechniques));
+            }
+            
+            return response()->json([
+                'success' => true,
+                'text' => $originalText,
+                'annotations' => $annotations,
+                'legend' => $legend,
+                'view_type' => $viewType
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error getting text annotations', [
+                'text_analysis_id' => $textAnalysisId,
+                'view' => $request->get('view'),
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Nepavyko įkelti anotacijų'
+            ], 500);
+        }
+    }
+    
+    /**
+     * Create legend with colors for propaganda techniques
+     */
+    private function createLegend(array $techniques): array
+    {
+        // Color palette for different techniques
+        $colors = [
+            '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57',
+            '#ff9ff3', '#54a0ff', '#5f27cd', '#00d2d3', '#ff9f43',
+            '#ee5a24', '#0abde3', '#006ba6', '#f38ba8', '#a8e6cf',
+            '#ff8b94', '#ffaaa5', '#ff677d', '#d63031', '#74b9ff',
+            '#fdcb6e'
+        ];
+        
+        $legend = [];
+        $sortedTechniques = array_values($techniques);
+        sort($sortedTechniques);
+        
+        foreach ($sortedTechniques as $index => $technique) {
+            $legend[] = [
+                'technique' => $technique,
+                'color' => $colors[$index % count($colors)],
+                'number' => $index + 1
+            ];
+        }
+        
+        return $legend;
     }
 }

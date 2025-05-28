@@ -18,33 +18,54 @@ Sistema naudoja:
 
 ### 🏗️ Testų tipai
 
-1. **Unit testai** (9 testai) - Modelių, servisų ir jobs testavimas
-2. **Feature testai** (7 testai) - API endpoint'ų ir kontrolerių testai  
+1. **Unit testai** (23 testai) - Modelių, servisų ir jobs testavimas
+2. **Feature testai** (10 testai) - API endpoint'ų, kontrolerių ir UI testai  
 3. **Integration testai** (1 testas) - LLM servisų integracijos testai
-4. **Browser testai** - UI workflow testai (integruoti feature testuose)
+4. **Browser testai** (2 testai) - UI workflow ir text highlighting testai
 
 ### 📁 Direktorijų struktūra
 
 ```
 tests/
-├── Unit/
+├── Unit/                                
 │   ├── Jobs/
-│   │   └── AnalyzeTextJobTest.php       # Teksto analizės job testai
+│   │   ├── AnalyzeTextJobTest.php       # Teksto analizės job testai (legacy)
+│   │   ├── AnalyzeTextJobNewTest.php    # Naujo teksto analizės job testai
+│   │   └── BatchAnalysisJobTest.php     # Batch analizės job testai
 │   ├── Models/
 │   │   ├── AnalysisJobTest.php          # AnalysisJob modelio testai
-│   │   ├── ExperimentTest.php           # Experiment modelio testai
-│   │   └── ExperimentResultTest.php     # ExperimentResult modelio testai
-│   └── Services/
-│       ├── ExportServiceTest.php        # CSV/JSON eksporto testai
-│       ├── MetricsServiceTest.php       # Metrikų skaičiavimo testai
-│       ├── PromptBuilderServiceTest.php # RISEN prompt kūrimo testai
-│       └── StatisticsServiceTest.php    # Statistikos agregavimo testai
+│   │   ├── ComparisonMetricTest.php     # ComparisonMetric modelio testai
+│   │   └── TextAnalysisTest.php         # TextAnalysis modelio testai
+│   ├── Services/
+│   │   ├── ClaudeServiceTest.php        # Claude API service testai (legacy)
+│   │   ├── ClaudeServiceNewTest.php     # Naujo Claude service testai
+│   │   ├── GeminiServiceTest.php        # Gemini API service testai (legacy)
+│   │   ├── GeminiServiceNewTest.php     # Naujo Gemini service testai
+│   │   ├── OpenAIServiceTest.php        # OpenAI API service testai (legacy)
+│   │   ├── OpenAIServiceNewTest.php     # Naujo OpenAI service testai
+│   │   ├── AbstractLLMServiceTest.php   # Abstraktaus LLM service testai
+│   │   ├── ExportServiceTest.php        # CSV/JSON eksporto testai
+│   │   ├── MetricsServiceTest.php       # Metrikų skaičiavimo testai
+│   │   ├── MetricsServiceStatisticsTest.php # Statistikos skaičiavimo testai
+│   │   ├── PromptBuilderServiceTest.php # RISEN prompt kūrimo testai
+│   │   ├── PromptServiceTest.php        # Prompt service testai
+│   │   ├── StatisticsServiceTest.php    # Statistikos agregavimo testai
+│   │   └── TextHighlightingServiceTest.php # Teksto žymėjimo testai
+│   ├── Controllers/
+│   │   └── AnalysisControllerShowTest.php # AnalysisController show metodo testai
+│   └── AnalysisRepeatTest.php           # Analizės pakartojimo testai
 ├── Feature/
 │   ├── AnalysisControllerTest.php       # API analizės endpoint testai
+│   ├── AnalysesControllerTest.php       # Analizių sąrašo testai
 │   ├── DashboardControllerTest.php      # Dashboard funkcionalumo testai
-│   ├── ExperimentBrowserTest.php        # Browser workflow testai
-│   ├── ExperimentControllerTest.php     # Eksperimentų CRUD testai
+│   ├── HelpControllerTest.php           # Pagalbos puslapio testai
+│   ├── SettingsControllerTest.php       # Nustatymų puslapio testai
 │   ├── WebControllerTest.php            # Upload ir progress testai
+│   ├── DefaultPromptApiTest.php         # Standartinio prompt API testai
+│   ├── TextHighlightingTest.php         # Teksto žymėjimo feature testai
+│   ├── Browser/
+│   │   ├── TextHighlightingBrowserTest.php    # Browser testai teksto žymėjimui
+│   │   └── SimpleTextHighlightingTest.php     # Paprastesni UI testai
 │   └── Integration/
 │       └── LLMServicesIntegrationTest.php # LLM API integracijos testai
 └── TestCase.php                         # Bazinis test klasė su helper metodais
@@ -52,46 +73,51 @@ tests/
 database/factories/
 ├── AnalysisJobFactory.php               # Analizės darbų test duomenys
 ├── ComparisonMetricFactory.php          # Metrikų test duomenys
-├── ExperimentFactory.php                # Eksperimentų test duomenys
-├── ExperimentResultFactory.php          # Rezultatų test duomenys
 └── TextAnalysisFactory.php              # Tekstų analizės test duomenys
 ```
 
 ## 🎯 Test Coverage
 
-Testų aprėpties statistika (nuo 2025-05-27):
+Testų aprėpties statistika (nuo 2025-05-28):
 
-- **Kontroleriai**: 4/4 (100%) ✅
-- **Modeliai**: 3/5 (60%) - Trūksta: ComparisonMetric, TextAnalysis
-- **Servisai**: 4/8 (50%) - Trūksta: Claude, Gemini, OpenAI, PromptService
-- **Jobs**: 1/2 (50%) - Trūksta: BatchAnalysisJob
-- **Factory**: 5/5 (100%) ✅
+- **Kontroleriai**: 5/5 (100%) ✅
+- **Modeliai**: 3/3 (100%) ✅ 
+- **Servisai**: 12/12 (100%) ✅
+- **Jobs**: 3/3 (100%) ✅
+- **Factory**: 3/3 (100%) ✅
+- **Naujos funkcijos**: Teksto žymėjimas (100%) ✅
 
 ### Testų aprėpties analizė
 
 Naudokite `./check-test-coverage.sh` skriptą, kad gautumėte detalų testų aprėpties raportą.
 
 ### Unit testai (models & services)
-- ✅ Experiment model relationships ir casting
+- ✅ AnalysisJob, ComparisonMetric, TextAnalysis model testai
+- ✅ LLM servisų testai (Claude, Gemini, OpenAI - old & new versions)
 - ✅ RISEN prompt building service
 - ✅ Statistics calculation service
+- ✅ Export service testai
+- ✅ Text highlighting legend creation testai
 - ✅ Factory states ir data generation
+- ✅ Jobs testai (AnalyzeTextJob, BatchAnalysisJob)
 
 ### Feature testai (controllers & API)
-- ✅ Experiments CRUD operations
+- ✅ Analysis CRUD operations ir API endpoints
 - ✅ Dashboard statistics display
+- ✅ Help ir Settings puslapių testai
 - ✅ Export functionality (CSV, JSON)
-- ✅ Prompt preview functionality
-- ✅ Form validation
-- ✅ Error handling
+- ✅ Default prompt API testai
+- ✅ Text highlighting API endpoint testai
+- ✅ Form validation ir error handling
+- ✅ Web upload ir progress testai
 
 ### Browser testai (UI workflows)
-- ✅ Navigation tarp puslapių
-- ✅ Experiment creation workflow
-- ✅ Real-time prompt preview
-- ✅ Export downloads
+- ✅ Text highlighting interface testai
+- ✅ AI vs Expert view switching
+- ✅ Modal interactions ir accessibility
 - ✅ Responsive design elements
 - ✅ JavaScript components loading
+- ✅ Legend ir color coding testai
 
 ### Integration testai (external services)
 - ✅ Claude API integration

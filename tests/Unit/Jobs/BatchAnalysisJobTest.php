@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Unit\Jobs;
+namespace Tests\Unit\Jobs;
 
 use Tests\TestCase;
 use App\Jobs\BatchAnalysisJob;

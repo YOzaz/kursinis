@@ -42,6 +42,11 @@ The system now supports multiple models from each provider:
 - **Tier Indicators**: Premium/Standard badges for each model
 - **Dynamic Loading**: Models loaded from configuration
 - **Default Selection**: Automatically selects default models (Opus 4, GPT-4.1, Gemini Pro)
+- **Text Highlighting**: Interactive propaganda technique highlighting in analysis results
+  - Toggle between AI analysis and expert evaluation views
+  - Color-coded legend for different propaganda techniques
+  - Position-accurate highlighting with numbered technique markers
+  - Responsive design for both desktop and mobile viewing
 
 ### Database Enhancements
 - **Retry Tracking**: Track retry attempts and timing
@@ -84,6 +89,54 @@ OPENAI_API_KEY=your_openai_api_key
 MAX_RETRIES_PER_MODEL=3
 RETRY_DELAY_SECONDS=2
 TIMEOUT_SECONDS=120
+```
+
+## 🎨 Text Highlighting Feature
+
+### Interactive Analysis Visualization
+The new text highlighting feature provides an intuitive way to view propaganda techniques directly in the analyzed text:
+
+#### Features
+- **AI vs Expert Toggle**: Switch between AI model annotations and expert evaluations
+- **Color-Coded Techniques**: Each propaganda technique gets a unique color
+- **Numbered Markers**: Technique instances are numbered for easy reference
+- **Responsive Legend**: Shows all detected techniques with colors and descriptions
+- **Position Accuracy**: Highlights exact text fragments as identified by models
+
+#### Usage in Analysis View
+1. Open any completed analysis
+2. Click "Detalės" button for any text
+3. Use radio buttons to toggle between "AI analizė" and "Ekspertų vertinimas"
+4. View highlighted text with color-coded propaganda techniques
+5. Reference the legend to understand technique meanings
+
+#### API Endpoint
+```
+GET /api/text-annotations/{textAnalysisId}?view={ai|expert}
+```
+
+Response:
+```json
+{
+  "success": true,
+  "text": "Original text content",
+  "annotations": [
+    {
+      "start": 25,
+      "end": 45,
+      "technique": "Emocinė raiška",
+      "text": "highlighted fragment"
+    }
+  ],
+  "legend": [
+    {
+      "technique": "Emocinė raiška",
+      "color": "#ff6b6b",
+      "number": 1
+    }
+  ],
+  "view_type": "ai"
+}
 ```
 
 ## 📊 Usage

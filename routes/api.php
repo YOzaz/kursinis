@@ -47,10 +47,61 @@ Route::get('/models', [AnalysisController::class, 'models'])
 // Standartinio prompt'o gavimas
 Route::get('/default-prompt', function() {
     $promptService = app(\App\Services\PromptService::class);
+    $standardPrompt = $promptService->getStandardRisenPrompt();
+    
+    // Build full RISEN prompt structure
+    $fullPrompt = "**ROLE**: {$standardPrompt['role']}\n\n";
+    $fullPrompt .= "**INSTRUCTIONS**: {$standardPrompt['instructions']}\n\n";
+    $fullPrompt .= "**SITUATION**: {$standardPrompt['situation']}\n\n";
+    $fullPrompt .= "**EXECUTION**: {$standardPrompt['execution']}\n\n";
+    
+    // Add propaganda techniques
+    $techniques = config('llm.propaganda_techniques');
+    $fullPrompt .= "**PROPAGANDOS TECHNIKOS (ATSPARA metodologija)**:\n";
+    foreach ($techniques as $key => $description) {
+        $fullPrompt .= "- {$key}: {$description}\n";
+    }
+    
+    // Add disinformation narratives
+    $narratives = config('llm.disinformation_narratives');
+    $fullPrompt .= "\n**DEZINFORMACIJOS NARATYVAI**:\n";
+    foreach ($narratives as $key => $description) {
+        $fullPrompt .= "- {$key}: {$description}\n";
+    }
+    
+    $fullPrompt .= "\n**NEEDLE**: {$standardPrompt['needle']}\n\n";
+    $fullPrompt .= "**ATSAKYMO FORMATAS**:\n";
+    $fullPrompt .= "```json\n";
+    $fullPrompt .= "{\n";
+    $fullPrompt .= "  \"primaryChoice\": {\n";
+    $fullPrompt .= "    \"choices\": [\"yes\" arba \"no\"] // ar propaganda dominuoja (>40% teksto)\n";
+    $fullPrompt .= "  },\n";
+    $fullPrompt .= "  \"annotations\": [\n";
+    $fullPrompt .= "    {\n";
+    $fullPrompt .= "      \"type\": \"labels\",\n";
+    $fullPrompt .= "      \"value\": {\n";
+    $fullPrompt .= "        \"start\": pozicijos_pradžia,\n";
+    $fullPrompt .= "        \"end\": pozicijos_pabaiga,\n";
+    $fullPrompt .= "        \"text\": \"tikslus_tekstas\",\n";
+    $fullPrompt .= "        \"labels\": [\"techniką1\", \"techniką2\"]\n";
+    $fullPrompt .= "      }\n";
+    $fullPrompt .= "    }\n";
+    $fullPrompt .= "  ],\n";
+    $fullPrompt .= "  \"desinformationTechnique\": {\n";
+    $fullPrompt .= "    \"choices\": [\"naratyvas1\", \"naratyvas2\"] // arba []\n";
+    $fullPrompt .= "  }\n";
+    $fullPrompt .= "}\n";
+    $fullPrompt .= "```\n\n";
+    $fullPrompt .= "**ANALIZUOJAMAS TEKSTAS**:\n[TEKSTAS BUS ĮSTATYTAS ČIA]";
+    
     return response()->json([
-        'prompt' => $promptService->generateAnalysisPrompt('PAVYZDINIS TEKSTAS', 'claude-opus-4')
+        'prompt' => $fullPrompt
     ]);
 })->name('api.default-prompt');
+
+// Text annotations for highlighting
+Route::get('/text-annotations/{textAnalysisId}', [AnalysisController::class, 'getTextAnnotations'])
+    ->name('api.text.annotations');
 
 // Dashboard statistikų eksportas
 Route::get('/dashboard/export', function() {

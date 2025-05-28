@@ -109,9 +109,9 @@ class BatchAnalysisJob implements ShouldQueue
                 }
             }
 
-            // Atnaujinti darbo informaciją
+            // Atnaujinti darbo informaciją  
             $job->update([
-                'total_texts' => $totalJobsToProcess, // Apskaičiuoti pagal modelių skaičių
+                'total_texts' => $totalJobsToProcess, // Tekstų-modelių kombinacijų skaičius
                 'processed_texts' => 0, // Bus atnaujinta per AnalyzeTextJob
             ]);
 

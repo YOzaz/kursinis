@@ -284,7 +284,7 @@
                                 <div class="row text-center">
                                     <div class="col-12 mb-3">
                                         <h6 class="text-muted">Bendras F1 balas</h6>
-                                        <h3 class="text-primary">{{ number_format(($statistics['f1_score'] ?? 0) * 100, 2) }}%</h3>
+                                        <h3 class="text-primary">{{ number_format(($statistics['overall_metrics']['avg_f1'] ?? 0) * 100, 2) }}%</h3>
                                     </div>
                                 </div>
                                 <hr>
@@ -296,7 +296,7 @@
                                            data-bs-placement="top" 
                                            title="Precision - kiek AI rastų propagandos fragmentų iš tikrųjų yra propaganda. Skaičiuojama: Teisingi teigiami / (Teisingi teigiami + Klaidingi teigiami)"></i>
                                     </dt>
-                                    <dd class="col-6">{{ number_format(($statistics['precision'] ?? 0) * 100, 2) }}%</dd>
+                                    <dd class="col-6">{{ number_format(($statistics['overall_metrics']['avg_precision'] ?? 0) * 100, 2) }}%</dd>
                                     <dt class="col-6">
                                         Atsaukimas 
                                         <i class="fas fa-question-circle text-muted ms-1" 
@@ -304,7 +304,7 @@
                                            data-bs-placement="top" 
                                            title="Recall - kokią dalį visų propagandos fragmentų AI surado. Skaičiuojama: Teisingi teigiami / (Teisingi teigiami + Klaidingi neigiami)"></i>
                                     </dt>
-                                    <dd class="col-6">{{ number_format(($statistics['recall'] ?? 0) * 100, 2) }}%</dd>
+                                    <dd class="col-6">{{ number_format(($statistics['overall_metrics']['avg_recall'] ?? 0) * 100, 2) }}%</dd>
                                     <dt class="col-6">
                                         F1 balas 
                                         <i class="fas fa-question-circle text-muted ms-1" 
@@ -312,7 +312,7 @@
                                            data-bs-placement="top" 
                                            title="F1 Score - suvienytas tikslumo ir atsaukimo įvertis. Harmoninė tikslumo ir atsaukimo vidurkis. Idealus F1 = 100%"></i>
                                     </dt>
-                                    <dd class="col-6">{{ number_format(($statistics['f1_score'] ?? 0) * 100, 2) }}%</dd>
+                                    <dd class="col-6">{{ number_format(($statistics['overall_metrics']['avg_f1'] ?? 0) * 100, 2) }}%</dd>
                                 </dl>
                             </div>
                         </div>
@@ -337,10 +337,10 @@
 @if($analysis->status === 'completed' && $textAnalyses->isNotEmpty())
     @foreach($textAnalyses as $textAnalysis)
         <div class="modal fade" id="analysisModal{{ $textAnalysis->id }}" tabindex="-1">
-            <div class="modal-dialog modal-lg">
+            <div class="modal-dialog modal-xl">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Analizės detalės</h5>
+                        <h5 class="modal-title">Analizės detalės - Tekstas ID: {{ $textAnalysis->text_id }}</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
@@ -688,7 +688,9 @@ function hideFullText(textId, button) {
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <strong>Tekstų skaičius:</strong> {{ $analysis->total_texts }}<br>
+                                    <strong>Faktinis tekstų skaičius:</strong> {{ $actualTextCount }}<br>
+                                    <strong>Analizės darbų skaičius:</strong> {{ $analysis->total_texts }}<br>
+                                    <small class="text-muted">({{ $actualTextCount }} tekstas × {{ $modelCount }} modeliai = {{ $analysis->total_texts }} darbai)</small><br><br>
                                     <strong>Modeliai:</strong> 
                                     @foreach($usedModels as $model)
                                         <span class="badge bg-primary me-1">{{ $model }}</span>

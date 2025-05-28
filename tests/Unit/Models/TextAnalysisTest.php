@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Unit\Models;
+namespace Tests\Unit\Models;
 
 use App\Models\TextAnalysis;
 use App\Models\AnalysisJob;
