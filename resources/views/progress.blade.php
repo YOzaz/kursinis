@@ -15,13 +15,22 @@
             <div class="card-body">
                 <!-- Darbo informacija -->
                 <div class="row mb-4">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <h6 class="fw-bold">Darbo ID:</h6>
                         <p class="font-monospace">{{ $job->job_id }}</p>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
+                        @if($job->name)
+                            <h6 class="fw-bold">Pavadinimas:</h6>
+                            <p>{{ $job->name }}</p>
+                        @endif
+                    </div>
+                    <div class="col-md-4">
                         <h6 class="fw-bold">Sukurta:</h6>
                         <p>{{ $job->created_at->format('Y-m-d H:i:s') }}</p>
+                        <div class="auto-refresh-status">
+                            <i class="fas fa-sync-alt me-1"></i>Auto-refresh active
+                        </div>
                     </div>
                 </div>
 

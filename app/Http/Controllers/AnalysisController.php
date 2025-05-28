@@ -147,8 +147,7 @@ class AnalysisController extends Controller
         $availableModels = collect(config('llm.models', []))->keys()->implode(',');
         
         $validator = Validator::make($request->all(), [
-            'text_id' => 'required|string',
-            'content' => 'required|string|min:10',
+            'text' => 'required|string|min:10',
             'models' => 'required|array|min:1',
             'models.*' => "required|string|in:{$availableModels}",
             'expert_annotations' => 'nullable|array',
@@ -160,8 +159,8 @@ class AnalysisController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'error' => 'Neteisingi duomenys',
-                'details' => $validator->errors()
+                'message' => 'The given data was invalid.',
+                'errors' => $validator->errors()
             ], 422);
         }
 
@@ -183,8 +182,8 @@ class AnalysisController extends Controller
             // Sukurti tekstų analizės įrašą
             $textAnalysis = TextAnalysis::create([
                 'job_id' => $jobId,
-                'text_id' => $request->text_id,
-                'content' => $request->content,
+                'text_id' => 'single_' . uniqid(),
+                'content' => $request->text,
                 'expert_annotations' => $request->input('expert_annotations', []), // Pasirinktinės ekspertų anotacijos
             ]);
 
@@ -195,20 +194,20 @@ class AnalysisController extends Controller
 
             Log::info('Paleista vieno teksto analizė', [
                 'job_id' => $jobId,
-                'text_id' => $request->text_id,
+                'text_id' => $textAnalysis->text_id,
                 'models' => $request->models
             ]);
 
             return response()->json([
                 'job_id' => $jobId,
                 'status' => 'processing',
-                'text_id' => $request->text_id
+                'text_id' => $textAnalysis->text_id
             ]);
 
         } catch (\Exception $e) {
             Log::error('Vieno teksto analizės klaida', [
                 'error' => $e->getMessage(),
-                'text_id' => $request->text_id ?? 'nežinomas'
+                'text' => substr($request->text ?? 'nežinomas', 0, 50)
             ]);
 
             return response()->json([
@@ -283,7 +282,7 @@ class AnalysisController extends Controller
         $availableModels = collect(config('llm.models', []))->keys()->implode(',');
         
         $validator = Validator::make($request->all(), [
-            'file_content' => 'required|array',
+            'data' => 'required|array',
             'models' => 'required|array|min:1',
             'models.*' => "required|string|in:{$availableModels}",
             'custom_prompt' => 'nullable|string',
@@ -294,13 +293,13 @@ class AnalysisController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'error' => 'Neteisingi duomenys',
-                'details' => $validator->errors()
+                'message' => 'The given data was invalid.',
+                'errors' => $validator->errors()
             ], 422);
         }
 
         try {
-            $fileContent = $request->file_content;
+            $fileContent = $request->data;
             $models = $request->models;
             
             // Validuoti JSON struktūrą
@@ -415,25 +414,28 @@ class AnalysisController extends Controller
                 return !empty($textAnalysis->expert_annotations);
             });
 
+            // Build results array for API compatibility
+            $results = $job->textAnalyses->map(function ($textAnalysis) {
+                return [
+                    'text_id' => $textAnalysis->text_id,
+                    'content' => $textAnalysis->content,
+                    'claude_result' => $textAnalysis->claude_annotations,
+                    'gemini_result' => $textAnalysis->gemini_annotations,
+                    'gpt_result' => $textAnalysis->gpt_annotations,
+                    'expert_annotations' => $textAnalysis->expert_annotations,
+                ];
+            });
+
             $response = [
                 'job_id' => $jobId,
                 'status' => $job->status,
+                'results' => $results,
                 'has_expert_annotations' => $hasExpertAnnotations,
                 'detailed_results' => route('api.results.export', ['jobId' => $jobId])
             ];
 
             if ($hasExpertAnnotations) {
                 $response['comparison_metrics'] = $this->metricsService->calculateAggregatedMetrics($jobId);
-            } else {
-                // Tik LLM analizės rezultatai be palyginimo metrikų
-                $response['llm_results'] = $job->textAnalyses->map(function ($textAnalysis) {
-                    return [
-                        'text_id' => $textAnalysis->text_id,
-                        'claude_result' => $textAnalysis->claude_annotations,
-                        'gemini_result' => $textAnalysis->gemini_annotations,
-                        'gpt_result' => $textAnalysis->gpt_annotations,
-                    ];
-                });
             }
 
             return response()->json($response);
@@ -599,8 +601,8 @@ class AnalysisController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'error' => 'Neteisingi duomenys',
-                'details' => $validator->errors()
+                'message' => 'The given data was invalid.',
+                'errors' => $validator->errors()
             ], 422);
         }
 
@@ -1051,6 +1053,7 @@ class AnalysisController extends Controller
             
             return response()->json([
                 'success' => true,
+                'content' => $originalText,
                 'text' => $originalText,
                 'annotations' => $annotations,
                 'legend' => $legend,

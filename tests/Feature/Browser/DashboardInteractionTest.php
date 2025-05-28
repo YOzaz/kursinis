@@ -126,13 +126,11 @@ class DashboardInteractionTest extends TestCase
         
         TextAnalysis::factory()->create([
             'job_id' => $job->job_id,
-            'ai_annotations' => [
-                'annotations' => [
-                    [
-                        'type' => 'labels',
-                        'value' => [
-                            'labels' => ['emotional_appeal', 'simplification']
-                        ]
+            'claude_annotations' => [
+                [
+                    'type' => 'labels',
+                    'value' => [
+                        'labels' => ['emotional_appeal', 'simplification']
                     ]
                 ]
             ]

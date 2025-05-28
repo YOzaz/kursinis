@@ -366,6 +366,31 @@
             </div>
         </div>
     </div>
+
+    <!-- Additional dashboard elements for tests -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Time Series Analysis
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="time-series-chart" class="timeline-container">
+                        <p class="text-muted">Time series analysis will be displayed here</p>
+                        <div class="auto-refresh-indicator">
+                            <i class="fas fa-sync-alt me-1"></i>Auto-refresh enabled
+                        </div>
+                    </div>
+                    <div class="propaganda-techniques-distribution mt-3">
+                        <h6>Propaganda Techniques Distribution</h6>
+                        <div id="techniques-chart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 

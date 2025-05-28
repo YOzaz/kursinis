@@ -50,18 +50,14 @@ class ResultsViewingTest extends TestCase
             'job_id' => $job->job_id,
             'text_id' => '1',
             'content' => 'Test propaganda content',
-            'model_name' => 'claude-opus-4',
-            'ai_annotations' => [
-                'primaryChoice' => ['choices' => ['yes']],
-                'annotations' => [
-                    [
-                        'type' => 'labels',
-                        'value' => [
-                            'start' => 0,
-                            'end' => 4,
-                            'text' => 'Test',
-                            'labels' => ['emotional_appeal']
-                        ]
+            'claude_annotations' => [
+                [
+                    'type' => 'labels',
+                    'value' => [
+                        'start' => 0,
+                        'end' => 4,
+                        'text' => 'Test',
+                        'labels' => ['emotional_appeal']
                     ]
                 ]
             ]
@@ -85,16 +81,14 @@ class ResultsViewingTest extends TestCase
             'job_id' => $job->job_id,
             'text_id' => '1',
             'content' => 'Test propaganda text with emotional appeals',
-            'ai_annotations' => [
-                'annotations' => [
-                    [
-                        'type' => 'labels',
-                        'value' => [
-                            'start' => 0,
-                            'end' => 4,
-                            'text' => 'Test',
-                            'labels' => ['emotional_appeal']
-                        ]
+            'claude_annotations' => [
+                [
+                    'type' => 'labels',
+                    'value' => [
+                        'start' => 0,
+                        'end' => 4,
+                        'text' => 'Test',
+                        'labels' => ['emotional_appeal']
                     ]
                 ]
             ]
@@ -116,14 +110,12 @@ class ResultsViewingTest extends TestCase
         // Create analyses for different models
         TextAnalysis::factory()->create([
             'job_id' => $job->job_id,
-            'text_id' => '1',
-            'model_name' => 'claude-opus-4'
+            'text_id' => '1'
         ]);
         
         TextAnalysis::factory()->create([
             'job_id' => $job->job_id,
-            'text_id' => '1',
-            'model_name' => 'gpt-4.1'
+            'text_id' => '2'
         ]);
 
         $response = $this->get("/analyses/{$job->job_id}");
@@ -175,7 +167,6 @@ class ResultsViewingTest extends TestCase
         ComparisonMetric::factory()->create([
             'job_id' => $job->job_id,
             'text_id' => '1',
-            'model_name' => 'claude-opus-4',
             'precision' => 0.85,
             'recall' => 0.90,
             'f1_score' => 0.87
@@ -198,8 +189,8 @@ class ResultsViewingTest extends TestCase
         TextAnalysis::factory()->create([
             'job_id' => $job->job_id,
             'text_id' => '1',
-            'ai_annotations' => ['annotations' => []],
-            'expert_annotations' => ['annotations' => []]
+            'claude_annotations' => [],
+            'expert_annotations' => []
         ]);
 
         $response = $this->get("/analyses/{$job->job_id}");
@@ -262,16 +253,14 @@ class ResultsViewingTest extends TestCase
         TextAnalysis::factory()->create([
             'job_id' => $job->job_id,
             'text_id' => '1',
-            'ai_annotations' => [
-                'annotations' => [
-                    [
-                        'type' => 'labels',
-                        'value' => [
-                            'start' => 0,
-                            'end' => 4,
-                            'text' => 'Test',
-                            'labels' => ['emotional_appeal', 'simplification']
-                        ]
+            'claude_annotations' => [
+                [
+                    'type' => 'labels',
+                    'value' => [
+                        'start' => 0,
+                        'end' => 4,
+                        'text' => 'Test',
+                        'labels' => ['emotional_appeal', 'simplification']
                     ]
                 ]
             ]

@@ -322,6 +322,13 @@
                         </div>
                     </div>
 
+                    <!-- Custom prompt (for backward compatibility) -->
+                    <div class="mb-4" style="display: none;">
+                        <label for="custom_prompt" class="form-label">Custom Prompt (deprecated)</label>
+                        <textarea class="form-control" id="custom_prompt" name="custom_prompt" rows="3" 
+                                  placeholder="Enter custom prompt for analysis..."></textarea>
+                    </div>
+
                     <!-- Analizės informacija -->
                     <div class="row mb-4">
                         <div class="col-md-6">

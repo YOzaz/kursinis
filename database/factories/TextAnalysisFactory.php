@@ -28,9 +28,6 @@ class TextAnalysisFactory extends Factory
             'claude_annotations' => $this->generateLLMAnnotations(),
             'gemini_annotations' => $this->generateLLMAnnotations(),
             'gpt_annotations' => $this->generateLLMAnnotations(),
-            'claude_actual_model' => null,
-            'gemini_actual_model' => null,
-            'gpt_actual_model' => null,
         ];
     }
 
