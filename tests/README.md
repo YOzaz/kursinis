@@ -18,62 +18,76 @@ Sistema naudoja:
 
 ### 🏗️ Testų tipai
 
-1. **Unit testai** (23 testai) - Modelių, servisų ir jobs testavimas
-2. **Feature testai** (10 testai) - API endpoint'ų, kontrolerių ir UI testai  
-3. **Integration testai** (1 testas) - LLM servisų integracijos testai
-4. **Browser testai** (2 testai) - UI workflow ir text highlighting testai
+1. **Unit testai** (197 testų) - Modelių, servisų, jobs ir kontrolerių testavimas
+2. **Feature testai** (114 testų) - API endpoint'ų, kontrolerių, UI workflow ir browser testavimas  
+3. **Integration testai** (13 testų) - LLM servisų integracijos testai (pasirinktiniai)
+
+**Atnaujinta 2025-05-29:** Sukurta išsami ir organizuota testų sistema.
 
 ### 📁 Direktorijų struktūra
 
 ```
 tests/
-├── Unit/                                
-│   ├── Jobs/
-│   │   ├── AnalyzeTextJobTest.php       # Teksto analizės job testai (legacy)
-│   │   ├── AnalyzeTextJobNewTest.php    # Naujo teksto analizės job testai
-│   │   └── BatchAnalysisJobTest.php     # Batch analizės job testai
-│   ├── Models/
-│   │   ├── AnalysisJobTest.php          # AnalysisJob modelio testai
-│   │   ├── ComparisonMetricTest.php     # ComparisonMetric modelio testai
-│   │   └── TextAnalysisTest.php         # TextAnalysis modelio testai
-│   ├── Services/
-│   │   ├── ClaudeServiceTest.php        # Claude API service testai (legacy)
-│   │   ├── ClaudeServiceNewTest.php     # Naujo Claude service testai
-│   │   ├── GeminiServiceTest.php        # Gemini API service testai (legacy)
-│   │   ├── GeminiServiceNewTest.php     # Naujo Gemini service testai
-│   │   ├── OpenAIServiceTest.php        # OpenAI API service testai (legacy)
-│   │   ├── OpenAIServiceNewTest.php     # Naujo OpenAI service testai
-│   │   ├── AbstractLLMServiceTest.php   # Abstraktaus LLM service testai
-│   │   ├── ExportServiceTest.php        # CSV/JSON eksporto testai
-│   │   ├── MetricsServiceTest.php       # Metrikų skaičiavimo testai
-│   │   ├── MetricsServiceStatisticsTest.php # Statistikos skaičiavimo testai
-│   │   ├── PromptBuilderServiceTest.php # RISEN prompt kūrimo testai
-│   │   ├── PromptServiceTest.php        # Prompt service testai
-│   │   ├── StatisticsServiceTest.php    # Statistikos agregavimo testai
-│   │   └── TextHighlightingServiceTest.php # Teksto žymėjimo testai
+├── Unit/                                # Unit testai (197 testų)
 │   ├── Controllers/
-│   │   └── AnalysisControllerShowTest.php # AnalysisController show metodo testai
-│   └── AnalysisRepeatTest.php           # Analizės pakartojimo testai
-├── Feature/
-│   ├── AnalysisControllerTest.php       # API analizės endpoint testai
-│   ├── AnalysesControllerTest.php       # Analizių sąrašo testai
-│   ├── DashboardControllerTest.php      # Dashboard funkcionalumo testai
-│   ├── HelpControllerTest.php           # Pagalbos puslapio testai
-│   ├── SettingsControllerTest.php       # Nustatymų puslapio testai
-│   ├── WebControllerTest.php            # Upload ir progress testai
-│   ├── DefaultPromptApiTest.php         # Standartinio prompt API testai
-│   ├── TextHighlightingTest.php         # Teksto žymėjimo feature testai
-│   ├── Browser/
-│   │   ├── TextHighlightingBrowserTest.php    # Browser testai teksto žymėjimui
-│   │   └── SimpleTextHighlightingTest.php     # Paprastesni UI testai
+│   │   ├── AnalysisControllerShowTest.php      # AnalysisController show metodo testai
+│   │   ├── DashboardControllerTest.php         # Dashboard kontrolerio testai  
+│   │   ├── HelpControllerTest.php              # Help kontrolerio testai
+│   │   ├── SettingsControllerTest.php          # Settings kontrolerio testai
+│   │   └── WebControllerTest.php               # Web kontrolerio testai (upload/progress)
+│   ├── Jobs/
+│   │   ├── AnalyzeTextJobTest.php              # Teksto analizės job testai
+│   │   └── BatchAnalysisJobTest.php            # Batch analizės job testai
+│   ├── Models/
+│   │   ├── AnalysisJobTest.php                 # AnalysisJob modelio testai
+│   │   ├── ComparisonMetricTest.php            # ComparisonMetric modelio testai
+│   │   └── TextAnalysisTest.php                # TextAnalysis modelio testai
+│   ├── Services/
+│   │   ├── AbstractLLMServiceTest.php          # Abstraktaus LLM service testai
+│   │   ├── ClaudeServiceTest.php               # Claude API service testai
+│   │   ├── ExportServiceTest.php               # CSV/JSON eksporto testai
+│   │   ├── GeminiServiceTest.php               # Gemini API service testai
+│   │   ├── MetricsServiceTest.php              # Metrikų skaičiavimo testai
+│   │   ├── OpenAIServiceTest.php               # OpenAI API service testai
+│   │   ├── PromptBuilderServiceTest.php        # RISEN prompt kūrimo testai
+│   │   ├── PromptServiceTest.php               # Prompt service testai
+│   │   └── StatisticsServiceTest.php           # Statistikos agregavimo testai
+│   ├── Middleware/
+│   │   └── SimpleAuthTest.php                  # Autentifikacijos middleware testai
+│   └── Providers/
+│       └── AppServiceProviderTest.php          # Service provider testai
+├── Feature/                             # Feature testai (114 testų)
+│   ├── AnalysisControllerTest.php              # API analizės endpoint testai
+│   ├── ApiDocumentationTest.php               # API dokumentacijos testai
+│   ├── ApiHealthTest.php                       # API sveikatos patikrinimo testai
+│   ├── AuthenticationTest.php                  # Autentifikacijos testai
+│   ├── Controllers/
+│   │   ├── DashboardControllerFeatureTest.php  # Dashboard feature testai
+│   │   ├── HelpControllerFeatureTest.php       # Help feature testai
+│   │   └── SettingsControllerFeatureTest.php   # Settings feature testai
+│   ├── DashboardExportTest.php                 # Dashboard eksporto testai
+│   ├── DefaultPromptApiTest.php                # Standartinio prompt API testai
+│   ├── SettingsFeatureTest.php                 # Nustatymų feature testai
+│   ├── StaticPagesTest.php                     # Statinių puslapių testai
+│   ├── TextHighlightingTest.php                # Teksto žymėjimo feature testai
+│   ├── WebAnalysisRepeatTest.php               # Analizės pakartojimo testai
+│   ├── WebControllerTest.php                   # Web kontrolerio feature testai
+│   ├── AnalysisWorkflowTest.php                # Pilno analizės workflow testai
+│   ├── Browser/                                # Browser/UI testai
+│   │   ├── BasicNavigationTest.php             # Pagrindinis navigacijos testavimas
+│   │   ├── FileUploadBrowserTest.php           # Failų įkėlimo UI testai
+│   │   ├── FileUploadWorkflowTest.php          # Pilnas failų įkėlimo workflow
+│   │   ├── ResultsViewingTest.php              # Rezultatų peržiūros UI testai
+│   │   ├── DashboardInteractionTest.php        # Dashboard UI testai
+│   │   └── SimpleTextHighlightingTest.php      # Teksto žymėjimo UI testai
 │   └── Integration/
-│       └── LLMServicesIntegrationTest.php # LLM API integracijos testai
-└── TestCase.php                         # Bazinis test klasė su helper metodais
+│       └── LLMServicesIntegrationTest.php      # LLM API integracijos testai
+└── TestCase.php                                # Bazinis test klasė su helper metodais
 
 database/factories/
-├── AnalysisJobFactory.php               # Analizės darbų test duomenys
-├── ComparisonMetricFactory.php          # Metrikų test duomenys
-└── TextAnalysisFactory.php              # Tekstų analizės test duomenys
+├── AnalysisJobFactory.php                      # Analizės darbų test duomenys
+├── ComparisonMetricFactory.php                 # Metrikų test duomenys
+└── TextAnalysisFactory.php                     # Tekstų analizės test duomenys
 ```
 
 ## 🎯 Test Coverage
@@ -126,6 +140,33 @@ Naudokite `./check-test-coverage.sh` skriptą, kad gautumėte detalų testų apr
 - ✅ Custom prompt usage
 - ✅ Error handling ir retry logic
 - ✅ Rate limiting scenarios
+
+## ✅ 2025-05-29 Testų sistemos įgyvendinimas
+
+### Atlikti pakeitimai:
+- **Sukurtas išsamus unit testų paketas**: WebController, visi kontroleriai, modeliai, servisai
+- **Sukurti nauji feature testai**: 
+  - `AnalysisWorkflowTest.php` - pilnas API workflow testavimas
+  - Browser testai UI elementų interakcijai
+  - Integracijos testai LLM servisams
+- **Sukurti Browser/UI testai**:
+  - `FileUploadWorkflowTest.php` - failų įkėlimo workflow
+  - `ResultsViewingTest.php` - rezultatų peržiūros UI
+  - `DashboardInteractionTest.php` - dashboard UI elementai
+- **Pašalinti redundantūs testai**: Ištrintos dubliuojančios test klasės ir neaktualūs failai
+- **Pataisyti autentifikacijos problemas**: Visi testai dabar naudoja teisingą session auth
+
+### Dabartinis statusas (po atnaujinimų):
+- ✅ **Unit testai**: 197/197 passing (100%)
+- ⚠️ **Feature testai**: 114 testai, dalis turi DB schema neatitikimų (ai_annotations stulpelis)
+- ⚠️ **Integration testai**: Pasirinktiniai (veikia su tikrais API raktais)
+- ✅ **Testų struktūra**: Pilnai reorganizuota ir dokumentuota
+
+### Pagrindinės testų kategorijos:
+- **Unit testai**: Kontroleriai, modeliai, servisai, jobs, middleware, providers
+- **Feature testai**: API endpoints, UI workflows, authentication, export funkcijos
+- **Browser testai**: Pilni UI interaction workflows
+- **Integration testai**: LLM servisų integracijos (pasirinktiniai)
 
 ## 🚀 Testų paleidimas
 
