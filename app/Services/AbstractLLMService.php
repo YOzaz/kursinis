@@ -74,7 +74,7 @@ abstract class AbstractLLMService implements LLMServiceInterface
      */
     protected function getCurrentConfig(): ?array
     {
-        return $this->models[$this->currentModelKey] ?? null;
+        return isset($this->currentModelKey) ? ($this->models[$this->currentModelKey] ?? null) : null;
     }
 
     /**
@@ -91,7 +91,7 @@ abstract class AbstractLLMService implements LLMServiceInterface
      */
     public function getModelName(): string
     {
-        return $this->currentModelKey ?? $this->getDefaultModelKey();
+        return isset($this->currentModelKey) ? $this->currentModelKey : $this->getDefaultModelKey();
     }
 
     /**
@@ -124,7 +124,7 @@ abstract class AbstractLLMService implements LLMServiceInterface
      */
     public function analyzeText(string $text, ?string $customPrompt = null): array
     {
-        if (!$this->currentModelKey) {
+        if (!isset($this->currentModelKey) || !$this->currentModelKey) {
             $this->currentModelKey = $this->getDefaultModelKey();
         }
 
@@ -179,7 +179,7 @@ abstract class AbstractLLMService implements LLMServiceInterface
      */
     public function retryWithModel(string $modelKey, string $text, ?string $customPrompt = null): array
     {
-        $originalModel = $this->currentModelKey;
+        $originalModel = isset($this->currentModelKey) ? $this->currentModelKey : null;
         
         try {
             if (!$this->setModel($modelKey)) {

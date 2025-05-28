@@ -99,14 +99,14 @@ Gemini API neprieinamas po 3 bandymų: 404 Not Found
 ```bash
 # Check current Gemini configuration
 php artisan tinker
->>> config('llm.models.gemini-2.5-pro')
+>>> config('llm.models.gemini-2.5-pro-experimental')
 ```
 
 **Update Model:**
 ```php
 // In config/llm.php
-'gemini-2.5-pro' => [
-    'model' => 'gemini-2.5-pro-preview-05-06', // Ensure correct model
+'gemini-2.5-pro-experimental' => [
+    'model' => 'gemini-2.5-pro-experimental', // Ensure correct model
     'base_url' => 'https://generativelanguage.googleapis.com/',
     // ...
 ]
@@ -133,8 +133,8 @@ curl https://api.openai.com/v1/models \
 
 **Verify Model Access:**
 ```bash
-# Check if you have access to GPT-4o
-curl https://api.openai.com/v1/models/gpt-4o \
+# Check if you have access to GPT-4.1
+curl https://api.openai.com/v1/models/gpt-4.1 \
   -H "Authorization: Bearer $OPENAI_API_KEY"
 ```
 

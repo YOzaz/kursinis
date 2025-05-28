@@ -22,6 +22,14 @@ abstract class TestCase extends BaseTestCase
         // Clear any cached data
         $this->clearApplicationCache();
     }
+    
+    protected function tearDown(): void
+    {
+        // Clean up any mocks
+        \Mockery::close();
+        
+        parent::tearDown();
+    }
 
     protected function setUpDatabase(): void
     {
