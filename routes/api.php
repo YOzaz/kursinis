@@ -104,14 +104,43 @@ Route::get('/text-annotations/{textAnalysisId}', [AnalysisController::class, 'ge
     ->name('api.text.annotations');
 
 // Dashboard statistikų eksportas
-Route::get('/dashboard/export', function() {
+Route::get('/dashboard/export', function(\Illuminate\Http\Request $request) {
+    $format = $request->get('format', 'json');
     $statisticsService = app(\App\Services\StatisticsService::class);
+    $exportService = app(\App\Services\ExportService::class);
+    
+    // Validate format
+    if (!in_array($format, ['json', 'csv', 'excel'])) {
+        return response()->json([
+            'error' => 'Invalid export format. Supported formats: csv, json, excel'
+        ], 400);
+    }
+    
     $data = $statisticsService->getDashboardExportData();
     
-    $filename = 'dashboard_statistics_' . date('Y-m-d_H-i-s') . '.json';
-    
-    return response()->json($data, 200, [
-        'Content-Type' => 'application/json',
-        'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-    ]);
+    if ($format === 'csv') {
+        $filename = 'dashboard_statistics.csv';
+        $csvContent = $exportService->dashboardDataToCSV($data);
+        
+        return response($csvContent, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    } elseif ($format === 'excel') {
+        $filename = 'dashboard_statistics.xlsx';
+        $excelContent = $exportService->dashboardDataToExcel($data);
+        
+        return response($excelContent, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    } else {
+        // Default to JSON
+        $filename = 'dashboard_statistics_' . date('Y-m-d_H-i-s') . '.json';
+        
+        return response()->json($data, 200, [
+            'Content-Type' => 'application/json',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
 })->name('api.dashboard.export');

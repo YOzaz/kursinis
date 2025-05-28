@@ -387,4 +387,50 @@ class ExportService
         
         return "propaganda_analysis_{$type}_{$timestamp}";
     }
+
+    /**
+     * Convert dashboard data to CSV format.
+     */
+    public function dashboardDataToCSV(array $data): string
+    {
+        // Create CSV headers for dashboard export
+        $headers = [
+            'job_id',
+            'name',
+            'text_count',
+            'model_count',
+            'created_at',
+            'f1_score',
+            'precision',
+            'recall'
+        ];
+        
+        $rows = [$headers];
+        
+        // Convert recent analyses to CSV rows
+        foreach ($data['recent_analyses'] as $analysis) {
+            $rows[] = [
+                $analysis['job_id'],
+                $analysis['name'] ?? '',
+                $analysis['total_texts'] ?? 0,
+                count($analysis['models_used'] ?? []),
+                $analysis['created_at'],
+                round($analysis['avg_f1_score'] ?? 0, 3),
+                round($analysis['avg_precision'] ?? 0, 3),
+                round($analysis['avg_recall'] ?? 0, 3),
+            ];
+        }
+        
+        return $this->arrayToCsv($rows);
+    }
+
+    /**
+     * Convert dashboard data to Excel format.
+     */
+    public function dashboardDataToExcel(array $data): string
+    {
+        // For now, return CSV format as Excel is more complex to implement
+        // In production, this would use a library like PhpSpreadsheet
+        return $this->dashboardDataToCSV($data);
+    }
 }

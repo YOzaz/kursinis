@@ -22,6 +22,8 @@ class OpenAIService implements LLMServiceInterface
     public function __construct(PromptService $promptService)
     {
         $this->promptService = $promptService;
+        $this->config = null;
+        $this->modelKey = null;
         $models = config('llm.models', []);
         
         // Rasti bet kurį GPT modelį kaip numatytąjį
@@ -149,7 +151,7 @@ class OpenAIService implements LLMServiceInterface
      */
     public function isConfigured(): bool
     {
-        return $this->client !== null && !empty($this->config['api_key'] ?? '');
+        return $this->client !== null && isset($this->config) && !empty($this->config['api_key'] ?? '');
     }
 
     /**

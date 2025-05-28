@@ -46,22 +46,28 @@ class OpenAIServiceTest extends TestCase
 
     public function test_is_configured_returns_false_when_api_key_missing(): void
     {
-        // Temporarily clear the config
-        $originalConfig = config('llm.models.gpt-4.1');
-        config(['llm.models.gpt-4.1.api_key' => null]);
+        // Temporarily clear all GPT models to ensure no API key is available
+        $originalConfig = config('llm.models');
+        $modelsWithoutGpt = [];
+        foreach ($originalConfig as $key => $model) {
+            if (!str_starts_with($key, 'gpt')) {
+                $modelsWithoutGpt[$key] = $model;
+            }
+        }
+        config(['llm.models' => $modelsWithoutGpt]);
         
         $service = new OpenAIService($this->promptService);
         $this->assertFalse($service->isConfigured());
         
         // Restore original config
-        config(['llm.models.gpt-4.1' => $originalConfig]);
+        config(['llm.models' => $originalConfig]);
     }
 
     public function test_analyze_text_throws_exception_when_not_configured(): void
     {
-        // Temporarily clear the config
-        $originalConfig = config('llm.models.gpt-4.1');
-        config(['llm.models.gpt-4.1.api_key' => null]);
+        // Temporarily clear the entire LLM config to ensure no models are available
+        $originalConfig = config('llm.models');
+        config(['llm.models' => []]);
         
         $service = new OpenAIService($this->promptService);
 
@@ -71,7 +77,7 @@ class OpenAIServiceTest extends TestCase
         $service->analyzeText('Test text');
         
         // Restore original config
-        config(['llm.models.gpt-4.1' => $originalConfig]);
+        config(['llm.models' => $originalConfig]);
     }
 
     public function test_service_has_required_methods(): void

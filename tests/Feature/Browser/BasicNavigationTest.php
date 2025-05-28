@@ -175,7 +175,7 @@ class BasicNavigationTest extends TestCase
         
         // Check for modal triggers
         $this->assertStringContainsString('data-bs-toggle="modal"', $content);
-        $this->assertStringContainsString('data-bs-target="#analysisModal', $content);
+        $this->assertStringContainsString('data-bs-target="#repeatAnalysisModal', $content);
     }
 
     public function test_responsive_layout_classes()

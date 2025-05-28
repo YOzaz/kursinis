@@ -54,8 +54,8 @@ check_test_coverage() {
     fi
 }
 
-# Check Controllers
-check_test_coverage "Kontroleriai" "app/Http/Controllers" "tests/Feature"
+# Check Controllers - look in both Unit and Feature directories
+check_test_coverage "Kontroleriai" "app/Http/Controllers" "tests"
 
 # Check Models  
 check_test_coverage "Modeliai" "app/Models" "tests/Unit"

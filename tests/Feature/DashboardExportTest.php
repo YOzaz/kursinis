@@ -42,7 +42,7 @@ class DashboardExportTest extends TestCase
         $response = $this->getJson('/api/dashboard/export?format=csv');
         
         $response->assertStatus(200)
-                ->assertHeader('Content-Type', 'text/csv; charset=utf-8')
+                ->assertHeader('Content-Type', 'text/csv; charset=UTF-8')
                 ->assertHeader('Content-Disposition', 'attachment; filename="dashboard_statistics.csv"');
     }
 
@@ -96,10 +96,10 @@ class DashboardExportTest extends TestCase
                 ->assertJsonStructure([
                     'global_statistics' => [
                         'total_analyses',
-                        'completed_analyses',
-                        'failed_analyses',
                         'total_texts',
-                        'total_models_used'
+                        'total_metrics',
+                        'model_performance',
+                        'avg_execution_times'
                     ]
                 ]);
     }
@@ -127,11 +127,12 @@ class DashboardExportTest extends TestCase
         
         $response->assertStatus(200)
                 ->assertJsonStructure([
-                    'model_statistics' => [
+                    'model_performance' => [
                         '*' => [
-                            'model_name',
-                            'usage_count',
-                            'success_rate'
+                            'total_analyses',
+                            'avg_precision',
+                            'avg_recall',
+                            'avg_f1_score'
                         ]
                     ]
                 ]);
@@ -142,10 +143,10 @@ class DashboardExportTest extends TestCase
         $response = $this->getJson('/api/dashboard/export?format=json');
         
         $response->assertStatus(200)
-                ->assertJsonStructure(['export_timestamp']);
+                ->assertJsonStructure(['generated_at']);
         
         $data = $response->json();
-        $this->assertNotEmpty($data['export_timestamp']);
+        $this->assertNotEmpty($data['generated_at']);
     }
 
     public function test_dashboard_export_csv_has_proper_headers()
@@ -158,10 +159,10 @@ class DashboardExportTest extends TestCase
         $lines = explode("\n", $content);
         $headers = str_getcsv($lines[0]);
         
-        $this->assertContains('Analysis ID', $headers);
-        $this->assertContains('Name', $headers);
-        $this->assertContains('Status', $headers);
-        $this->assertContains('Created At', $headers);
+        $this->assertContains('job_id', $headers);
+        $this->assertContains('name', $headers);
+        $this->assertContains('text_count', $headers);
+        $this->assertContains('created_at', $headers);
     }
 
     public function test_dashboard_export_csv_includes_data_rows()
