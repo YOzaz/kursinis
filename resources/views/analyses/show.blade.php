@@ -284,7 +284,7 @@
                                 <div class="row text-center">
                                     <div class="col-12 mb-3">
                                         <h6 class="text-muted">Bendras F1 balas</h6>
-                                        <h3 class="text-primary">{{ number_format(($statistics['overall_metrics']['avg_f1'] ?? 0) * 100, 2) }}%</h3>
+                                        <h3 class="text-primary">{{ number_format(($statistics['f1_score'] ?? 0) * 100, 2) }}%</h3>
                                     </div>
                                 </div>
                                 <hr>
@@ -296,7 +296,7 @@
                                            data-bs-placement="top" 
                                            title="Precision - kiek AI rastų propagandos fragmentų iš tikrųjų yra propaganda. Skaičiuojama: Teisingi teigiami / (Teisingi teigiami + Klaidingi teigiami)"></i>
                                     </dt>
-                                    <dd class="col-6">{{ number_format(($statistics['overall_metrics']['avg_precision'] ?? 0) * 100, 2) }}%</dd>
+                                    <dd class="col-6">{{ number_format(($statistics['precision'] ?? 0) * 100, 2) }}%</dd>
                                     <dt class="col-6">
                                         Atsaukimas 
                                         <i class="fas fa-question-circle text-muted ms-1" 
@@ -304,7 +304,7 @@
                                            data-bs-placement="top" 
                                            title="Recall - kokią dalį visų propagandos fragmentų AI surado. Skaičiuojama: Teisingi teigiami / (Teisingi teigiami + Klaidingi neigiami)"></i>
                                     </dt>
-                                    <dd class="col-6">{{ number_format(($statistics['overall_metrics']['avg_recall'] ?? 0) * 100, 2) }}%</dd>
+                                    <dd class="col-6">{{ number_format(($statistics['recall'] ?? 0) * 100, 2) }}%</dd>
                                     <dt class="col-6">
                                         F1 balas 
                                         <i class="fas fa-question-circle text-muted ms-1" 
@@ -312,7 +312,7 @@
                                            data-bs-placement="top" 
                                            title="F1 Score - suvienytas tikslumo ir atsaukimo įvertis. Harmoninė tikslumo ir atsaukimo vidurkis. Idealus F1 = 100%"></i>
                                     </dt>
-                                    <dd class="col-6">{{ number_format(($statistics['overall_metrics']['avg_f1'] ?? 0) * 100, 2) }}%</dd>
+                                    <dd class="col-6">{{ number_format(($statistics['f1_score'] ?? 0) * 100, 2) }}%</dd>
                                 </dl>
                             </div>
                         </div>
@@ -373,27 +373,56 @@
                         </div>
                         
                         @php
-                            $modelAnnotations = [
-                                'Claude' => ['annotations' => $textAnalysis->claude_annotations, 'actual_model' => $textAnalysis->claude_actual_model],
-                                'Gemini' => ['annotations' => $textAnalysis->gemini_annotations, 'actual_model' => $textAnalysis->gemini_actual_model],
-                                'GPT' => ['annotations' => $textAnalysis->gpt_annotations, 'actual_model' => $textAnalysis->gpt_actual_model],
-                            ];
+                            $allModelAnnotations = $textAnalysis->getAllModelAnnotations();
+                            
+                            // Taip pat pridėti modelius iš metrikų, jei jų anotacijos buvo perrašytos
+                            $metricsModels = [];
+                            foreach($textAnalysis->comparisonMetrics as $metric) {
+                                if (!isset($allModelAnnotations[$metric->model_name])) {
+                                    $metricsModels[$metric->model_name] = null; // Anotacijos nebeegzistuoja
+                                }
+                            }
+                            
+                            $allModelsToShow = array_merge($allModelAnnotations, $metricsModels);
                         @endphp
                         
-                        @foreach($modelAnnotations as $modelName => $data)
-                            @if($data['annotations'])
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">
-                                        {{ $modelName }} rezultatas 
-                                        @if($data['actual_model'])
-                                            <small class="text-muted">({{ $data['actual_model'] }})</small>
-                                        @endif
-                                    </label>
-                                    <div class="border p-3 rounded">
-                                        @if(isset($data['annotations']['primaryChoice']))
+                        @foreach($allModelsToShow as $modelName => $annotations)
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    {{ $modelName }} rezultatas
+                                    @php
+                                        // Get actual model name from metrics if annotations don't exist
+                                        $actualModelName = null;
+                                        $metricForModel = $textAnalysis->comparisonMetrics->firstWhere('model_name', $modelName);
+                                        if ($metricForModel && $metricForModel->actual_model_name) {
+                                            $actualModelName = $metricForModel->actual_model_name;
+                                        } else {
+                                            // Fallback to direct fields
+                                            if (str_contains(strtolower($modelName), 'claude')) {
+                                                $actualModelName = $textAnalysis->claude_actual_model;
+                                            } elseif (str_contains(strtolower($modelName), 'gemini')) {
+                                                $actualModelName = $textAnalysis->gemini_actual_model;
+                                            } elseif (str_contains(strtolower($modelName), 'gpt')) {
+                                                $actualModelName = $textAnalysis->gpt_actual_model;
+                                            }
+                                        }
+                                    @endphp
+                                    @if($actualModelName)
+                                        <small class="text-muted">({{ $actualModelName }})</small>
+                                    @endif
+                                </label>
+                                <div class="border p-3 rounded">
+                                    @if($annotations === null)
+                                        <div class="alert alert-warning mb-2">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            <strong>Anotacijos nebesaugomas:</strong> Šio modelio anotacijos buvo perrašytos kito to paties tiekėjo modelio. 
+                                            Metrikos išlieka žemiau esančioje lentelėje.
+                                        </div>
+                                    @else
+                                        @if(isset($annotations['primaryChoice']))
                                             <div class="mb-2">
                                                 <strong>Propaganda sprendimas:</strong>
-                                                @if(in_array('yes', $data['annotations']['primaryChoice']['choices'] ?? []))
+                                                @if(in_array('yes', $annotations['primaryChoice']['choices'] ?? []))
                                                     <span class="badge bg-danger">Propaganda</span>
                                                 @else
                                                     <span class="badge bg-success">Ne propaganda</span>
@@ -401,10 +430,10 @@
                                             </div>
                                         @endif
                                         
-                                        @if(isset($data['annotations']['annotations']))
+                                        @if(isset($annotations['annotations']))
                                             <div class="mb-2">
                                                 <strong>Aptikti metodai:</strong>
-                                                @foreach($data['annotations']['annotations'] as $annotation)
+                                                @foreach($annotations['annotations'] as $annotation)
                                                     @if(isset($annotation['value']['labels']))
                                                         @foreach($annotation['value']['labels'] as $label)
                                                             <span class="badge bg-secondary me-1">{{ $label }}</span>
@@ -416,11 +445,11 @@
                                         
                                         <details class="mt-2">
                                             <summary class="btn btn-sm btn-outline-secondary">Pilnas atsakymas</summary>
-                                            <pre class="mt-2 small">{{ json_encode($data['annotations'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+                                            <pre class="mt-2 small">{{ json_encode($annotations, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
                                         </details>
-                                    </div>
+                                    @endif
                                 </div>
-                            @endif
+                            </div>
                         @endforeach
 
                         @if($textAnalysis->comparisonMetrics->isNotEmpty())
