@@ -3,8 +3,17 @@
     "description": "ATSPARA-based propaganda and disinformation analysis system for Lithuanian text using LLM models",
     "type": "project",
     "license": "MIT",
+    "authors": [
+        {
+            "name": "Marijus Plančiūnas",
+            "email": "marijus.planciunas@mif.stud.vu.lt",
+            "role": "Developer, VU MIF Student"
+        }
+    ],
+    "keywords": ["propaganda", "disinformation", "nlp", "lithuanian", "llm", "laravel", "atspara"],
     "require": {
         "php": "^8.2",
+        "darkaonline/l5-swagger": "^9.0",
         "guzzlehttp/guzzle": "^7.9",
         "illuminate/redis": "^12.15",
         "laravel/framework": "^12.15",

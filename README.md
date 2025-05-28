@@ -433,10 +433,12 @@ tail -f storage/logs/worker.log
 - **Prof. Dr. Dariui Plykynui** už vadovavimą ir konsultacijas
 - **ATSPARA projekto komandai** už korpuso duomenis ir anotavimo metodologiją
 - **Vilniaus universiteto MIF** už studijų galimybes
-- Anthropic už Claude API
-- Google už Gemini API  
-- OpenAI už GPT API
-- Laravel community už framework'ą
+- **[Claude Code](https://claude.ai/code)** už neįkainojamą pagalbą sistemų plėtojime ir kodo optimizavime
+- **Anthropic** už Claude API ir Claude Code įrankį
+- **Google** už Gemini API  
+- **OpenAI** už GPT API
+- **Laravel community** už framework'ą ir ekosistemą
+- **Darkaonline/L5-Swagger** už API dokumentacijos sprendimą
 
 ## 📞 Kontaktai
 

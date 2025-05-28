@@ -155,7 +155,7 @@
                                                     $avgRecall = $textMetrics->avg('recall') ?? 0;
                                                     $avgF1 = $textMetrics->avg('f1_score') ?? 0;
                                                     
-                                                    // Debug: check if we have expert annotations
+                                                    // Check if we have expert annotations
                                                     $hasExpertAnnotations = !empty($textAnalysis->expert_annotations);
                                                     
                                                     // Propagandos sprendimai

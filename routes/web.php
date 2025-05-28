@@ -35,3 +35,16 @@ Route::get('/help/faq', [HelpController::class, 'faq'])->name('help.faq');
 
 Route::get('/contact', function() { return view('contact'); })->name('contact');
 Route::get('/legal', function() { return view('legal'); })->name('legal');
+
+// Authentication routes
+Route::get('/login', function() { return view('login'); })->name('login');
+Route::post('/login', function() { return redirect('/'); }); // Handled by middleware
+Route::post('/logout', function() { 
+    session()->flush(); 
+    return redirect('/login')->with('success', 'Sėkmingai atsijungėte.'); 
+})->name('logout');
+
+// API Documentation
+Route::get('/api/documentation', function() {
+    return view('vendor.l5-swagger.index');
+})->name('api.documentation');

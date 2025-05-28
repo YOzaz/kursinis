@@ -65,8 +65,7 @@ class TextAnalysis extends Model
      */
     public function comparisonMetrics(): HasMany
     {
-        return $this->hasMany(ComparisonMetric::class, 'text_id', 'text_id')
-                    ->where('comparison_metrics.job_id', $this->job_id);
+        return $this->hasMany(ComparisonMetric::class, 'text_id', 'text_id');
     }
 
     /**

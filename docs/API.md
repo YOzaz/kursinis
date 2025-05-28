@@ -11,15 +11,27 @@ The Propaganda Analysis API provides programmatic access to Lithuanian text anal
 
 ## 🔐 Authentication
 
+The system includes a simple authentication layer for production environments:
+
+### Web Interface Authentication
+- **Login required** for accessing the web interface in production
+- **Default credentials**: admin/propaganda2025 (configurable via environment)
+- **Session-based** authentication with automatic logout functionality
+
+### API Authentication
 API keys are configured per LLM provider in environment variables:
 
 ```env
 CLAUDE_API_KEY=your_claude_api_key
 GEMINI_API_KEY=your_gemini_api_key
 OPENAI_API_KEY=your_openai_api_key
+
+# Web authentication (optional for production)
+ADMIN_PASSWORD=your_secure_password
 ```
 
-No additional authentication is required for API endpoints in the current implementation.
+### Interactive API Documentation
+**Swagger UI** is available at `/api/documentation` for interactive API exploration and testing.
 
 ## 📊 Available Models
 

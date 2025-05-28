@@ -1,5 +1,11 @@
 # System Architecture Documentation
 
+**Autorius:** Marijus Plančiūnas (marijus.planciunas@mif.stud.vu.lt)  
+**Institucija:** VU MIF Informatikos 3 kursas  
+**Dėstytojas:** Prof. Dr. Darius Plikynas
+
+> Architektūros projektavimas ir optimizavimas atliktas su [Claude Code](https://claude.ai/code) pagalba.
+
 ## 🏗️ High-Level Architecture
 
 ### System Overview

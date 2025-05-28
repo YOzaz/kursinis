@@ -1,5 +1,7 @@
 # 2025 Multi-Model Update
 
+> Sistema plėtota su [Claude Code](https://claude.ai/code) pagalba - Anthropic AI kodo plėtojimo įrankyje, kuris neįkainojamai padėjo optimizuoti sistemą ir atnaujinti ją naujausiais AI modeliais.
+
 ## 🚀 What's New
 
 ### Multiple Models Per Provider

@@ -12,7 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        // Register SimpleAuth middleware for all web routes except login
+        $middleware->web(append: [
+            \App\Http\Middleware\SimpleAuth::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

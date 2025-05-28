@@ -13,12 +13,38 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use OpenApi\Attributes as OA;
 
 /**
  * Analizės kontroleris.
  * 
  * Valdomas visas analizės procesą ir API endpointus.
  */
+#[OA\Info(
+    version: "1.0.0",
+    title: "Propagandos analizės API",
+    description: "API sistema propagandos ir dezinformacijos analizei lietuvių kalbos tekstuose naudojant AI modelius ir ATSPARA metodologiją",
+    contact: new OA\Contact(
+        name: "Marijus Plančiūnas",
+        email: "marijus.planciunas@mif.stud.vu.lt"
+    ),
+    license: new OA\License(
+        name: "MIT",
+        url: "https://opensource.org/licenses/MIT"
+    )
+)]
+#[OA\Server(
+    url: "http://propaganda.local",
+    description: "Development server"
+)]
+#[OA\Tag(
+    name: "analysis",
+    description: "Propaganda analizės operacijos"
+)]
+#[OA\Tag(
+    name: "system",
+    description: "Sistemos informacija ir modelių valdymas"
+)]
 class AnalysisController extends Controller
 {
     private MetricsService $metricsService;
@@ -49,9 +75,11 @@ class AnalysisController extends Controller
     {
         $analysis = AnalysisJob::where('job_id', $jobId)->firstOrFail();
         
-        // Paginate text analyses for large datasets
+        // Paginate text analyses for large datasets with filtered metrics
         $textAnalyses = TextAnalysis::where('job_id', $analysis->job_id)
-            ->with('comparisonMetrics')
+            ->with(['comparisonMetrics' => function($query) use ($analysis) {
+                $query->where('job_id', $analysis->job_id);
+            }])
             ->paginate(50, ['*'], 'page', $request->get('page', 1));
             
         $statistics = $this->metricsService->calculateJobStatistics($analysis);
@@ -71,6 +99,47 @@ class AnalysisController extends Controller
     /**
      * Analizuoti vieną tekstą.
      */
+    #[OA\Post(
+        path: "/api/analyze",
+        operationId: "analyzeSingle",
+        description: "Paleisti vieno teksto propagandos analizę naudojant pasirinktus AI modelius",
+        summary: "Vieno teksto analizė",
+        tags: ["analysis"],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["text_id", "content", "models"],
+                properties: [
+                    new OA\Property(property: "text_id", type: "string", example: "text_001"),
+                    new OA\Property(property: "content", type: "string", example: "Analizuojamas tekstas..."),
+                    new OA\Property(
+                        property: "models", 
+                        type: "array", 
+                        items: new OA\Items(type: "string"),
+                        example: ["claude-opus-4", "gpt-4.1"]
+                    ),
+                    new OA\Property(property: "custom_prompt", type: "string", nullable: true),
+                    new OA\Property(property: "expert_annotations", type: "object", nullable: true),
+                    new OA\Property(property: "name", type: "string", nullable: true),
+                    new OA\Property(property: "description", type: "string", nullable: true)
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Analizė sėkmingai pradėta",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "job_id", type: "string", example: "uuid-here"),
+                        new OA\Property(property: "message", type: "string", example: "Analizė pradėta"),
+                        new OA\Property(property: "progress_url", type: "string")
+                    ]
+                )
+            ),
+            new OA\Response(response: 422, description: "Validation error")
+        ]
+    )]
     public function analyzeSingle(Request $request): JsonResponse
     {
         $availableModels = collect(config('llm.models', []))->keys()->implode(',');
@@ -150,6 +219,63 @@ class AnalysisController extends Controller
     /**
      * Paleisti batch analizę.
      */
+    #[OA\Post(
+        path: "/api/analyze-batch",
+        operationId: "analyzeBatch",
+        description: "Paleisti kelių tekstų propagandos analizę iš JSON failo naudojant pasirinktus AI modelius",
+        summary: "Batch tekstų analizė",
+        tags: ["analysis"],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["file_content", "models"],
+                properties: [
+                    new OA\Property(
+                        property: "file_content", 
+                        type: "array", 
+                        items: new OA\Items(
+                            type: "object",
+                            properties: [
+                                new OA\Property(property: "id", type: "string"),
+                                new OA\Property(
+                                    property: "data", 
+                                    type: "object",
+                                    properties: [
+                                        new OA\Property(property: "content", type: "string")
+                                    ]
+                                ),
+                                new OA\Property(property: "annotations", type: "object")
+                            ]
+                        )
+                    ),
+                    new OA\Property(
+                        property: "models", 
+                        type: "array", 
+                        items: new OA\Items(type: "string"),
+                        example: ["claude-opus-4", "gpt-4.1"]
+                    ),
+                    new OA\Property(property: "custom_prompt", type: "string", nullable: true),
+                    new OA\Property(property: "reference_analysis_id", type: "string", nullable: true),
+                    new OA\Property(property: "name", type: "string", nullable: true),
+                    new OA\Property(property: "description", type: "string", nullable: true)
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Batch analizė sėkmingai pradėta",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "job_id", type: "string"),
+                        new OA\Property(property: "status", type: "string"),
+                        new OA\Property(property: "total_texts", type: "integer")
+                    ]
+                )
+            ),
+            new OA\Response(response: 422, description: "Validation error")
+        ]
+    )]
     public function analyzeBatch(Request $request): JsonResponse
     {
         $availableModels = collect(config('llm.models', []))->keys()->implode(',');
@@ -228,6 +354,37 @@ class AnalysisController extends Controller
     /**
      * Gauti analizės rezultatus.
      */
+    #[OA\Get(
+        path: "/api/results/{jobId}",
+        operationId: "getResults",
+        description: "Gauti detalius analizės rezultatus JSON formatu",
+        summary: "Gauti analizės rezultatus",
+        tags: ["analysis"],
+        parameters: [
+            new OA\Parameter(
+                name: "jobId",
+                in: "path",
+                required: true,
+                schema: new OA\Schema(type: "string"),
+                example: "uuid-here"
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Analizės rezultatai",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "job_id", type: "string"),
+                        new OA\Property(property: "status", type: "string"),
+                        new OA\Property(property: "results", type: "array", items: new OA\Items(type: "object")),
+                        new OA\Property(property: "statistics", type: "object")
+                    ]
+                )
+            ),
+            new OA\Response(response: 404, description: "Analizė nerasta")
+        ]
+    )]
     public function getResults(string $jobId): JsonResponse
     {
         try {
@@ -295,6 +452,34 @@ class AnalysisController extends Controller
     /**
      * Eksportuoti rezultatus į CSV.
      */
+    #[OA\Get(
+        path: "/api/results/{jobId}/export",
+        operationId: "exportResults",
+        description: "Eksportuoti analizės rezultatus į CSV formatą",
+        summary: "Eksportuoti rezultatus",
+        tags: ["analysis"],
+        parameters: [
+            new OA\Parameter(
+                name: "jobId",
+                in: "path",
+                required: true,
+                schema: new OA\Schema(type: "string"),
+                example: "uuid-here"
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "CSV failas",
+                content: new OA\MediaType(
+                    mediaType: "text/csv",
+                    schema: new OA\Schema(type: "string")
+                )
+            ),
+            new OA\Response(response: 404, description: "Analizė nerasta"),
+            new OA\Response(response: 400, description: "Analizė dar nebaigta")
+        ]
+    )]
     public function exportResults(string $jobId)
     {
         try {
@@ -326,6 +511,41 @@ class AnalysisController extends Controller
     /**
      * Gauti darbo statusą.
      */
+    #[OA\Get(
+        path: "/api/status/{jobId}",
+        operationId: "getStatus",
+        description: "Gauti analizės darbo esamą statusą ir progresą",
+        summary: "Gauti analizės statusą",
+        tags: ["analysis"],
+        parameters: [
+            new OA\Parameter(
+                name: "jobId",
+                in: "path",
+                required: true,
+                schema: new OA\Schema(type: "string"),
+                example: "uuid-here"
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Analizės statusas",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "job_id", type: "string"),
+                        new OA\Property(property: "status", type: "string", enum: ["pending", "processing", "completed", "failed"]),
+                        new OA\Property(property: "progress", type: "number", format: "float"),
+                        new OA\Property(property: "processed_texts", type: "integer"),
+                        new OA\Property(property: "total_texts", type: "integer"),
+                        new OA\Property(property: "created_at", type: "string", format: "datetime"),
+                        new OA\Property(property: "updated_at", type: "string", format: "datetime"),
+                        new OA\Property(property: "error_message", type: "string", nullable: true)
+                    ]
+                )
+            ),
+            new OA\Response(response: 404, description: "Analizė nerasta")
+        ]
+    )]
     public function getStatus(string $jobId): JsonResponse
     {
         try {
@@ -451,6 +671,45 @@ class AnalysisController extends Controller
     /**
      * Gauti sistemos statusą ir modelių prieinamumą.
      */
+    #[OA\Get(
+        path: "/api/health",
+        operationId: "systemHealth",
+        description: "Patikrinti sistemos būklę ir AI modelių prieinamumą",
+        summary: "Sistemos sveikatos tikrinimas",
+        tags: ["system"],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Sistemos būklė",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "status", type: "string", enum: ["healthy", "unhealthy"]),
+                        new OA\Property(property: "timestamp", type: "string", format: "datetime"),
+                        new OA\Property(
+                            property: "services", 
+                            type: "object",
+                            properties: [
+                                new OA\Property(property: "database", type: "string"),
+                                new OA\Property(property: "queue", type: "string")
+                            ]
+                        ),
+                        new OA\Property(
+                            property: "models", 
+                            type: "object",
+                            additionalProperties: new OA\AdditionalProperties(
+                                properties: [
+                                    new OA\Property(property: "status", type: "string"),
+                                    new OA\Property(property: "configured", type: "boolean"),
+                                    new OA\Property(property: "rate_limit", type: "integer")
+                                ]
+                            )
+                        )
+                    ]
+                )
+            ),
+            new OA\Response(response: 500, description: "Sistemos klaida")
+        ]
+    )]
     public function health(): JsonResponse
     {
         try {
@@ -486,6 +745,41 @@ class AnalysisController extends Controller
     /**
      * Gauti galimų modelių sąrašą.
      */
+    #[OA\Get(
+        path: "/api/models",
+        operationId: "getModels",
+        description: "Gauti visų konfigūruotų AI modelių sąrašą su jų informacija",
+        summary: "Gauti modelių sąrašą",
+        tags: ["system"],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Modelių sąrašas",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(
+                            property: "models", 
+                            type: "array",
+                            items: new OA\Items(
+                                type: "object",
+                                properties: [
+                                    new OA\Property(property: "key", type: "string"),
+                                    new OA\Property(property: "name", type: "string"),
+                                    new OA\Property(property: "provider", type: "string"),
+                                    new OA\Property(property: "model", type: "string"),
+                                    new OA\Property(property: "configured", type: "boolean"),
+                                    new OA\Property(property: "available", type: "boolean"),
+                                    new OA\Property(property: "rate_limit", type: "integer"),
+                                    new OA\Property(property: "max_tokens", type: "integer")
+                                ]
+                            )
+                        )
+                    ]
+                )
+            ),
+            new OA\Response(response: 500, description: "Sistemos klaida")
+        ]
+    )]
     public function models(): JsonResponse
     {
         try {

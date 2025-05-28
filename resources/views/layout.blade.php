@@ -97,6 +97,17 @@
                 <a class="nav-link" href="{{ route('help.index') }}" title="Pagalba ir dokumentacija">
                     <i class="fas fa-question-circle me-1"></i>Pagalba
                 </a>
+                
+                <!-- User info and logout -->
+                <div class="navbar-text text-light me-3">
+                    <i class="fas fa-user me-1"></i>{{ session('username', 'Vartotojas') }}
+                </div>
+                <form method="POST" action="{{ route('logout') }}" class="d-inline">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-light btn-sm" title="Atsijungti">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </form>
             </div>
         </div>
     </nav>

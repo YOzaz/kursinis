@@ -1,0 +1,512 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Propagandos analizės API",
+        "description": "API sistema propagandos ir dezinformacijos analizei lietuvių kalbos tekstuose naudojant AI modelius ir ATSPARA metodologiją",
+        "contact": {
+            "name": "Marijus Plančiūnas",
+            "email": "marijus.planciunas@mif.stud.vu.lt"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://propaganda.local",
+            "description": "Development server"
+        }
+    ],
+    "paths": {
+        "/api/analyze": {
+            "post": {
+                "tags": [
+                    "analysis"
+                ],
+                "summary": "Vieno teksto analizė",
+                "description": "Paleisti vieno teksto propagandos analizę naudojant pasirinktus AI modelius",
+                "operationId": "analyzeSingle",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "text_id",
+                                    "content",
+                                    "models"
+                                ],
+                                "properties": {
+                                    "text_id": {
+                                        "type": "string",
+                                        "example": "text_001"
+                                    },
+                                    "content": {
+                                        "type": "string",
+                                        "example": "Analizuojamas tekstas..."
+                                    },
+                                    "models": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "example": [
+                                            "claude-opus-4",
+                                            "gpt-4.1"
+                                        ]
+                                    },
+                                    "custom_prompt": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "expert_annotations": {
+                                        "type": "object",
+                                        "nullable": true
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Analizė sėkmingai pradėta",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "job_id": {
+                                            "type": "string",
+                                            "example": "uuid-here"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Analizė pradėta"
+                                        },
+                                        "progress_url": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/analyze-batch": {
+            "post": {
+                "tags": [
+                    "analysis"
+                ],
+                "summary": "Batch tekstų analizė",
+                "description": "Paleisti kelių tekstų propagandos analizę iš JSON failo naudojant pasirinktus AI modelius",
+                "operationId": "analyzeBatch",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "file_content",
+                                    "models"
+                                ],
+                                "properties": {
+                                    "file_content": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string"
+                                                },
+                                                "data": {
+                                                    "properties": {
+                                                        "content": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "annotations": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "models": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "example": [
+                                            "claude-opus-4",
+                                            "gpt-4.1"
+                                        ]
+                                    },
+                                    "custom_prompt": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "reference_analysis_id": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Batch analizė sėkmingai pradėta",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "job_id": {
+                                            "type": "string"
+                                        },
+                                        "status": {
+                                            "type": "string"
+                                        },
+                                        "total_texts": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/results/{jobId}": {
+            "get": {
+                "tags": [
+                    "analysis"
+                ],
+                "summary": "Gauti analizės rezultatus",
+                "description": "Gauti detalius analizės rezultatus JSON formatu",
+                "operationId": "getResults",
+                "parameters": [
+                    {
+                        "name": "jobId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "uuid-here"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Analizės rezultatai",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "job_id": {
+                                            "type": "string"
+                                        },
+                                        "status": {
+                                            "type": "string"
+                                        },
+                                        "results": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "statistics": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Analizė nerasta"
+                    }
+                }
+            }
+        },
+        "/api/results/{jobId}/export": {
+            "get": {
+                "tags": [
+                    "analysis"
+                ],
+                "summary": "Eksportuoti rezultatus",
+                "description": "Eksportuoti analizės rezultatus į CSV formatą",
+                "operationId": "exportResults",
+                "parameters": [
+                    {
+                        "name": "jobId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "uuid-here"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CSV failas",
+                        "content": {
+                            "text/csv": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Analizė nerasta"
+                    },
+                    "400": {
+                        "description": "Analizė dar nebaigta"
+                    }
+                }
+            }
+        },
+        "/api/status/{jobId}": {
+            "get": {
+                "tags": [
+                    "analysis"
+                ],
+                "summary": "Gauti analizės statusą",
+                "description": "Gauti analizės darbo esamą statusą ir progresą",
+                "operationId": "getStatus",
+                "parameters": [
+                    {
+                        "name": "jobId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "uuid-here"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Analizės statusas",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "job_id": {
+                                            "type": "string"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "enum": [
+                                                "pending",
+                                                "processing",
+                                                "completed",
+                                                "failed"
+                                            ]
+                                        },
+                                        "progress": {
+                                            "type": "number",
+                                            "format": "float"
+                                        },
+                                        "processed_texts": {
+                                            "type": "integer"
+                                        },
+                                        "total_texts": {
+                                            "type": "integer"
+                                        },
+                                        "created_at": {
+                                            "type": "string",
+                                            "format": "datetime"
+                                        },
+                                        "updated_at": {
+                                            "type": "string",
+                                            "format": "datetime"
+                                        },
+                                        "error_message": {
+                                            "type": "string",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Analizė nerasta"
+                    }
+                }
+            }
+        },
+        "/api/health": {
+            "get": {
+                "tags": [
+                    "system"
+                ],
+                "summary": "Sistemos sveikatos tikrinimas",
+                "description": "Patikrinti sistemos būklę ir AI modelių prieinamumą",
+                "operationId": "systemHealth",
+                "responses": {
+                    "200": {
+                        "description": "Sistemos būklė",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "enum": [
+                                                "healthy",
+                                                "unhealthy"
+                                            ]
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "format": "datetime"
+                                        },
+                                        "services": {
+                                            "properties": {
+                                                "database": {
+                                                    "type": "string"
+                                                },
+                                                "queue": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "models": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "properties": {
+                                                    "status": {
+                                                        "type": "string"
+                                                    },
+                                                    "configured": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "rate_limit": {
+                                                        "type": "integer"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Sistemos klaida"
+                    }
+                }
+            }
+        },
+        "/api/models": {
+            "get": {
+                "tags": [
+                    "system"
+                ],
+                "summary": "Gauti modelių sąrašą",
+                "description": "Gauti visų konfigūruotų AI modelių sąrašą su jų informacija",
+                "operationId": "getModels",
+                "responses": {
+                    "200": {
+                        "description": "Modelių sąrašas",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "models": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "key": {
+                                                        "type": "string"
+                                                    },
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "provider": {
+                                                        "type": "string"
+                                                    },
+                                                    "model": {
+                                                        "type": "string"
+                                                    },
+                                                    "configured": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "available": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "rate_limit": {
+                                                        "type": "integer"
+                                                    },
+                                                    "max_tokens": {
+                                                        "type": "integer"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Sistemos klaida"
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "analysis",
+            "description": "Propaganda analizės operacijos"
+        },
+        {
+            "name": "system",
+            "description": "Sistemos informacija ir modelių valdymas"
+        }
+    ]
+}
