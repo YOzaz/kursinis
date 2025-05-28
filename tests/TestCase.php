@@ -69,7 +69,7 @@ abstract class TestCase extends BaseTestCase
         switch ($service) {
             case 'claude':
                 Http::fake([
-                    'api.anthropic.com/*' => Http::response([
+                    'https://api.anthropic.com/*' => Http::response([
                         'content' => [['text' => json_encode($responseData)]]
                     ], 200)
                 ]);
@@ -77,7 +77,7 @@ abstract class TestCase extends BaseTestCase
                 
             case 'gemini':
                 Http::fake([
-                    'generativelanguage.googleapis.com/*' => Http::response([
+                    'https://generativelanguage.googleapis.com/*' => Http::response([
                         'candidates' => [
                             [
                                 'content' => [
@@ -93,7 +93,7 @@ abstract class TestCase extends BaseTestCase
                 
             case 'openai':
                 Http::fake([
-                    'api.openai.com/*' => Http::response([
+                    'https://api.openai.com/*' => Http::response([
                         'choices' => [
                             [
                                 'message' => [

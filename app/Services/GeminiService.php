@@ -2,8 +2,7 @@
 
 namespace App\Services;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -13,7 +12,6 @@ use Illuminate\Support\Facades\Log;
  */
 class GeminiService implements LLMServiceInterface
 {
-    private Client $httpClient;
     private PromptService $promptService;
     private ?array $config;
     private ?string $modelKey;
@@ -30,16 +28,6 @@ class GeminiService implements LLMServiceInterface
                 $this->modelKey = $key;
                 break;
             }
-        }
-        
-        if ($this->config) {
-            $this->httpClient = new Client([
-                'base_uri' => $this->config['base_url'],
-                'timeout' => config('llm.request_timeout'),
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                ],
-            ]);
         }
     }
 
@@ -60,9 +48,11 @@ class GeminiService implements LLMServiceInterface
 
         for ($attempt = 1; $attempt <= $retries; $attempt++) {
             try {
-                $response = $this->httpClient->post("v1beta/models/{$this->config['model']}:generateContent", [
-                    'query' => ['key' => $this->config['api_key']],
-                    'json' => [
+                $url = rtrim($this->config['base_url'], '/') . "/v1beta/models/{$this->config['model']}:generateContent";
+                
+                $response = Http::timeout(config('llm.request_timeout'))
+                    ->withHeaders(['Content-Type' => 'application/json'])
+                    ->post($url . '?key=' . $this->config['api_key'], [
                         'contents' => [
                             [
                                 'parts' => [
@@ -93,10 +83,9 @@ class GeminiService implements LLMServiceInterface
                                 'threshold' => 'BLOCK_NONE'
                             ]
                         ]
-                    ]
-                ]);
+                    ]);
 
-                $responseData = json_decode($response->getBody()->getContents(), true);
+                $responseData = $response->json();
                 
                 if (!isset($responseData['candidates'][0]['content']['parts'][0]['text'])) {
                     throw new \Exception('Neteisingas Gemini API atsakymo formatas');
@@ -126,7 +115,7 @@ class GeminiService implements LLMServiceInterface
 
                 return $jsonResponse;
 
-            } catch (GuzzleException $e) {
+            } catch (\Exception $e) {
                 Log::error('Gemini API klaida', [
                     'attempt' => $attempt,
                     'error' => $e->getMessage()
@@ -177,13 +166,6 @@ class GeminiService implements LLMServiceInterface
         $this->config = $models[$modelKey] ?? null;
         
         if ($this->config) {
-            $this->httpClient = new Client([
-                'base_uri' => $this->config['base_url'],
-                'timeout' => config('llm.request_timeout'),
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                ],
-            ]);
             return true;
         }
         
@@ -226,15 +208,6 @@ class GeminiService implements LLMServiceInterface
             }
         } finally {
             $this->config = $originalConfig;
-            if ($originalConfig) {
-                $this->httpClient = new Client([
-                    'base_uri' => $originalConfig['base_url'],
-                    'timeout' => config('llm.request_timeout'),
-                    'headers' => [
-                        'Content-Type' => 'application/json',
-                    ],
-                ]);
-            }
         }
     }
 
