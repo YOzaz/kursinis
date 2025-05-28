@@ -30,9 +30,10 @@ The Propaganda and Disinformation Analysis System is a Laravel-based web applica
           ▼               ▼               ▼
 ┌─────────────────┐ ┌─────────────┐ ┌─────────────┐
 │     Redis       │ │   MySQL     │ │ LLM APIs    │
-│  - Cache        │ │ - Main DB   │ │ - Claude 4  │
-│  - Sessions     │ │ - Analysis  │ │ - Gemini    │
-│  - Queues       │ │   Results   │ │ - GPT-4o    │
+│  - Cache        │ │ - Main DB   │ │ - Claude    │
+│  - Sessions     │ │ - Analysis  │ │   Opus/Sonnet│
+│  - Queues       │ │   Results   │ │ - Gemini 2.5│
+│                 │ │             │ │ - GPT-4.1   │
 └─────────────────┘ └─────────────┘ └─────────────┘
 ```
 
@@ -113,9 +114,10 @@ Text Input
           ↓
 ┌─────────────────┐
 │ LLM Services    │
-│ - Claude 4      │
+│ - Claude Opus 4 │
+│ - Claude Sonnet 4│
 │ - Gemini 2.5    │
-│ - GPT-4o        │
+│ - GPT-4.1       │
 └─────────┬───────┘
           ↓
 ┌─────────────────┐
@@ -218,6 +220,30 @@ Reference Analysis ID
 
 **Recent Enhancement**: Supports category mapping between expert annotations (simplified names like 'simplification', 'emotionalExpression') and AI annotations (ATSPARA methodology names like 'causalOversimplification', 'loadedLanguage')
 
+## 🆕 Recent System Enhancements (2025)
+
+### Text Highlighting and Visualization System
+- **Interactive Text Highlighting**: Real-time visualization of AI and expert annotations
+- **Dual-View Interface**: Switch between AI annotations and expert annotations
+- **Color-Coded Techniques**: Visual legend for different propaganda techniques
+- **Text Size Toggle**: Accessibility feature for better readability
+- **Modal-Based Details**: Full-screen analysis view with Bootstrap modals
+
+### Enhanced Model Management
+- **Updated Model Support**: Latest Claude Opus 4, Sonnet 4, GPT-4.1, and Gemini 2.5 models
+- **Execution Time Tracking**: Monitors and stores processing time for each analysis
+- **Retry Functionality**: Automatic retry capability for failed analyses
+- **Model Name Detection**: Dynamic actual model name detection and storage
+
+### Custom Prompt and Reference Analysis
+- **Custom Prompt Support**: Ability to provide custom prompts for specialized analysis
+- **Reference Analysis**: Link analyses to previous ones for comparison studies
+- **Prompt Template System**: Standardized prompt templates with custom override capability
+
+### Performance Monitoring
+- **Execution Time Metrics**: Track processing times across models and analyses
+- **Success Rate Monitoring**: Real-time tracking of analysis success/failure rates
+- **Model Performance Analytics**: Compare performance across different AI models
 
 ## 🔧 Service Layer Architecture
 

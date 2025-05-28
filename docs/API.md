@@ -37,12 +37,12 @@ ADMIN_PASSWORD=your_secure_password
 
 | Model Key | Provider | Actual Model | Description |
 |-----------|----------|--------------|-------------|
-| `claude-opus-4` | Anthropic | `claude-opus-4-20250514` | Claude Opus 4 (Premium) |
-| `claude-sonnet-4` | Anthropic | `claude-sonnet-4-20250514` | Claude Sonnet 4 |
-| `gpt-4.1` | OpenAI | `gpt-4.1` | GPT-4.1 (Latest) |
-| `gpt-4o-latest` | OpenAI | `gpt-4o` | GPT-4o |
-| `gemini-2.5-pro` | Google | `gemini-2.5-pro-experimental` | Gemini 2.5 Pro |
-| `gemini-2.5-flash` | Google | `gemini-2.5-flash-preview-04-17` | Gemini 2.5 Flash |
+| `claude-opus-4` | Anthropic | `claude-opus-4-20250514` | Anthropic's most advanced coding model (Premium) |
+| `claude-sonnet-4` | Anthropic | `claude-sonnet-4-20250514` | Evolution of Claude 3.5 Sonnet, excelling in coding |
+| `gpt-4.1` | OpenAI | `gpt-4.1` | OpenAI's latest flagship model with improved coding (Premium) |
+| `gpt-4o-latest` | OpenAI | `gpt-4o` | OpenAI's multimodal flagship model with audio, vision, and text |
+| `gemini-2.5-pro` | Google | `gemini-2.5-pro-experimental` | Google's most advanced model for complex reasoning tasks (Premium) |
+| `gemini-2.5-flash` | Google | `gemini-2.5-flash-preview-04-17` | Google's best price-performance model with thinking capabilities |
 
 ## 📝 Request/Response Format
 
@@ -175,7 +175,7 @@ Process multiple texts with expert annotations in ATSPARA format.
       }
     }
   ],
-  "models": ["claude-4", "gemini-2.5-pro", "gpt-4.1"],
+  "models": ["claude-opus-4", "gemini-2.5-pro", "gpt-4.1"],
   "custom_prompt": "Custom prompt for this batch analysis",
   "name": "Batch Analysis Name",
   "description": "Description of the batch analysis"
@@ -257,7 +257,7 @@ Retrieve detailed analysis results.
     "status": "completed",
     "summary": {
       "total_texts": 1,
-      "models_used": ["claude-4"],
+      "models_used": ["claude-opus-4"],
       "processing_time": "00:05:23"
     },
     "results": [

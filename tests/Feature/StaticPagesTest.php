@@ -1,0 +1,85 @@
+<?php
+
+namespace Tests\Feature;
+
+use Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+class StaticPagesTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_contact_page_is_accessible()
+    {
+        $this->withoutMiddleware();
+        
+        $response = $this->get('/contact');
+        
+        $response->assertStatus(200)
+                ->assertSee('Kontaktai');
+    }
+
+    public function test_legal_page_is_accessible()
+    {
+        $this->withoutMiddleware();
+        
+        $response = $this->get('/legal');
+        
+        $response->assertStatus(200)
+                ->assertSee('Teisinė informacija');
+    }
+
+    public function test_contact_page_redirects_when_not_authenticated()
+    {
+        $response = $this->get('/contact');
+        
+        $response->assertRedirect('/login');
+    }
+
+    public function test_legal_page_redirects_when_not_authenticated()
+    {
+        $response = $this->get('/legal');
+        
+        $response->assertRedirect('/login');
+    }
+
+    public function test_contact_page_accessible_when_authenticated()
+    {
+        $this->withSession(['authenticated' => true, 'username' => 'admin']);
+        
+        $response = $this->get('/contact');
+        
+        $response->assertStatus(200)
+                ->assertSee('Kontaktai');
+    }
+
+    public function test_legal_page_accessible_when_authenticated()
+    {
+        $this->withSession(['authenticated' => true, 'username' => 'admin']);
+        
+        $response = $this->get('/legal');
+        
+        $response->assertStatus(200)
+                ->assertSee('Teisinė informacija');
+    }
+
+    public function test_contact_page_uses_correct_view()
+    {
+        $this->withoutMiddleware();
+        
+        $response = $this->get('/contact');
+        
+        $response->assertStatus(200)
+                ->assertViewIs('contact');
+    }
+
+    public function test_legal_page_uses_correct_view()
+    {
+        $this->withoutMiddleware();
+        
+        $response = $this->get('/legal');
+        
+        $response->assertStatus(200)
+                ->assertViewIs('legal');
+    }
+}
