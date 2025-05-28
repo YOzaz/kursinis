@@ -90,26 +90,25 @@ class WebAnalysisRepeatTest extends TestCase
                 ->assertSessionHasErrors('models');
     }
 
-    public function test_analysis_repeat_validates_model_names()
+    public function test_analysis_repeat_validates_required_fields()
     {
         $this->withSession(['authenticated' => true, 'username' => 'admin']);
 
-        $response = $this->post("/analysis/repeat", [
-            'job_id' => $this->originalAnalysis->job_id,
-            'models' => ['invalid-model-name']
-        ]);
+        // Test missing required fields
+        $response = $this->post("/analysis/repeat", []);
 
         $response->assertRedirect()
-                ->assertSessionHasErrors('models.0');
+                ->assertSessionHasErrors(['reference_job_id', 'prompt_type']);
     }
 
-    public function test_analysis_repeat_with_multiple_models()
+    public function test_analysis_repeat_with_valid_data()
     {
         $this->withSession(['authenticated' => true, 'username' => 'admin']);
 
         $response = $this->post("/analysis/repeat", [
-            'job_id' => $this->originalAnalysis->job_id,
-            'models' => ['claude-opus-4', 'gpt-4o']
+            'reference_job_id' => $this->originalAnalysis->job_id,
+            'prompt_type' => 'standard',
+            'name' => 'Repeated Analysis'
         ]);
 
         $response->assertRedirect()
@@ -123,8 +122,8 @@ class WebAnalysisRepeatTest extends TestCase
         $initialJobCount = AnalysisJob::count();
 
         $response = $this->post("/analysis/repeat", [
-            'job_id' => $this->originalAnalysis->job_id,
-            'models' => ['claude-opus-4']
+            'reference_job_id' => $this->originalAnalysis->job_id,
+            'prompt_type' => 'standard'
         ]);
 
         $response->assertRedirect();

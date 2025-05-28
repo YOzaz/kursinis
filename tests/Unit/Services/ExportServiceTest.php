@@ -58,6 +58,9 @@ class ExportServiceTest extends TestCase
         TextAnalysis::factory()->create([
             'job_id' => $analysisJob->job_id,
             'text_id' => 'test-header',
+            'expert_annotations' => [
+                ['type' => 'labels', 'value' => ['labels' => ['simplification']]]
+            ]
         ]);
 
         $response = $this->service->exportToCsv($analysisJob->job_id);
@@ -67,7 +70,8 @@ class ExportServiceTest extends TestCase
 
         $expectedHeaders = [
             'job_id', 'text_id', 'text_content', 'model_name', 
-            'expert_annotations', 'llm_annotations', 'true_positives', 'false_positives'
+            'expert_annotations', 'llm_annotations', 'true_positives', 'false_positives',
+            'false_negatives', 'precision', 'recall', 'f1_score', 'position_accuracy'
         ];
 
         foreach ($expectedHeaders as $header) {

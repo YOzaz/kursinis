@@ -29,7 +29,7 @@ class LLMServicesIntegrationTest extends TestCase
     {
         // Mock successful Claude API response
         Http::fake([
-            'api.anthropic.com/*' => Http::response([
+            'https://api.anthropic.com/*' => Http::response([
                 'content' => [
                     [
                         'text' => json_encode([
@@ -69,7 +69,7 @@ class LLMServicesIntegrationTest extends TestCase
     public function test_claude_service_with_custom_prompt(): void
     {
         Http::fake([
-            'api.anthropic.com/*' => Http::response([
+            'https://api.anthropic.com/*' => Http::response([
                 'content' => [
                     [
                         'text' => json_encode([
@@ -103,7 +103,7 @@ class LLMServicesIntegrationTest extends TestCase
     public function test_claude_service_handles_api_errors(): void
     {
         Http::fake([
-            'api.anthropic.com/*' => Http::response(['error' => 'API Error'], 500)
+            'https://api.anthropic.com/*' => Http::response(['error' => 'API Error'], 500)
         ]);
 
         $claudeService = app(ClaudeService::class);
@@ -223,7 +223,7 @@ class LLMServicesIntegrationTest extends TestCase
     {
         // Mock responses for all services
         Http::fake([
-            'api.anthropic.com/*' => Http::response([
+            'https://api.anthropic.com/*' => Http::response([
                 'content' => [['text' => '{"primaryChoice": {"choices": ["yes"]}, "annotations": [], "desinformationTechnique": {"choices": []}}']]
             ], 200),
             'generativelanguage.googleapis.com/*' => Http::response([
@@ -271,7 +271,7 @@ class LLMServicesIntegrationTest extends TestCase
     public function test_services_handle_invalid_json_responses(): void
     {
         Http::fake([
-            'api.anthropic.com/*' => Http::response([
+            'https://api.anthropic.com/*' => Http::response([
                 'content' => [['text' => 'Invalid JSON response']]
             ], 200)
         ]);
@@ -378,7 +378,7 @@ class LLMServicesIntegrationTest extends TestCase
     public function test_integration_with_queue_jobs(): void
     {
         Http::fake([
-            'api.anthropic.com/*' => Http::response([
+            'https://api.anthropic.com/*' => Http::response([
                 'content' => [['text' => '{"primaryChoice": {"choices": ["yes"]}, "annotations": [], "desinformationTechnique": {"choices": []}}']]
             ], 200)
         ]);

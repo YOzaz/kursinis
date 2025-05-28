@@ -22,15 +22,16 @@ class AnalyzeTextJobTest extends TestCase
         Queue::fake();
 
         $job = AnalysisJob::factory()->pending()->create();
-        $textData = [
-            'id' => '1',
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => '1',
             'content' => 'Test propaganda text for analysis',
             'expert_annotations' => [
                 ['type' => 'labels', 'value' => ['labels' => ['simplification']]]
             ]
-        ];
+        ]);
 
-        AnalyzeTextJob::dispatch($job->job_id, $textData, ['claude-4'], null);
+        AnalyzeTextJob::dispatch($textAnalysis->id, 'claude-opus-4', $job->job_id);
 
         Queue::assertPushed(AnalyzeTextJob::class);
     }
@@ -90,11 +91,32 @@ class AnalyzeTextJobTest extends TestCase
             'job_id' => $job->job_id,
             'text_id' => '1',
             'content' => 'Test text',
-            'expert_annotations' => []
+            'expert_annotations' => [
+                ['type' => 'labels', 'value' => ['labels' => ['simplification']]]
+            ]
         ]);
 
-        $analyzeJob = new AnalyzeTextJob($textAnalysis->id, 'claude-opus-4', $job->job_id);
-        $analyzeJob->handle(
+        // Run analysis for Claude
+        $analyzeJobClaude = new AnalyzeTextJob($textAnalysis->id, 'claude-opus-4', $job->job_id);
+        $analyzeJobClaude->handle(
+            app(ClaudeService::class),
+            app(GeminiService::class),
+            app(OpenAIService::class),
+            app(MetricsService::class)
+        );
+
+        // Run analysis for Gemini
+        $analyzeJobGemini = new AnalyzeTextJob($textAnalysis->id, 'gemini-2.5-pro', $job->job_id);
+        $analyzeJobGemini->handle(
+            app(ClaudeService::class),
+            app(GeminiService::class),
+            app(OpenAIService::class),
+            app(MetricsService::class)
+        );
+
+        // Run analysis for OpenAI
+        $analyzeJobOpenAI = new AnalyzeTextJob($textAnalysis->id, 'gpt-4.1', $job->job_id);
+        $analyzeJobOpenAI->handle(
             app(ClaudeService::class),
             app(GeminiService::class),
             app(OpenAIService::class),
@@ -110,7 +132,7 @@ class AnalyzeTextJobTest extends TestCase
         $this->assertDatabaseHas('comparison_metrics', [
             'job_id' => $job->job_id,
             'text_id' => '1',
-            'model_name' => 'claude-4'
+            'model_name' => 'claude-opus-4'
         ]);
 
         $this->assertDatabaseHas('comparison_metrics', [
@@ -277,7 +299,7 @@ class AnalyzeTextJobTest extends TestCase
         $this->assertDatabaseHas('comparison_metrics', [
             'job_id' => $job->job_id,
             'text_id' => '1',
-            'model_name' => 'claude-4'
+            'model_name' => 'claude-opus-4'
         ]);
     }
 }

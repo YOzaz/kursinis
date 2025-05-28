@@ -20,7 +20,6 @@ class ClaudeServiceTest extends TestCase
         parent::setUp();
         $this->promptService = new PromptService();
         $this->service = new ClaudeService($this->promptService);
-        Http::fake();
     }
 
     public function test_claude_service_implements_llm_interface(): void
@@ -30,19 +29,19 @@ class ClaudeServiceTest extends TestCase
 
     public function test_get_model_name_returns_correct_value(): void
     {
-        $this->assertEquals('claude-4', $this->service->getModelName());
+        $this->assertEquals('claude-opus-4', $this->service->getModelName());
     }
 
     public function test_is_configured_returns_true_when_api_key_exists(): void
     {
-        config(['llm.models.claude-4.api_key' => 'test-api-key']);
+        config(['llm.models.claude-opus-4.api_key' => 'test-api-key']);
         
         $this->assertTrue($this->service->isConfigured());
     }
 
     public function test_is_configured_returns_false_when_api_key_missing(): void
     {
-        config(['llm.models.claude-4.api_key' => null]);
+        config(['llm.models.claude-opus-4.api_key' => null]);
         
         $this->assertFalse($this->service->isConfigured());
     }
@@ -50,7 +49,7 @@ class ClaudeServiceTest extends TestCase
     public function test_analyze_text_returns_valid_response(): void
     {
         Http::fake([
-            'api.anthropic.com/*' => Http::response([
+            'https://api.anthropic.com/*' => Http::response([
                 'content' => [
                     [
                         'text' => json_encode([
@@ -84,7 +83,7 @@ class ClaudeServiceTest extends TestCase
     public function test_analyze_text_sends_correct_request_structure(): void
     {
         Http::fake([
-            'api.anthropic.com/*' => Http::response([
+            'https://api.anthropic.com/*' => Http::response([
                 'content' => [
                     [
                         'text' => json_encode([
@@ -113,7 +112,7 @@ class ClaudeServiceTest extends TestCase
     public function test_analyze_text_includes_propaganda_techniques_in_prompt(): void
     {
         Http::fake([
-            'api.anthropic.com/*' => Http::response([
+            'https://api.anthropic.com/*' => Http::response([
                 'content' => [
                     [
                         'text' => json_encode([
@@ -145,7 +144,7 @@ class ClaudeServiceTest extends TestCase
     public function test_analyze_text_with_custom_prompt(): void
     {
         Http::fake([
-            'api.anthropic.com/*' => Http::response([
+            'https://api.anthropic.com/*' => Http::response([
                 'content' => [
                     [
                         'text' => json_encode([
@@ -171,7 +170,7 @@ class ClaudeServiceTest extends TestCase
     public function test_analyze_text_handles_api_errors(): void
     {
         Http::fake([
-            'api.anthropic.com/*' => Http::response(['error' => 'API Error'], 400)
+            'https://api.anthropic.com/*' => Http::response(['error' => 'API Error'], 400)
         ]);
 
         $this->expectException(\Exception::class);
@@ -181,7 +180,7 @@ class ClaudeServiceTest extends TestCase
     public function test_analyze_text_handles_invalid_json_response(): void
     {
         Http::fake([
-            'api.anthropic.com/*' => Http::response([
+            'https://api.anthropic.com/*' => Http::response([
                 'content' => [
                     [
                         'text' => 'invalid json response'
@@ -197,7 +196,7 @@ class ClaudeServiceTest extends TestCase
     public function test_analyze_text_handles_empty_response(): void
     {
         Http::fake([
-            'api.anthropic.com/*' => Http::response([
+            'https://api.anthropic.com/*' => Http::response([
                 'content' => []
             ], 200)
         ]);
@@ -209,7 +208,7 @@ class ClaudeServiceTest extends TestCase
     public function test_analyze_text_respects_rate_limiting(): void
     {
         Http::fake([
-            'api.anthropic.com/*' => Http::response([
+            'https://api.anthropic.com/*' => Http::response([
                 'content' => [
                     [
                         'text' => json_encode([
@@ -233,7 +232,7 @@ class ClaudeServiceTest extends TestCase
     public function test_analyze_text_returns_consistent_structure(): void
     {
         Http::fake([
-            'api.anthropic.com/*' => Http::response([
+            'https://api.anthropic.com/*' => Http::response([
                 'content' => [
                     [
                         'text' => json_encode([
@@ -287,7 +286,7 @@ class ClaudeServiceTest extends TestCase
     public function test_service_uses_correct_model_configuration(): void
     {
         Http::fake([
-            'api.anthropic.com/*' => Http::response([
+            'https://api.anthropic.com/*' => Http::response([
                 'content' => [
                     [
                         'text' => json_encode([
@@ -312,7 +311,7 @@ class ClaudeServiceTest extends TestCase
     public function test_analyze_text_with_lithuanian_content(): void
     {
         Http::fake([
-            'api.anthropic.com/*' => Http::response([
+            'https://api.anthropic.com/*' => Http::response([
                 'content' => [
                     [
                         'text' => json_encode([

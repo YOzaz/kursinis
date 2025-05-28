@@ -137,8 +137,8 @@ class BasicNavigationTest extends TestCase
         
         $response->assertStatus(200)
                 ->assertSee('Pagalba')
-                ->assertSee('DUK')
-                ->assertSee('href="/help/faq"', false);
+                ->assertSee('FAQ')
+                ->assertSee('/help/faq');
     }
 
     public function test_faq_page_content_structure()

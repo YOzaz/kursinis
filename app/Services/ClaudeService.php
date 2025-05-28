@@ -2,8 +2,7 @@
 
 namespace App\Services;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -14,7 +13,6 @@ use Illuminate\Support\Facades\Log;
  */
 class ClaudeService implements LLMServiceInterface
 {
-    private Client $httpClient;
     private PromptService $promptService;
     private ?array $config;
     private ?string $modelKey;
@@ -33,17 +31,6 @@ class ClaudeService implements LLMServiceInterface
             }
         }
         
-        if ($this->config) {
-            $this->httpClient = new Client([
-                'base_uri' => $this->config['base_url'],
-                'timeout' => config('llm.request_timeout'),
-                'headers' => [
-                    'x-api-key' => $this->config['api_key'],
-                    'Content-Type' => 'application/json',
-                    'anthropic-version' => '2023-06-01',
-                ],
-            ]);
-        }
     }
 
     /**
@@ -63,22 +50,30 @@ class ClaudeService implements LLMServiceInterface
 
         for ($attempt = 1; $attempt <= $retries; $attempt++) {
             try {
-                $response = $this->httpClient->post('messages', [
-                    'json' => [
-                        'model' => $this->config['model'],
-                        'max_tokens' => $this->config['max_tokens'],
-                        'temperature' => $this->config['temperature'],
-                        'system' => $systemMessage,
-                        'messages' => [
-                            [
-                                'role' => 'user',
-                                'content' => $prompt
-                            ]
+                $response = Http::withHeaders([
+                    'x-api-key' => $this->config['api_key'],
+                    'Content-Type' => 'application/json',
+                    'anthropic-version' => '2023-06-01',
+                ])
+                ->timeout(config('llm.request_timeout'))
+                ->post($this->config['base_url'] . 'messages', [
+                    'model' => $this->config['model'],
+                    'max_tokens' => $this->config['max_tokens'],
+                    'temperature' => $this->config['temperature'],
+                    'system' => $systemMessage,
+                    'messages' => [
+                        [
+                            'role' => 'user',
+                            'content' => $prompt
                         ]
                     ]
                 ]);
 
-                $responseData = json_decode($response->getBody()->getContents(), true);
+                if (!$response->successful()) {
+                    throw new \Exception('Claude API grąžino klaidą: ' . $response->status() . ' - ' . $response->body());
+                }
+
+                $responseData = $response->json();
                 
                 if (!isset($responseData['content'][0]['text'])) {
                     throw new \Exception('Neteisingas Claude API atsakymo formatas');
@@ -109,7 +104,7 @@ class ClaudeService implements LLMServiceInterface
 
                 return $jsonResponse;
 
-            } catch (GuzzleException $e) {
+            } catch (\Exception $e) {
                 Log::error('Claude API klaida', [
                     'attempt' => $attempt,
                     'error' => $e->getMessage(),
@@ -149,7 +144,9 @@ class ClaudeService implements LLMServiceInterface
      */
     public function isConfigured(): bool
     {
-        return !empty($this->config['api_key'] ?? '');
+        // Check current config dynamically for testing
+        $currentConfig = config("llm.models.{$this->modelKey}.api_key");
+        return !empty($currentConfig);
     }
 
     /**
@@ -161,15 +158,7 @@ class ClaudeService implements LLMServiceInterface
         $this->config = $models[$modelKey] ?? null;
         
         if ($this->config) {
-            $this->httpClient = new Client([
-                'base_uri' => $this->config['base_url'],
-                'timeout' => config('llm.request_timeout'),
-                'headers' => [
-                    'x-api-key' => $this->config['api_key'],
-                    'Content-Type' => 'application/json',
-                    'anthropic-version' => '2023-06-01',
-                ],
-            ]);
+            $this->modelKey = $modelKey;
             return true;
         }
         

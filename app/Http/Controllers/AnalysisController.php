@@ -801,6 +801,7 @@ class AnalysisController extends Controller
                     'model' => $config['model'] ?? $key,
                     'configured' => !empty($config['api_key']),
                     'available' => !empty($config['api_key']),
+                    'description' => $config['description'] ?? '',
                     'rate_limit' => $config['rate_limit'] ?? 50,
                     'max_tokens' => $config['max_tokens'] ?? 4096
                 ];

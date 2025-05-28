@@ -11,16 +11,14 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
         
-        // Automatically fake HTTP for all tests unless explicitly disabled
-        if (env('HTTP_FAKE', true)) {
-            Http::fake();
-        }
-        
         // Set up test database
         $this->setUpDatabase();
         
         // Clear any cached data
         $this->clearApplicationCache();
+        
+        // Set up default HTTP mocking for all LLM services
+        $this->setupDefaultHttpMocking();
     }
     
     protected function tearDown(): void
@@ -41,6 +39,52 @@ abstract class TestCase extends BaseTestCase
     {
         $this->app['cache']->flush();
         $this->app['config']->set('cache.default', 'array');
+    }
+
+    protected function setupDefaultHttpMocking(): void
+    {
+        // Default successful response for all LLM services
+        $defaultResponse = [
+            'primaryChoice' => ['choices' => ['yes']],
+            'annotations' => [
+                [
+                    'type' => 'labels',
+                    'value' => [
+                        'start' => 0,
+                        'end' => 10,
+                        'text' => 'test text',
+                        'labels' => ['test_technique']
+                    ]
+                ]
+            ],
+            'desinformationTechnique' => ['choices' => ['test_technique']]
+        ];
+
+        Http::fake([
+            'https://api.anthropic.com/*' => Http::response([
+                'content' => [['text' => json_encode($defaultResponse)]]
+            ], 200),
+            'https://generativelanguage.googleapis.com/*' => Http::response([
+                'candidates' => [
+                    [
+                        'content' => [
+                            'parts' => [
+                                ['text' => json_encode($defaultResponse)]
+                            ]
+                        ]
+                    ]
+                ]
+            ], 200),
+            'https://api.openai.com/*' => Http::response([
+                'choices' => [
+                    [
+                        'message' => [
+                            'content' => json_encode($defaultResponse)
+                        ]
+                    ]
+                ]
+            ], 200)
+        ]);
     }
 
     /**
