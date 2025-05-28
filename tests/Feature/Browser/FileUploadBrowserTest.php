@@ -80,12 +80,10 @@ class FileUploadBrowserTest extends TestCase
         $this->withSession(['authenticated' => true, 'username' => 'admin']);
         
         $jsonData = [
-            'texts' => [
-                [
-                    'text_id' => 'test-1',
-                    'content' => 'Test propaganda text content',
-                    'expert_annotations' => []
-                ]
+            [
+                'id' => 'test-1',
+                'data' => ['content' => 'Test propaganda text content'],
+                'annotations' => []
             ]
         ];
         
@@ -186,11 +184,10 @@ class FileUploadBrowserTest extends TestCase
         $this->withSession(['authenticated' => true, 'username' => 'admin']);
         
         $jsonData = [
-            'texts' => [
-                [
-                    'text_id' => 'test-1',
-                    'content' => 'Test content'
-                ]
+            [
+                'id' => 'test-1',
+                'data' => ['content' => 'Test content'],
+                'annotations' => []
             ]
         ];
         
@@ -247,7 +244,7 @@ class FileUploadBrowserTest extends TestCase
         $content = $response->getContent();
         
         $this->assertStringContainsString('_token', $content);
-        $this->assertStringContainsString('csrf_token', $content);
+        $this->assertStringContainsString('name="_token"', $content);
     }
 
     public function test_upload_form_shows_custom_prompt_option()
@@ -267,11 +264,10 @@ class FileUploadBrowserTest extends TestCase
         $this->withSession(['authenticated' => true, 'username' => 'admin']);
         
         $jsonData = [
-            'texts' => [
-                [
-                    'text_id' => 'test-1',
-                    'content' => 'Test content'
-                ]
+            [
+                'id' => 'test-1',
+                'data' => ['content' => 'Test content'],
+                'annotations' => []
             ]
         ];
         
@@ -305,7 +301,7 @@ class FileUploadBrowserTest extends TestCase
         $response = $this->get('/');
         
         $response->assertStatus(200)
-                ->assertSee('Paskutinės analizės')
+                ->assertSee('Tekstų analizės paleidimas')
                 ->assertSee('Recent Test Analysis');
     }
 

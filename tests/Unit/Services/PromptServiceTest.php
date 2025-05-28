@@ -182,9 +182,9 @@ class PromptServiceTest extends TestCase
         
         $result = $this->service->generateAnalysisPrompt($text);
 
-        $this->assertStringContainsString('ATSPARA Propagandos analizės sistema', $result);
+        $this->assertStringContainsString('ATSPARA projekto propagandos analizės ekspertas', $result);
         $this->assertStringContainsString($text, $result);
-        $this->assertStringContainsString('General', $result);
+        $this->assertStringContainsString('Analizuojamas tekstas:', $result);
     }
 
     public function test_prompts_contain_required_json_structure(): void

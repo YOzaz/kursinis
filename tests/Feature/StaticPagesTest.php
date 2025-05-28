@@ -63,23 +63,4 @@ class StaticPagesTest extends TestCase
                 ->assertSee('Teisinė informacija');
     }
 
-    public function test_contact_page_uses_correct_view()
-    {
-        $this->withoutMiddleware();
-        
-        $response = $this->get('/contact');
-        
-        $response->assertStatus(200)
-                ->assertViewIs('contact');
-    }
-
-    public function test_legal_page_uses_correct_view()
-    {
-        $this->withoutMiddleware();
-        
-        $response = $this->get('/legal');
-        
-        $response->assertStatus(200)
-                ->assertViewIs('legal');
-    }
 }

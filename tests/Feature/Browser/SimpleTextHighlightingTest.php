@@ -210,7 +210,7 @@ class SimpleTextHighlightingTest extends TestCase
 
     public function test_modal_has_proper_bootstrap_structure()
     {
-        $this->withoutMiddleware();
+        $this->withSession(['authenticated' => true, 'username' => 'admin']);
         $response = $this->get("/analyses/{$this->analysisJob->job_id}");
 
         $content = $response->getContent();

@@ -25,8 +25,7 @@ class WebAnalysisRepeatTest extends TestCase
 
         $this->textAnalysis = TextAnalysis::factory()->create([
             'job_id' => $this->originalAnalysis->job_id,
-            'model_name' => 'claude-opus-4',
-            'status' => 'completed'
+            'claude_actual_model' => 'claude-opus-4'
         ]);
     }
 

@@ -23,16 +23,20 @@ class WebControllerTest extends TestCase
 
     public function test_homepage_loads_successfully(): void
     {
+        $this->withSession(['authenticated' => true, 'username' => 'admin']);
+        
         $response = $this->get('/');
 
         $response->assertStatus(200)
                 ->assertViewIs('index')
-                ->assertSee('Propagandos analizė')
-                ->assertSee('Įkelti JSON failą');
+                ->assertSee('Tekstų analizės paleidimas')
+                ->assertSee('Įkelkite JSON failą');
     }
 
     public function test_upload_json_file_successfully(): void
     {
+        $this->withSession(['authenticated' => true, 'username' => 'admin']);
+        
         $jsonData = [
             [
                 'id' => 1,
@@ -66,6 +70,8 @@ class WebControllerTest extends TestCase
 
     public function test_upload_validation_requires_file(): void
     {
+        $this->withSession(['authenticated' => true, 'username' => 'admin']);
+        
         $response = $this->post('/upload', [
             'models' => ['claude-opus-4']
         ]);
@@ -75,6 +81,8 @@ class WebControllerTest extends TestCase
 
     public function test_upload_validation_requires_json_file(): void
     {
+        $this->withSession(['authenticated' => true, 'username' => 'admin']);
+        
         $file = UploadedFile::fake()->create('test.txt', 100);
 
         $response = $this->post('/upload', [
@@ -87,6 +95,8 @@ class WebControllerTest extends TestCase
 
     public function test_upload_validation_requires_models(): void
     {
+        $this->withSession(['authenticated' => true, 'username' => 'admin']);
+        
         $file = UploadedFile::fake()->createWithContent(
             'test.json',
             json_encode([['id' => 1, 'data' => ['content' => 'test'], 'annotations' => []]])
@@ -115,6 +125,8 @@ class WebControllerTest extends TestCase
 
     public function test_upload_validation_invalid_models(): void
     {
+        $this->withSession(['authenticated' => true, 'username' => 'admin']);
+        
         $file = UploadedFile::fake()->createWithContent(
             'test.json',
             json_encode([['id' => 1, 'data' => ['content' => 'test'], 'annotations' => []]])
@@ -130,6 +142,8 @@ class WebControllerTest extends TestCase
 
     public function test_upload_handles_invalid_json(): void
     {
+        $this->withSession(['authenticated' => true, 'username' => 'admin']);
+        
         $file = UploadedFile::fake()->createWithContent(
             'invalid.json',
             'invalid json content'
@@ -146,6 +160,8 @@ class WebControllerTest extends TestCase
 
     public function test_progress_page_displays_job_status(): void
     {
+        $this->withSession(['authenticated' => true, 'username' => 'admin']);
+        
         $job = AnalysisJob::factory()->processing()->create([
             'total_texts' => 100,
             'processed_texts' => 25
@@ -168,6 +184,8 @@ class WebControllerTest extends TestCase
 
     public function test_progress_page_job_not_found(): void
     {
+        $this->withSession(['authenticated' => true, 'username' => 'admin']);
+        
         $response = $this->get('/progress/non-existent-job');
 
         $response->assertStatus(404);
@@ -175,6 +193,8 @@ class WebControllerTest extends TestCase
 
     public function test_progress_page_completed_job(): void
     {
+        $this->withSession(['authenticated' => true, 'username' => 'admin']);
+        
         $job = AnalysisJob::factory()->completed()->create([
             'total_texts' => 50,
             'processed_texts' => 50
@@ -190,6 +210,8 @@ class WebControllerTest extends TestCase
 
     public function test_progress_page_failed_job(): void
     {
+        $this->withSession(['authenticated' => true, 'username' => 'admin']);
+        
         $job = AnalysisJob::factory()->failed()->create([
             'error_message' => 'API connection failed'
         ]);
@@ -203,6 +225,8 @@ class WebControllerTest extends TestCase
 
     public function test_upload_large_json_file(): void
     {
+        $this->withSession(['authenticated' => true, 'username' => 'admin']);
+        
         $largeData = [];
         for ($i = 1; $i <= 100; $i++) {
             $largeData[] = [
@@ -235,6 +259,8 @@ class WebControllerTest extends TestCase
 
     public function test_upload_with_all_models(): void
     {
+        $this->withSession(['authenticated' => true, 'username' => 'admin']);
+        
         $jsonData = [
             [
                 'id' => 1,
@@ -263,6 +289,8 @@ class WebControllerTest extends TestCase
 
     public function test_homepage_shows_recent_jobs(): void
     {
+        $this->withSession(['authenticated' => true, 'username' => 'admin']);
+        
         $recentJob = AnalysisJob::factory()->completed()->create([
             'created_at' => now()->subMinutes(5)
         ]);
@@ -283,6 +311,8 @@ class WebControllerTest extends TestCase
 
     public function test_upload_preserves_file_structure(): void
     {
+        $this->withSession(['authenticated' => true, 'username' => 'admin']);
+        
         $complexData = [
             [
                 'id' => 1,

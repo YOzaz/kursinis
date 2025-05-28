@@ -27,8 +27,7 @@ class DashboardExportTest extends TestCase
 
         $this->textAnalysis = TextAnalysis::factory()->create([
             'job_id' => $this->analysisJob->job_id,
-            'model_name' => 'claude-opus-4',
-            'status' => 'completed'
+            'claude_actual_model' => 'claude-opus-4'
         ]);
 
         $this->comparisonMetric = ComparisonMetric::factory()->create([
@@ -49,15 +48,16 @@ class DashboardExportTest extends TestCase
 
     public function test_dashboard_export_json_returns_valid_response()
     {
-        $response = $this->getJson('/api/dashboard/export?format=json');
+        $response = $this->getJson('/api/dashboard/export');
         
         $response->assertStatus(200)
                 ->assertHeader('Content-Type', 'application/json')
                 ->assertJsonStructure([
                     'global_statistics',
+                    'model_performance', 
+                    'execution_times',
                     'recent_analyses',
-                    'model_statistics',
-                    'export_timestamp'
+                    'generated_at'
                 ]);
     }
 

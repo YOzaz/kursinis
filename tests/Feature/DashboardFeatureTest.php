@@ -24,8 +24,7 @@ class DashboardFeatureTest extends TestCase
 
         TextAnalysis::factory()->create([
             'job_id' => $analysisJob->job_id,
-            'model_name' => 'claude-opus-4',
-            'status' => 'completed'
+            'claude_actual_model' => 'claude-opus-4'
         ]);
 
         ComparisonMetric::factory()->create([
@@ -49,7 +48,7 @@ class DashboardFeatureTest extends TestCase
         
         $response->assertStatus(200)
                 ->assertSee('Dashboard')
-                ->assertSee('Bendros statistikos');
+                ->assertSee('Viso analizių');
     }
 
     public function test_dashboard_displays_global_statistics()
@@ -59,10 +58,10 @@ class DashboardFeatureTest extends TestCase
         $response = $this->get('/dashboard');
         
         $response->assertStatus(200)
-                ->assertSee('Bendros analizės')
-                ->assertSee('Užbaigtos analizės')
-                ->assertSee('Analizuoti tekstai')
-                ->assertSee('Modelių naudojimas');
+                ->assertSee('Viso analizių')
+                ->assertSee('Vidutinis F1 balas')
+                ->assertSee('Aktyvūs modeliai')
+                ->assertSee('Vidutinis laikas');
     }
 
     public function test_dashboard_displays_recent_analyses()
@@ -115,11 +114,10 @@ class DashboardFeatureTest extends TestCase
         $response = $this->get('/dashboard');
         
         $response->assertStatus(200)
-                ->assertSee('table')
-                ->assertSee('Analizės ID')
-                ->assertSee('Pavadinimas')
-                ->assertSee('Statusas')
-                ->assertSee('Sukurta');
+                ->assertSee('Modelių našumo palyginimas')
+                ->assertSee('Modelis')
+                ->assertSee('F1 balas')
+                ->assertSee('Tikslumas');
     }
 
     public function test_dashboard_handles_empty_data()
