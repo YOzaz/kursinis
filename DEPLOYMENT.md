@@ -167,8 +167,8 @@ DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=propaganda
-DB_USERNAME=propaganda
-DB_PASSWORD=YLlLk69bL8OK
+DB_USERNAME=your_username
+DB_PASSWORD=your_secure_password
 
 # Redis (BŪTINA)
 REDIS_HOST=127.0.0.1

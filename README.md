@@ -44,10 +44,6 @@ Universali propagandos analizės platforma, kuri veikia dviem pagrindiniais rež
 - Identifikuoja ATSPARA propagandos technikas ir disinformacijos naratyvus
 - Generuoja struktūrizuotus analizės rezultatus praktiniam naudojimui
 
-### 🧪 Eksperimentų režimas (Experiments Mode)
-- **Custom prompt'ų testavimas**: Redaguokite AI instrukcijas naudojant RISEN metodologiją
-- **Prompt'ų palyginimas**: Testuokite, kaip skirtingi prompt'ai paveiks analizės rezultatus
-- **Optimizavimas**: Raskite optimalų AI instrukcijų formulavimą jūsų poreikiams
 
 ## ✨ Naujos funkcijos (2025-05-29)
 
@@ -78,9 +74,12 @@ Universali propagandos analizės platforma, kuri veikia dviem pagrindiniais rež
 ## ⭐ Pagrindinės funkcijos
 
 ### 🤖 LLM modelių integracija
-- **Claude 4** (Anthropic) - claude-sonnet-4-20250514
-- **Gemini 2.5 Pro Preview** (Google) - gemini-2.5-pro-preview-05-06
-- **GPT-4o** (OpenAI) - gpt-4o
+- **Claude Opus 4** (Anthropic) - claude-opus-4-20250514
+- **Claude Sonnet 4** (Anthropic) - claude-sonnet-4-20250514
+- **GPT-4.1** (OpenAI) - Latest flagship model with improved coding
+- **GPT-4o Latest** (OpenAI) - Multimodal flagship model
+- **Gemini 2.5 Pro** (Google) - gemini-2.5-pro-experimental
+- **Gemini 2.5 Flash** (Google) - gemini-2.5-flash-preview-04-17
 
 ### 🧪 Prompt eksperimentų sistema
 - **RISEN metodologija**: Role, Instructions, Situation, Execution, Needle
@@ -421,7 +420,6 @@ tail -f storage/logs/worker.log
 - **[REQUIREMENTS.md](REQUIREMENTS.md)** - Detalūs sistemos reikalavimai
 - **[ATSPARA Anotavimo metodologija](docs/ATSPARA-ANNOTATION-METHODOLOGY.md)** - Propagandos technikų klasifikavimo kriterijai
 - **[Metrikų vadovas](docs/METRICS-GUIDE.md)** - Išsami metrikų analizė ir interpretacija
-- **[Eksperimentų vadovas](docs/EXPERIMENTS-GUIDE.md)** - Custom prompt'ų kūrimas ir testavimas
 - **[API dokumentacija](docs/API.md)** - API endpointų aprašymas
 - **[Architektūros dokumentacija](docs/ARCHITECTURE.md)** - Sistemos architektūros aprašymas
 - **[Problemų sprendimas](docs/TROUBLESHOOTING.md)** - Dažniausių problemų sprendimo vadovas

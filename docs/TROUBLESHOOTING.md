@@ -59,7 +59,7 @@ Claude API neprieinamas po 3 bandymų: 404 Not Found
 ```bash
 # Verify Claude configuration
 php artisan tinker
->>> config('llm.models.claude-4')
+>>> config('llm.models.claude-opus-4')
 ```
 
 **Expected Output:**
@@ -356,7 +356,7 @@ cat .env | grep -E "(CLAUDE|GEMINI|OPENAI)_API_KEY"
 ```bash
 php artisan tinker
 >>> env('CLAUDE_API_KEY')
->>> config('llm.models.claude-4.api_key')
+>>> config('llm.models.claude-opus-4.api_key')
 ```
 
 ## 🔧 Debug Mode
