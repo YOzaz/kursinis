@@ -10,10 +10,11 @@ Interaktyvi teksto analizės sistema, kuri spalvų kodais pažymi propagandos te
 #### AI vs Ekspertų anotacijos
 - **AI View**: Rodo automatiškai aptiktas propagandos technikas iš LLM modelių
   - **Modelių pasirinkimas**: Galimybė pasirinkti konkretų AI modelį arba rodyti visų modelių suvienytus rezultatus
-  - **Suvestinė anotacijų**: Rodo technikas, aptiktas bent vieno modelio
-- **Expert View**: Rodo ekspertų rankiniu būdu sukurtas anotacijas
+  - **"Visi modeliai" režimas**: Apjungia anotacijas iš visų modelių, rodo technikas aptiktas bent vieno modelio
+  - **Suvestinė anotacijų**: Agregacija vyksta realiu laiku, kad būtų matomas bendras vaizdas
+- **Expert View**: Rodo ekspertų rankiniu būdu sukurtas anotacijas (Label Studio formatas)
 - **Toggle perjungimas**: Greitas persijungimas tarp skirtingų anotacijų tipų
-- **Spalvojimo valdymas**: Galimybė įjungti/išjungti anotacijų spalvojimą
+- **Spalvojimo valdymas**: Galimybė įjungti/išjungti anotacijų spalvojimą (nutylėtu išjungta)
 
 #### Spalvų kodavimas
 Kiekviena ATSPARA propagandos technika turi unikalų spalvos kodą:
@@ -65,28 +66,54 @@ function displayHighlightedText(content, annotations, legend) {
 }
 ```
 
-## 📝 Tekstų anotacijų plėtinė peržiūra
+## 📝 Tekstų anotacijų modalinė peržiūra
 
 ### Aprašymas
-Kiekvienam tekste galima atidaryti detalią peržiūrą su visomis anotacijomis ir interaktyviais valdymo elementais.
+Kiekvienam tekstui galima atidaryti detalų modalinį langą su visomis anotacijomis ir interaktyviais valdymo elementais. Tekstų analizės funkcionalumas perkeltas iš pagrindinio puslapio į modalines peržiūras geresniam naudojimo patirtiai.
 
 ### Funkcionalumas
 
-#### Teksto plėtiniai
-- **"Daugiau" mygtukas**: Atskleidžia pilną tekstą su anotacijų valdymu
+#### Modalinė peržiūra (Detalės)
+- **Pilnas teksto turinys**: Rodomas tekstas su galimybe plėsti visą turinį
+- **Tekstų analizės sekcija**: Integruota į modalinį langą su pilnu anotacijų valdymu
 - **Kontrolinė panelė**: AI/ekspertų anotacijų perjungimas, modelių pasirinkimas, spalvojimo valdymas
 - **Dinaminė legenda**: Rodo tik aptiktas propagandos technikas konkrečiame tekste
 
 #### Anotacijų valdymas
 - **Modelių filtracija**: Dropdown su visais analizei naudotais modeliais
-- **Toggle funkijomis**:
+- **Toggle funkcijos**:
   - AI anotacijos / Ekspertų anotacijos
-  - Spalvojimo įjungimas/išjungimas
+  - Spalvojimo įjungimas/išjungimas ("Rodyti anotacijas")
 - **Tooltips**: Hover efektai su detaliais technikų aprašymais
+- **Real-time perjungimas**: Momentinis atsakas keičiant parametrus
+
+#### Plėtinio lentelėje peržiūra
+- **"Daugiau" mygtukas**: Atskleidžia pilną tekstą tiesiai lentelėje
+- **Supaprastinta kontrolės**: Greitasis anotacijų valdymas be atskirų modalų
+- **Sinchronizuotas valdymas**: Anotacijų parametrai saugomi per sesijų
 
 #### Interaktyvumas
 ```javascript
-// Expanded text view inicializacija
+// Modal text view inicializacija
+function initializeModalTextHighlighting() {
+    // Automatinis modalų anotacijų inicializavimas
+    document.querySelectorAll('[id^="analysisModal"]').forEach(modal => {
+        modal.addEventListener('shown.bs.modal', function() {
+            const textAnalysisId = this.id.replace('analysisModal', '');
+            loadModalTextAnnotations(textAnalysisId);
+        });
+    });
+    
+    // Event listeners modal kontrolėms
+    document.querySelectorAll('[name^="modalViewType-"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const textAnalysisId = this.name.replace('modalViewType-', '');
+            loadModalTextAnnotations(textAnalysisId);
+        });
+    });
+}
+
+// Expanded table view funkcionalumas
 function initializeExpandedTextView(textId) {
     const viewToggle = document.getElementsByName(`expandedViewType-${textId}`);
     const modelSelect = document.getElementById(`ai-model-select-${textId}`);
@@ -98,6 +125,18 @@ function initializeExpandedTextView(textId) {
     });
 }
 ```
+
+#### API parametrų palaikymas
+- **`enabled` parametras**: Kontroliuoja anotacijų rodymo/slėpimo funkciją (nutylėtu: `true`)
+- **`model` parametras**: Leidžia pasirinkti konkretų AI modelį anotacijoms ("all" rodo visų modelių agregaciją)
+- **`view` parametras**: Persijungia tarp AI ir ekspertų anotacijų ("ai" arba "expert")
+- **Klaidos valdymas**: Aiškūs pranešimai apie nepavykusius užklausas ar trūkstamus duomenis
+
+#### Numatytasis būvissavumas (Updated)
+- **Anotacijų rodymas**: Pagal nutylėjimą išjungtas - reikia paspausti "Rodyti anotacijas"
+- **Modelių pasirinkimas**: Paslepta, kol anotacijos neįjungtos
+- **Ekspertų anotacijos**: Automatiškai aptinka Label Studio formato anotacijas
+- **Legenda**: Rodoma tik kada anotacijos įjungtos ir yra aptiktų technikų
 
 ## 📊 Dashboard grafikų sistema
 
@@ -234,6 +273,12 @@ const techniqueColors = {
 
 ### API endpointų plėtimas
 Nauji anotacijų tipai gali būti pridėti per `/api/text-annotations` endpoint pridedant naują `view` parametro reikšmę.
+
+### Testavimas
+Sistema turi išsamius testus:
+- **Browser testai**: `TextAnnotationInteractionTest` testuoja pilną UI funkcionalumą
+- **API testai**: `TextAnnotationsTest` testuoja backend endpointus
+- **Integracijos testai**: Patikrina modelių selektorių, anotacijų toggle, ekspertų anotacijų formatų
 
 ---
 

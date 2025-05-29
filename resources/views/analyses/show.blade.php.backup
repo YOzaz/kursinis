@@ -1057,19 +1057,29 @@ function loadDefaultPromptRepeat() {
 let currentTextId = null;
 let currentViewType = 'ai';
 
-// Color mapping for propaganda techniques (updated for expert annotations)
+// Color mapping for propaganda techniques
 const techniqueColors = {
-    'emotionalExpression': '#ff6b6b',
-    'simplification': '#ff8e53',
-    'doubt': '#4ecdc4',
-    'uncertainty': '#45b7d1',
-    'appealToAuthority': '#96ceb4',
-    'wavingTheFlag': '#ffeaa7',
+    'emotionalAppeal': '#ff6b6b',
+    'appealToFear': '#ff8e53', 
+    'loadedLanguage': '#4ecdc4',
+    'nameCalling': '#45b7d1',
+    'exaggeration': '#96ceb4',
+    'glitteringGeneralities': '#ffeaa7',
+    'whataboutism': '#dda0dd',
+    'redHerring': '#98d8c8',
+    'strawMan': '#f7dc6f',
+    'causalOversimplification': '#bb8fce',
+    'blackAndWhite': '#85c1e9',
+    'thoughtTerminatingCliche': '#f8c471',
+    'slogans': '#82e0aa',
+    'obfuscation': '#f1948a',
+    'appealToAuthority': '#85c1e9',
+    'flagWaving': '#f9e79f',
+    'bandwagon': '#d7bde2',
+    'doubt': '#aed6f1',
+    'smears': '#f5b7b1',
     'reductioAdHitlerum': '#d5a6bd',
-    'repetition': '#a9dfbf',
-    'followingBehind': '#dda0dd',
-    'whataboutismRedHerringStrawMan': '#98d8c8',
-    'unclear': '#cccccc'
+    'repetition': '#a9dfbf'
 };
 
 function initializeTextHighlighting() {
@@ -1224,74 +1234,150 @@ function showLegend(legendItems) {
     legend.style.display = 'block';
 }
 
-// ATSPARA technique definitions and metadata - Updated to match expert annotations
+// ATSPARA technique definitions and metadata
 const atsparaTechniques = {
-    // Technikos pagal faktines ATSPARA ekspertų anotacijas
-    'emotionalExpression': {
-        name: 'Emocinė raiška',
+    // 1. Emocinė raiška
+    'emotionalAppeal': {
+        name: 'Apeliavimas į jausmus',
         category: 'Emocinė raiška',
-        definition: 'Jausmų kelimas per emociškai paveikius žodžius',
-        description: 'Stiprios emocijos keliamos per žodyną, toną ir retorinę raišką'
+        definition: 'Siekiama sukelti stiprius jausmus/emocijas, siekiant pakeisti nuomonę ar veiksmus',
+        description: 'Bandoma sukelti stiprius jausmus; emocinė leksika, etiketės, vertybiniai argumentai'
     },
-    'simplification': {
+    'appealToFear': {
+        name: 'Apeliavimas į baimę',
+        category: 'Emocinė raiška',
+        definition: 'Sėjama visuomenėje panika ir nerimas siekiant sutelkti paramą',
+        description: 'Bauginimai ir grėsmių kėlimas visuomenės baimės ir paramos sutelkimui',
+        examples: ['either we go to war or we will perish', 'we must stop those refugees as they are terrorists']
+    },
+    'loadedLanguage': {
+        name: 'Vertinamoji, emocinė leksika',
+        category: 'Emocinė raiška',
+        definition: 'Vartojami stiprias asociacijas/konotacijas turintys žodžiai',
+        description: 'Žodžiai su stipria emocine konotacija, siekiant paveikti auditoriją',
+        examples: ['a lone lawmaker\'s childish shouting', 'how stupid and petty things have become']
+    },
+    'nameCalling': {
+        name: 'Etikečių klijavimas',
+        category: 'Emocinė raiška',
+        definition: 'Neigiamą konotaciją turinčių žodžių vartojimas oponentui sumenkinti',
+        description: 'Neigiamų vardų priskyrimas oponentams jų diskreditavimui',
+        examples: ['Republican congressweasels', 'Bush the Lesser']
+    },
+    'exaggeration': {
+        name: 'Perdėtas vertinimas/hiperbolizavimas',
+        category: 'Emocinė raiška',
+        definition: 'Kažkas aprašoma perdėtai arba sumenkinamai',
+        description: 'Situacijos ar faktų išpūtimas arba sumenkinimas manipuliavimo tikslais',
+        examples: ['Democrats bolted as soon as Trump\'s speech ended', 'We\'re going to have unbelievable intelligence']
+    },
+    'glitteringGeneralities': {
+        name: '"Blizgantys" apibendrinimai',
+        category: 'Emocinė raiška',
+        definition: 'Patraukūs, tačiau migloti žodžiai be aiškios reikšmės',
+        description: 'Abstraktūs teigiami žodžiai be konkretaus turinio (taika, laimė, saugumas, laisvė)'
+    },
+
+    // 2. Whataboutism, Red Herring, Straw Man
+    'whataboutism': {
+        name: 'Whataboutism',
+        category: 'Išsisukinėjimas',
+        definition: 'Diskredituoti oponento poziciją apkaltinant veidmainiavimu',
+        description: 'Dėmesio nukreipimas į kitų klaidas vietoj atsakymo į kritiką',
+        examples: ['Qatar spending profusely on Neymar, not fighting terrorism']
+    },
+    'redHerring': {
+        name: 'Red Herring',
+        category: 'Išsisukinėjimas',
+        definition: 'Nereikšmingi dalykais siekiant nukreipti dėmesį',
+        description: 'Dėmesio nukreipimas nuo pagrindinės temos nereikšmingais argumentais'
+    },
+    'strawMan': {
+        name: 'Straw Man',
+        category: 'Išsisukinėjimas',
+        definition: 'Oponento teiginys pakeičiamas panašiu teiginiu ir tada paneigiamas',
+        description: 'Oponento pozicijos iškraipymas ir kritika iškraipytos pozicijos'
+    },
+
+    // 3. Supaprastinimas
+    'causalOversimplification': {
         name: 'Supaprastinimas',
         category: 'Supaprastinimas',
-        definition: 'Sudėtingų reiškinių sumažinimas į paprastus aiškimus',
-        description: 'Kompleksinių problemų redukavimas į primityvius sprendimus'
+        definition: 'Paprasti atsakymai į sudėtingas problemas',
+        description: 'Sudėtingų priežasčių suvienijimas į vieną paprastą paaiškinimą'
     },
-    'doubt': {
-        name: 'Abejojimas',
-        category: 'Diskreditavimas',
-        definition: 'Patikimumo ir sprendimų kvestionavimas',
-        description: 'Sisteminis nepasiticėjimo kėlimas institucijomis ir asmenimis'
+    'blackAndWhite': {
+        name: 'Juoda-balta',
+        category: 'Supaprastinimas',
+        definition: 'Du alternatyvūs variantai kaip vienintelės galimybės',
+        description: 'Situacijos pateikimas kaip turįs tik du galimus sprendimus'
     },
-    'uncertainty': {
+    'thoughtTerminatingCliche': {
+        name: 'Klišės',
+        category: 'Supaprastinimas',
+        definition: 'Stereotipiniai posakiai, neskatinantys kritinio mąstymo',
+        description: 'Frazės, stabdančios kritinį mąstymą ir diskusiją',
+        examples: ['It is what it is', 'Nobody\'s perfect']
+    },
+    'slogans': {
+        name: 'Šūkiai',
+        category: 'Supaprastinimas',
+        definition: 'Santrauka, žymi frazė',
+        description: 'Trumpi, lengvai įsimenami posakiai propagandos tikslams',
+        examples: ['Make America great again!']
+    },
+
+    // 4. Kitos technikos
+    'obfuscation': {
         name: 'Neapibrėžtumas',
         category: 'Manipuliavimas',
-        definition: 'Tikslaus atsako ar pozicijos vengimas',
-        description: 'Sąmoningas dviprasmiškumo kūrimas ir aiškumo vengimas'
+        definition: 'Sąmoningas neaiškios kalbos vartojimas',
+        description: 'Tyčinis sąvokų miglotumas, kad auditorija žinutę interpretuotų savaip'
     },
     'appealToAuthority': {
         name: 'Apeliavimas į autoritetą',
         category: 'Manipuliavimas',
-        definition: 'Garsi asmenybė ar institucija remia poziciją',
-        description: 'Argumentavimas remiantis autoriteto prestižu'
+        definition: 'Cituojami garsūs autoritetai, remiantys propagandisto poziciją',
+        description: 'Argumentavimas autoriteto pagrindu, įskaitant Testimonials'
     },
-    'wavingTheFlag': {
+    'flagWaving': {
         name: 'Mojavimas vėliava',
         category: 'Patriotizmas',
-        definition: 'Patriotinių jausmų eksploatavimas',
-        description: 'Patriotizmo ir nacionalinio tapatumo instrumentalizavimas'
+        definition: 'Veiksmų pateisimas patriotiškumu',
+        description: 'Patriotinių jausmų eksploatavimas politinių tikslų pasiekimui',
+        examples: ['patriotism mean no questions']
+    },
+    'bandwagon': {
+        name: 'Sekimas iš paskos',
+        category: 'Socialinis spaudimas',
+        definition: 'Apeliavimas į "bandos jausmą"',
+        description: 'Spaudimas prisijungti prie daugumos nuomonės',
+        examples: ['90% of citizens support our initiative. You should.']
+    },
+    'doubt': {
+        name: 'Abejojimas',
+        category: 'Diskreditavimas',
+        definition: 'Grupės/asmens patikimumo kvestionavimas',
+        description: 'Nepagrįstų abejonių kėlimas patikimumui pakenkti'
+    },
+    'smears': {
+        name: 'Šmeižtas',
+        category: 'Diskreditavimas',
+        definition: 'Reputacijos kenkimas',
+        description: 'Tyčinis reputacijos gadinimas šmeižikiškomis kaltinimais'
     },
     'reductioAdHitlerum': {
-        name: 'Reductio ad Hitlerum',
+        name: 'Reductio ad hitlerum',
         category: 'Diskreditavimas',
-        definition: 'Lyginimas su nekenčiamomis figūromis',
-        description: 'Oponento prilyginimas kraštutinai neigiamoms figūroms'
+        definition: 'Įtikinėjimas nepritarti nurodant, kad tai populiaru tarp nekenčiamų grupių',
+        description: 'Palyginimas su Hitleriu ar naciais diskreditavimo tikslais',
+        examples: ['Do you know who else was doing that? Hitler!']
     },
     'repetition': {
         name: 'Pakartojimas',
         category: 'Įtakos didinimas',
-        definition: 'Tos pačios žinutės ar idėjos kartojimas',
-        description: 'Sistemingas tų pačių teiginių akcentavimas'
-    },
-    'followingBehind': {
-        name: 'Sekimas iš paskos',
-        category: 'Socialinis spaudimas',
-        definition: 'Apeliavimas prisijungti prie daugumos',
-        description: 'Spaudimas elgtis kaip visi kiti arba dauguma'
-    },
-    'whataboutismRedHerringStrawMan': {
-        name: 'Whataboutism, Red Herring, Straw Man',
-        category: 'Išsisukinėjimas',
-        definition: 'Dėmesio nukreipimo technikos',
-        description: 'Kombinuotos technikos dėmesio nukreipimui nuo esmės'
-    },
-    'unclear': {
-        name: 'Neapibrėžta technika',
-        category: 'Neapibrėžta',
-        definition: 'Sunkiai identifikuojami propaganda fragmentai',
-        description: 'Dviprasmiški ar neaiškūs propaganda elementai'
+        definition: 'Tos pačios žinutės kartojimas tekste',
+        description: 'To paties teiginių pakartojimas stipesniam poveikiui'
     }
 };
 

@@ -182,46 +182,18 @@ return [
     */
 
     'propaganda_techniques' => [
-        // 1. Emocinė raiška
-        'emotionalAppeal' => 'Apeliavimas į jausmus - siekiama sukelti stiprius jausmus/emocijas',
-        'appealToFear' => 'Apeliavimas į baimę - sėjama panika ir nerimas',
-        'loadedLanguage' => 'Vertinamoji, emocinė leksika - stiprias asociacijas turintys žodžiai',
-        'nameCalling' => 'Etikečių klijavimas - neigiamų žodžių vartojimas oponentui sumenkinti',
-        'exaggeration' => 'Perdėtas vertinimas/hiperbolizavimas arba sumenkinimas',
-        'glitteringGeneralities' => '"Blizgantys" apibendrinimai - vertybiniai žodžiai be konteksto',
-        
-        // 2. Whataboutism_Red Herring_Straw Man
-        'whataboutism' => 'Whataboutism - diskreditavimas per veidmainiavimu kaltinimą',
-        'redHerring' => 'Red Herring - nereikšmingų dalykų pateikimas dėmesio nukreipimui',
-        'strawMan' => 'Straw Man - oponento pozicijos pakeitimas panašiu teiginiu',
-        
-        // 3. Supaprastinimas
-        'causalOversimplification' => 'Supaprastinimas - paprasti atsakymai į sudėtingas problemas',
-        'blackAndWhite' => 'Juoda-balta - tik du alternatyvūs variantai',
-        'thoughtTerminatingCliche' => 'Klišės - stereotipiniai posakiai',
-        'slogans' => 'Šūkiai - santrauka, žymi frazė',
-        
-        // 4. Neapibrėžtumas
-        'obfuscation' => 'Neapibrėžtumas - sąmoningas neaiškios kalbos vartojimas',
-        
-        // 5. Apeliavimas į autoritetą
-        'appealToAuthority' => 'Apeliavimas į autoritetą - garsi asmenybė remia poziciją',
-        
-        // 6. Mojavimas vėliava
-        'flagWaving' => 'Mojavimas vėliava - patriotizmu pagrįsti argumentai',
-        
-        // 7. Sekimas iš paskos
-        'bandwagon' => 'Bandwagon - apeliavimas į bandos jausmą',
-        
-        // 8. Abejojimas
-        'doubt' => 'Abejojimas - grupės/asmens patikimumo kvestionavimas',
-        'smears' => 'Šmeižtas - reputacijos kenkimas',
-        
-        // 9. Reductio ad hitlerum
-        'reductioAdHitlerum' => 'Reductio ad hitlerum - lyginimas su nekenčiamomis grupėmis',
-        
-        // 10. Pakartojimas
-        'repetition' => 'Pakartojimas - tos pačios žinutės kartojimas',
+        // Technikos pagal oficialia ATSPARA metodologija (10 kategorijų)
+        'emotionalExpression' => 'Emocinė raiška - bandoma sukelti stiprius jausmus; emocinė leksika, etiketės, vertybiniai argumentai, hiperbolizavimas/sumenkinimas. Apima: apeliavimą į jausmus ir baimę, etiketų klijavimą (ad hominem), perdėtą vertinimą, blizgančius apibendrimus.',
+        'whataboutismRedHerringStrawMan' => 'Whataboutism, Red Herring, Straw Man - išsisukinėjimas; oponento pozicijos, jo teiginių menkinimas; dėmesio nukreipimas kitur. Apima: whataboutism, nereikšmingų duomenų pateikimą, pozicijos iškraipymą.',
+        'simplification' => 'Supaprastinimas - daroma prielaida, kad yra viena problemos priežastis; kaltė perkeliama vienam asmeniui/grupei, neanalizuojant problemos sudėtingumo. Apima: priežastinį supaprastinimą, juoda-balta mąstymą, klišės, šūkius.',
+        'uncertainty' => 'Neapibrėžtumas, sąmoningas neaiškios kalbos vartojimas - vartojama neaiški kalba, kad auditorija žinutę galėtų interpretuoti savaip. Argumente vartojama neaiški frazė su keliomis galimomis reikšmėmis.',
+        'appealToAuthority' => 'Apeliavimas į autoritetą - cituojami garsūs, žinomi autoritetai, kurie remia propagandisto idėją, argumentus, poziciją ir veiksmus. Rėmimasis autoritetu be papildomų įrodymų.',
+        'wavingTheFlag' => 'Mojavimas vėliava (Vėliavos kėlimas) - pastangos pateisinti veiksmą remiantis patriotiškumu ar teisinantis, kad veiksmas duos naudos šaliai/grupei žmonių.',
+        'followingBehind' => 'Sekimas iš paskos (Bandwagon) - apeliavimas į bandos jausmą. Pasinaudojama tuo, kas vadinama "bandos jausmu". Žmonės linkę priklausyti daugumai ir nenori likti nuošalyje.',
+        'doubt' => 'Abejojimas - šmeižtas, abejonės dėl kieno nors patikimumo. Apima: abejojimą asmens/grupės patikimumu ir šmeižtą (bandymą pakenkti reputacijai).',
+        'reductioAdHitlerum' => 'Reductio ad Hitlerum - siekiama įtikinti nepritarti veiksmui/idėjai, nurodant, kad tai populiaru tarp grupių, kurių tikslinis auditorija nekenčia.',
+        'repetition' => 'Pakartojimas - tekste kartojama ta pati žinutė ar idėja siekiant ją įtvirtinti auditorijos sąmonėje.',
+        'unclear' => 'Neapibrėžta technika - sunkiai identifikuojami ar dviprasmiški propaganda fragmentai, kuriuose technika neaiški.',
     ],
 
     /*
@@ -235,8 +207,13 @@ return [
     */
 
     'disinformation_narratives' => [
+        // Naratyvai pagal faktines ATSPARA ekspertų anotacijas
         'distrustOfLithuanianInstitutions' => 'Nepasitikėjimas Lietuvos institucijomis',
-        'natoDistrust' => 'Pasitikėjimo NATO mažinimas',
+        'distrustOfWesternInstitutions' => 'Nepasitikėjimas Vakarų institucijomis', 
+        'lithuanianDefamation' => 'Lietuvos šmeižimas ir diskreditavimas',
+        'propagandaCitation' => 'Propagandos citavimas ir platinimas',
+        'warInUkraine' => 'Karo Ukrainoje naratyvas',
+        'nonDeterminable' => 'Neapibrėžiamas naratyvas',
     ],
 
 ];

@@ -966,11 +966,25 @@ class AnalysisController extends Controller
                     'message' => 'Tekstas nerastas'
                 ], 404);
             }
+            
             $viewType = $request->get('view', 'ai'); // 'ai' or 'expert'
+            $annotationsEnabled = $request->get('enabled', 'true') === 'true';
             
             $originalText = $textAnalysis->content;
             $annotations = [];
             $legend = [];
+            
+            // If annotations are disabled, return plain text
+            if (!$annotationsEnabled) {
+                return response()->json([
+                    'success' => true,
+                    'content' => $originalText,
+                    'text' => $originalText,
+                    'annotations' => [],
+                    'legend' => [],
+                    'view_type' => $viewType
+                ]);
+            }
             
             if ($viewType === 'expert') {
                 // Get expert annotations
@@ -983,12 +997,41 @@ class AnalysisController extends Controller
                     ]);
                 }
                 
-                // Process expert annotations
-                if (isset($expertAnnotations['annotations'])) {
+                // Process expert annotations - handle Label Studio format
+                $annotationsToProcess = [];
+                
+                // Check if this is Label Studio export format (array with result field)
+                if (is_array($expertAnnotations) && isset($expertAnnotations[0]['result'])) {
+                    $annotationsToProcess = $expertAnnotations[0]['result'];
+                } elseif (isset($expertAnnotations['annotations'])) {
+                    $annotationsToProcess = $expertAnnotations['annotations'];
+                } else {
+                    $annotationsToProcess = $expertAnnotations;
+                }
+                
+                if (!empty($annotationsToProcess)) {
                     $techniqueCount = [];
                     
-                    foreach ($expertAnnotations['annotations'] as $annotation) {
-                        if (isset($annotation['value'])) {
+                    foreach ($annotationsToProcess as $annotation) {
+                        // Handle Label Studio format
+                        if (isset($annotation['type']) && $annotation['type'] === 'labels' && isset($annotation['value'])) {
+                            $labels = $annotation['value']['labels'] ?? [];
+                            foreach ($labels as $technique) {
+                                if (!isset($techniqueCount[$technique])) {
+                                    $techniqueCount[$technique] = 0;
+                                }
+                                $techniqueCount[$technique]++;
+                                
+                                $annotations[] = [
+                                    'start' => $annotation['value']['start'],
+                                    'end' => $annotation['value']['end'],
+                                    'technique' => $technique,
+                                    'text' => $annotation['value']['text'] ?? ''
+                                ];
+                            }
+                        }
+                        // Handle old format
+                        elseif (isset($annotation['value'])) {
                             $labels = $annotation['value']['labels'] ?? [];
                             foreach ($labels as $technique) {
                                 if (!isset($techniqueCount[$technique])) {

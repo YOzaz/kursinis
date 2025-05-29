@@ -56,7 +56,7 @@ class TextAnalysisFactory extends Factory
                         'start' => 8,
                         'end' => 22,
                         'text' => 'propaganda text',
-                        'labels' => ['emotionalAppeal', 'causalOversimplification']
+                        'labels' => ['emotionalExpression', 'simplification']
                     ]
                 ]
             ],
@@ -82,7 +82,7 @@ class TextAnalysisFactory extends Factory
                         'start' => 0,
                         'end' => 7,
                         'text' => 'Complex',
-                        'labels' => ['causalOversimplification']
+                        'labels' => ['simplification']
                     ]
                 ],
                 [
@@ -91,7 +91,7 @@ class TextAnalysisFactory extends Factory
                         'start' => 8,
                         'end' => 22,
                         'text' => 'propaganda text',
-                        'labels' => ['emotionalAppeal', 'doubt']
+                        'labels' => ['emotionalExpression', 'doubt']
                     ]
                 ],
                 [
@@ -109,7 +109,7 @@ class TextAnalysisFactory extends Factory
 
     private function generateExpertAnnotations(): array
     {
-        $techniques = ['emotionalAppeal', 'appealToFear', 'loadedLanguage', 'nameCalling', 'exaggeration', 'glitteringGeneralities', 'whataboutism', 'redHerring', 'strawMan', 'causalOversimplification', 'blackAndWhite', 'thoughtTerminatingCliche', 'slogans', 'obfuscation', 'appealToAuthority', 'flagWaving', 'bandwagon', 'doubt', 'smears', 'reductioAdHitlerum', 'repetition'];
+        $techniques = ['emotionalExpression', 'simplification', 'doubt', 'uncertainty', 'appealToAuthority', 'wavingTheFlag', 'reductioAdHitlerum', 'repetition', 'followingBehind', 'whataboutismRedHerringStrawMan', 'unclear'];
         $annotations = [];
         
         $numAnnotations = $this->faker->numberBetween(0, 3);
@@ -134,7 +134,7 @@ class TextAnalysisFactory extends Factory
 
     private function generateLLMAnnotations(): array
     {
-        $techniques = ['emotionalAppeal', 'appealToFear', 'loadedLanguage', 'nameCalling', 'exaggeration', 'glitteringGeneralities', 'whataboutism', 'redHerring', 'strawMan', 'causalOversimplification', 'blackAndWhite', 'thoughtTerminatingCliche', 'slogans', 'obfuscation', 'appealToAuthority', 'flagWaving', 'bandwagon', 'doubt', 'smears', 'reductioAdHitlerum', 'repetition'];
+        $techniques = ['emotionalExpression', 'simplification', 'doubt', 'uncertainty', 'appealToAuthority', 'wavingTheFlag', 'reductioAdHitlerum', 'repetition', 'followingBehind', 'whataboutismRedHerringStrawMan', 'unclear'];
         $annotations = [];
         
         $numAnnotations = $this->faker->numberBetween(0, 3);

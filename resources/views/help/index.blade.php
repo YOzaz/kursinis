@@ -80,16 +80,23 @@
                     <h3><i class="fas fa-shield-alt me-2"></i>ATSPARA propagandos technikos</h3>
                 </div>
                 <div class="card-body">
-                    <p>Sistema atpažįsta <strong>21 propagandos techniką</strong> pagal ATSPARA projekto metodologiją:</p>
+                    <p>Sistema atpažįsta <strong>11 propagandos technikos</strong> pagal faktines ATSPARA ekspertų anotacijas:</p>
                     
                     <div class="row">
                         @php
                             $techniques = config('llm.propaganda_techniques');
                             $techniqueGroups = [
-                                'Emocinė raiška' => ['emotionalAppeal', 'appealToFear', 'loadedLanguage', 'nameCalling', 'exaggeration', 'glitteringGeneralities'],
-                                'Argumentacijos klaidingumas' => ['whataboutism', 'redHerring', 'strawMan'],
-                                'Supaprastinimas' => ['causalOversimplification', 'blackAndWhite', 'thoughtTerminatingCliche', 'slogans'],
-                                'Kiti metodai' => ['obfuscation', 'appealToAuthority', 'flagWaving', 'bandwagon', 'doubt', 'smears', 'reductioAdHitlerum', 'repetition']
+                                'Emocinė raiška' => ['emotionalExpression'],
+                                'Išsisukinėjimas' => ['whataboutismRedHerringStrawMan'],
+                                'Supaprastinimas' => ['simplification'],
+                                'Neapibrėžtumas' => ['uncertainty'],
+                                'Apeliavimas į autoritetą' => ['appealToAuthority'],
+                                'Patriotizmas' => ['wavingTheFlag'],
+                                'Socialinis spaudimas' => ['followingBehind'],
+                                'Diskreditavimas' => ['doubt'],
+                                'Lyginimas su nekenčiamais' => ['reductioAdHitlerum'],
+                                'Įtakos didinimas' => ['repetition'],
+                                'Neapibrėžta' => ['unclear']
                             ];
                         @endphp
                         
@@ -99,9 +106,9 @@
                                 <ul class="list-unstyled ms-3">
                                     @foreach($techKeys as $key)
                                         @if(isset($techniques[$key]))
-                                            <li class="mb-1">
-                                                <strong>{{ ucfirst($key) }}:</strong> 
-                                                <small>{{ $techniques[$key] }}</small>
+                                            <li class="mb-2">
+                                                <strong>{{ $key }}:</strong><br>
+                                                <small class="text-muted">{{ $techniques[$key] }}</small>
                                             </li>
                                         @endif
                                     @endforeach

@@ -31,13 +31,13 @@ class DefaultPromptApiTest extends TestCase
 
         // Check that it contains propaganda techniques
         $this->assertStringContainsString('**PROPAGANDOS TECHNIKOS (ATSPARA metodologija)**:', $prompt);
-        $this->assertStringContainsString('emotionalAppeal:', $prompt);
-        $this->assertStringContainsString('loadedLanguage:', $prompt);
+        $this->assertStringContainsString('emotionalExpression:', $prompt);
+        $this->assertStringContainsString('simplification:', $prompt);
 
         // Check that it contains disinformation narratives
         $this->assertStringContainsString('**DEZINFORMACIJOS NARATYVAI**:', $prompt);
         $this->assertStringContainsString('distrustOfLithuanianInstitutions:', $prompt);
-        $this->assertStringContainsString('natoDistrust:', $prompt);
+        $this->assertStringContainsString('distrustOfWesternInstitutions:', $prompt);
 
         // Check that it contains the JSON format specification
         $this->assertStringContainsString('**ATSAKYMO FORMATAS**:', $prompt);

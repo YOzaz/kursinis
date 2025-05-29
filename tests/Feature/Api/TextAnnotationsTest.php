@@ -25,7 +25,7 @@ class TextAnnotationsTest extends TestCase
                         'start' => 5,
                         'end' => 15,
                         'text' => 'propaganda',
-                        'labels' => ['causalOversimplification']
+                        'labels' => ['simplification']
                     ]
                 ]
             ]
@@ -61,7 +61,7 @@ class TextAnnotationsTest extends TestCase
                         'start' => 0,
                         'end' => 10,
                         'text' => 'test',
-                        'labels' => ['emotionalAppeal']
+                        'labels' => ['emotionalExpression']
                     ]
                 ]
             ]
@@ -103,7 +103,7 @@ class TextAnnotationsTest extends TestCase
                             'start' => 0,
                             'end' => 4,
                             'text' => 'Test',
-                            'labels' => ['emotionalAppeal']
+                            'labels' => ['emotionalExpression']
                         ]
                     ]
                 ]
@@ -116,6 +116,98 @@ class TextAnnotationsTest extends TestCase
                 ->assertJson([
                     'success' => true,
                     'view_type' => 'expert'
+                ]);
+    }
+
+    public function test_text_annotations_endpoint_with_disabled_annotations()
+    {
+        $job = AnalysisJob::factory()->completed()->create();
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'content' => 'Test content for annotations',
+            'claude_annotations' => [
+                [
+                    'type' => 'labels',
+                    'value' => [
+                        'start' => 0,
+                        'end' => 4,
+                        'text' => 'Test',
+                        'labels' => ['emotionalExpression']
+                    ]
+                ]
+            ]
+        ]);
+
+        $response = $this->getJson("/api/text-annotations/{$textAnalysis->id}?enabled=false");
+
+        $response->assertStatus(200)
+                ->assertJson([
+                    'success' => true,
+                    'content' => 'Test content for annotations',
+                    'annotations' => [],
+                    'legend' => []
+                ]);
+    }
+
+    public function test_text_annotations_endpoint_defaults_to_enabled_true()
+    {
+        $job = AnalysisJob::factory()->completed()->create();
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'content' => 'Test content',
+            'claude_annotations' => [
+                'annotations' => [
+                    [
+                        'type' => 'labels',
+                        'value' => [
+                            'start' => 0,
+                            'end' => 4,
+                            'text' => 'Test',
+                            'labels' => ['emotionalExpression']
+                        ]
+                    ]
+                ]
+            ]
+        ]);
+
+        // Test without enabled parameter - should default to enabled=true
+        $response = $this->getJson("/api/text-annotations/{$textAnalysis->id}");
+
+        $response->assertStatus(200)
+                ->assertJson([
+                    'success' => true
+                ]);
+        
+        // Should have annotations since enabled defaults to true
+        $data = $response->json();
+        $this->assertNotEmpty($data['annotations']);
+    }
+
+    public function test_text_annotations_endpoint_with_model_selection()
+    {
+        $job = AnalysisJob::factory()->completed()->create();
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'content' => 'Test content',
+            'claude_annotations' => [
+                [
+                    'type' => 'labels',
+                    'value' => [
+                        'start' => 0,
+                        'end' => 4,
+                        'text' => 'Test',
+                        'labels' => ['emotionalExpression']
+                    ]
+                ]
+            ]
+        ]);
+
+        $response = $this->getJson("/api/text-annotations/{$textAnalysis->id}?view=ai&model=claude");
+
+        $response->assertStatus(200)
+                ->assertJson([
+                    'success' => true,
+                    'view_type' => 'ai'
                 ]);
     }
 }
