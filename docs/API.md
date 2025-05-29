@@ -751,6 +751,126 @@ REQUEST_TIMEOUT=60
 RETRY_ATTEMPTS=3
 ```
 
+### 9. Text Annotations and Highlighting
+
+**Endpoint**: `GET /api/text-annotations/{textAnalysisId}`
+
+Get processed annotations for text highlighting visualization with propaganda techniques color-coded and positioned.
+
+#### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `textAnalysisId` | string | Yes | The ID of the text analysis |
+| `view` | string | No | View type: `ai` (default) or `expert` |
+
+#### Response
+
+```json
+{
+  "success": true,
+  "content": "Analizuojamas tekstas su propaganda",
+  "text": "Analizuojamas tekstas su propaganda",
+  "annotations": [
+    {
+      "start": 25,
+      "end": 35,
+      "technique": "emotionalAppeal",
+      "text": "propaganda"
+    }
+  ],
+  "legend": [
+    {
+      "technique": "emotionalAppeal",
+      "color": "#ff6b6b",
+      "description": "Apeliavimas į jausmus"
+    }
+  ],
+  "view_type": "ai"
+}
+```
+
+#### Usage Example
+
+```javascript
+// Fetch annotations for text highlighting
+fetch('/api/text-annotations/123?view=ai')
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      displayHighlightedText(data.content, data.annotations, data.legend);
+    }
+  });
+```
+
+### 10. Dashboard Export
+
+**Endpoint**: `GET /api/dashboard/export`
+
+Export dashboard statistics in various formats for analysis and reporting.
+
+#### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `format` | string | No | Export format: `json` (default), `csv`, or `excel` |
+
+#### Response
+
+Returns formatted data file as download with appropriate content-type headers.
+
+---
+
+## 🎨 Web Interface Features
+
+### Text Highlighting Visualization
+
+The system provides an interactive text highlighting interface that:
+
+- **Color-codes propaganda techniques** using distinct colors for each ATSPARA methodology technique
+- **Toggles between AI and Expert views** to compare automated detection with human annotations  
+- **Interactive legend** showing technique descriptions and color mappings
+- **Real-time loading** of annotations via AJAX API calls
+- **Responsive design** that works across devices
+
+### Dashboard Analytics
+
+Enhanced dashboard with:
+
+- **Interactive Charts** powered by Chart.js showing model performance comparisons
+- **Techniques Distribution** visualization with doughnut charts
+- **Model Performance Metrics** with bar charts for precision, recall, and F1 scores
+- **Export Functionality** for statistics in multiple formats
+
+### Search and Filter System
+
+Advanced analysis management with:
+
+- **Real-time search** across analysis names and IDs
+- **Status filtering** (completed, processing, failed, pending)
+- **Type filtering** (standard, custom prompt, repeat analysis)
+- **Client-side filtering** for fast user experience
+- **No results messaging** with clear user guidance
+
+## 🔄 New Workflow Features
+
+### Text Analysis Workflow
+
+1. **Upload Analysis** - JSON file with Lithuanian text corpus
+2. **Select Models** - Choose from Claude, Gemini, or GPT models
+3. **Configure Prompt** - Use standard ATSPARA or custom prompts
+4. **Monitor Progress** - Real-time progress tracking
+5. **View Results** - Interactive text highlighting with technique visualization
+6. **Export Data** - Download results in CSV/JSON formats
+7. **Repeat Analysis** - Re-run with different models or prompts
+
+### Analysis Comparison
+
+- **Side-by-side comparison** of AI vs Expert annotations
+- **Model performance metrics** with precision, recall, F1 scores
+- **Technique distribution analysis** across different models
+- **Statistical visualization** with charts and graphs
+
 ---
 
 This API provides comprehensive access to Lithuanian propaganda detection capabilities while maintaining performance, reliability, and ease of use for research applications.

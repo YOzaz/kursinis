@@ -18,17 +18,6 @@ class TextAnnotationsTest extends TestCase
             'job_id' => $job->job_id,
             'text_id' => 'test_text_1',
             'content' => 'Test propaganda content',
-            'expert_annotations' => [
-                [
-                    'type' => 'labels',
-                    'value' => [
-                        'start' => 0,
-                        'end' => 4,
-                        'text' => 'Test',
-                        'labels' => ['emotionalAppeal']
-                    ]
-                ]
-            ],
             'claude_annotations' => [
                 [
                     'type' => 'labels',
@@ -46,27 +35,17 @@ class TextAnnotationsTest extends TestCase
 
         $response->assertStatus(200)
                 ->assertJson([
-                    'text_id' => 'test_text_1',
+                    'success' => true,
                     'content' => 'Test propaganda content',
-                    'expert_annotations' => [
-                        [
-                            'type' => 'labels',
-                            'value' => [
-                                'start' => 0,
-                                'end' => 4,
-                                'text' => 'Test',
-                                'labels' => ['emotionalAppeal']
-                            ]
-                        ]
-                    ]
+                    'view_type' => 'ai'
                 ])
                 ->assertJsonStructure([
-                    'text_id',
+                    'success',
                     'content',
-                    'expert_annotations',
-                    'claude_annotations',
-                    'gemini_annotations', 
-                    'gpt_annotations'
+                    'text',
+                    'annotations',
+                    'legend',
+                    'view_type'
                 ]);
     }
 
@@ -92,9 +71,15 @@ class TextAnnotationsTest extends TestCase
 
         $response->assertStatus(200)
                 ->assertJsonStructure([
-                    'text_id',
+                    'success',
                     'content',
-                    'claude_annotations'
+                    'text',
+                    'annotations',
+                    'legend',
+                    'view_type'
+                ])
+                ->assertJson([
+                    'view_type' => 'ai'
                 ]);
     }
 
@@ -105,13 +90,32 @@ class TextAnnotationsTest extends TestCase
         $response->assertStatus(404);
     }
 
-    public function test_text_annotations_endpoint_with_invalid_view()
+    public function test_text_annotations_endpoint_with_expert_view()
     {
         $job = AnalysisJob::factory()->completed()->create();
-        $textAnalysis = TextAnalysis::factory()->create(['job_id' => $job->job_id]);
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'expert_annotations' => [
+                'annotations' => [
+                    [
+                        'type' => 'labels',
+                        'value' => [
+                            'start' => 0,
+                            'end' => 4,
+                            'text' => 'Test',
+                            'labels' => ['emotionalAppeal']
+                        ]
+                    ]
+                ]
+            ]
+        ]);
 
-        $response = $this->getJson("/api/text-annotations/{$textAnalysis->id}?view=invalid");
+        $response = $this->getJson("/api/text-annotations/{$textAnalysis->id}?view=expert");
 
-        $response->assertStatus(400);
+        $response->assertStatus(200)
+                ->assertJson([
+                    'success' => true,
+                    'view_type' => 'expert'
+                ]);
     }
 }

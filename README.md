@@ -48,6 +48,26 @@ Universali propagandos analizės platforma, kuri veikia dviem pagrindiniais rež
 - **Custom prompt'ų testavimas**: Redaguokite AI instrukcijas naudojant RISEN metodologiją
 - **Prompt'ų palyginimas**: Testuokite, kaip skirtingi prompt'ai paveiks analizės rezultatus
 - **Optimizavimas**: Raskite optimalų AI instrukcijų formulavimą jūsų poreikiams
+
+## ✨ Naujos funkcijos (2025-05-29)
+
+### 🎨 Teksto žymėjimo vizualizacija
+- **Interaktyvus teksto žymėjimas** su propagandos technikų spalvų kodavimu
+- **AI vs Ekspertų peržiūra** - perjungimas tarp automatinio aptikimo ir žmogaus anotacijų
+- **Dinaminė legenda** su technikų aprašymais ir spalvų žemėlapiu
+- **Real-time anotacijų įkėlimas** per AJAX API iškvietimus
+
+### 📊 Pagerinti dashboard grafikiai
+- **Interaktyvūs grafikai** su Chart.js modelių našumo palyginimui
+- **Technikų pasiskirstymas** su doughnut grafikais
+- **Modelių našumo metrikos** su stulpelių grafikais
+- **Eksporto funkcionalumas** statistikoms įvairiuose formatuose
+
+### 🔍 Paieškos ir filtravimo sistema
+- **Real-time paieška** per analizių pavadinimus ir ID
+- **Statusų filtravimas** (baigta, vykdoma, nepavyko, laukia)
+- **Tipų filtravimas** (standartinė, custom prompt, pakartotinė)
+- **Kliento pusės filtravimas** greitai vartotojo patirčiai
 - **Metrikų stebėjimas**: Automatinis skirtingų prompt'ų efektyvumo palyginimas
 
 **Visais atvejais:**

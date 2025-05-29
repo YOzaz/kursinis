@@ -16,7 +16,7 @@ class ErrorHandlingTest extends TestCase
     {
         $this->withSession(['authenticated' => true, 'username' => 'admin']);
 
-        $response = $this->getJson('/api/analysis/invalid-job-id/status');
+        $response = $this->getJson('/api/status/invalid-job-id');
 
         $response->assertStatus(404);
     }
@@ -29,10 +29,10 @@ class ErrorHandlingTest extends TestCase
         
         $file = UploadedFile::fake()->create('test.exe', 1024);
 
-        $response = $this->post('/', [
-            'file' => $file,
+        $response = $this->post('/upload', [
+            'json_file' => $file,
             'name' => 'Test Analysis',
-            'models' => ['claude'],
+            'models' => ['claude-opus-4'],
         ]);
 
         $response->assertStatus(302);
@@ -48,10 +48,10 @@ class ErrorHandlingTest extends TestCase
         // Create a file larger than 10MB (assuming that's the limit)
         $file = UploadedFile::fake()->create('large.txt', 12 * 1024); // 12MB
 
-        $response = $this->post('/', [
-            'file' => $file,
+        $response = $this->post('/upload', [
+            'json_file' => $file,
             'name' => 'Test Analysis',
-            'models' => ['claude'],
+            'models' => ['claude-opus-4'],
         ]);
 
         $response->assertStatus(302);
@@ -60,9 +60,9 @@ class ErrorHandlingTest extends TestCase
 
     public function test_batch_analysis_handles_malformed_json()
     {
-        $response = $this->postJson('/api/analysis/batch', [
+        $response = $this->postJson('/api/batch-analyze', [
             'data' => 'invalid json string',
-            'models' => ['claude']
+            'models' => ['claude-opus-4']
         ]);
 
         $response->assertStatus(422)
@@ -74,9 +74,9 @@ class ErrorHandlingTest extends TestCase
 
     public function test_single_analysis_handles_empty_text()
     {
-        $response = $this->postJson('/api/analysis/single', [
+        $response = $this->postJson('/api/analyze', [
             'text' => '',
-            'models' => ['claude']
+            'models' => ['claude-opus-4']
         ]);
 
         $response->assertStatus(422)
@@ -92,23 +92,30 @@ class ErrorHandlingTest extends TestCase
 
         $response = $this->get('/progress/invalid-job-id');
 
-        $response->assertStatus(404);
+        $response->assertStatus(302)
+                ->assertSessionHasErrors();
     }
 
     public function test_analysis_results_handles_nonexistent_job()
     {
-        $response = $this->getJson('/api/analysis/nonexistent-job/results');
+        $response = $this->getJson('/api/results/nonexistent-job');
 
         $response->assertStatus(404);
     }
 
     public function test_repeat_analysis_handles_invalid_job()
     {
-        $response = $this->postJson('/api/analysis/invalid-job/repeat', [
-            'models' => ['claude']
+        $response = $this->postJson('/api/repeat-analysis', [
+            'reference_analysis_id' => 'invalid-job',
+            'name' => 'Test Repeat Analysis',
+            'models' => ['claude-opus-4']
         ]);
 
-        $response->assertStatus(404);
+        $response->assertStatus(422)
+                ->assertJsonStructure([
+                    'message',
+                    'errors'
+                ]);
     }
 
     public function test_file_upload_handles_corrupted_files()
@@ -120,10 +127,10 @@ class ErrorHandlingTest extends TestCase
         // Create a file with invalid content
         $file = UploadedFile::fake()->createWithContent('invalid.txt', "\x00\x01\x02invalid binary");
 
-        $response = $this->post('/', [
-            'file' => $file,
+        $response = $this->post('/upload', [
+            'json_file' => $file,
             'name' => 'Test Analysis',
-            'models' => ['claude'],
+            'models' => ['claude-opus-4'],
         ]);
 
         // Should handle gracefully, either accepting or rejecting with clear error
@@ -140,7 +147,7 @@ class ErrorHandlingTest extends TestCase
         // Simulate multiple concurrent status requests
         $responses = [];
         for ($i = 0; $i < 5; $i++) {
-            $responses[] = $this->getJson("/api/analysis/{$job->job_id}/status");
+            $responses[] = $this->getJson("/api/status/{$job->job_id}");
         }
 
         // All requests should succeed

@@ -25,7 +25,12 @@ class AnalysisWorkflowTest extends TestCase
             'custom_prompt' => null
         ]);
 
-        $response->assertStatus(422); // Should validate input properly
+        $response->assertStatus(200) // Valid data should succeed
+                ->assertJsonStructure([
+                    'job_id',
+                    'message',
+                    'progress_url'
+                ]);
     }
 
     public function test_batch_analysis_api_endpoint()
@@ -41,7 +46,12 @@ class AnalysisWorkflowTest extends TestCase
             'models' => ['claude-opus-4']
         ]);
 
-        $response->assertStatus(422); // Should validate input properly
+        $response->assertStatus(200) // Valid data should succeed
+                ->assertJsonStructure([
+                    'job_id',
+                    'message',
+                    'progress_url'
+                ]);
     }
 
     public function test_analysis_status_endpoint()

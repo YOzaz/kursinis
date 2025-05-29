@@ -85,6 +85,10 @@ class GeminiService implements LLMServiceInterface
                         ]
                     ]);
 
+                if (!$response->successful()) {
+                    throw new \Exception('Gemini API klaida: HTTP ' . $response->status());
+                }
+
                 $responseData = $response->json();
                 
                 if (!isset($responseData['candidates'][0]['content']['parts'][0]['text'])) {

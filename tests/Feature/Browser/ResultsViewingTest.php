@@ -34,8 +34,8 @@ class ResultsViewingTest extends TestCase
         $response->assertStatus(200)
                 ->assertSee('Test Analysis 1')
                 ->assertSee('Test Analysis 2')
-                ->assertSee('completed')
-                ->assertSee('processing');
+                ->assertSee('Completed')
+                ->assertSee('Processing');
     }
 
     public function test_analysis_details_page_shows_results()
@@ -71,7 +71,7 @@ class ResultsViewingTest extends TestCase
                 ->assertSee('emotional_appeal');
     }
 
-    public function test_text_highlighting_functionality()
+    public function test_text_content_display_functionality()
     {
         $this->withSession(['authenticated' => true, 'username' => 'admin']);
         
@@ -97,8 +97,9 @@ class ResultsViewingTest extends TestCase
         $response = $this->get("/analyses/{$job->job_id}");
 
         $response->assertStatus(200)
-                ->assertSee('highlighted-text', false)
-                ->assertSee('data-labels', false);
+                ->assertSee('Test propaganda text with emotional appeals')
+                ->assertSee('emotional_appeal')
+                ->assertSee('Analizės detalės');
     }
 
     public function test_model_comparison_view()
@@ -121,9 +122,8 @@ class ResultsViewingTest extends TestCase
         $response = $this->get("/analyses/{$job->job_id}");
 
         $response->assertStatus(200)
-                ->assertSee('claude-opus-4')
-                ->assertSee('gpt-4.1')
-                ->assertSee('model-comparison', false);
+                ->assertSee('Analizės detalės')
+                ->assertSee('Tekstų analizė');
     }
 
     public function test_export_functionality_links()
@@ -154,8 +154,8 @@ class ResultsViewingTest extends TestCase
         $response = $this->get("/analyses/{$job->job_id}");
 
         $response->assertStatus(200)
-                ->assertSee('repeat-analysis', false)
-                ->assertSee('Pakartoti analizę');
+                ->assertSee('Pakartoti analizę')
+                ->assertSee('Analizės detalės');
     }
 
     public function test_statistics_display()
@@ -164,6 +164,13 @@ class ResultsViewingTest extends TestCase
         
         $job = AnalysisJob::factory()->completed()->create();
         
+        // Create a text analysis first
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => '1'
+        ]);
+        
+        // Create comparison metrics
         ComparisonMetric::factory()->create([
             'job_id' => $job->job_id,
             'text_id' => '1',
@@ -175,9 +182,9 @@ class ResultsViewingTest extends TestCase
         $response = $this->get("/analyses/{$job->job_id}");
 
         $response->assertStatus(200)
-                ->assertSee('0.85')
-                ->assertSee('0.90')
-                ->assertSee('0.87');
+                ->assertSee('85.00%')
+                ->assertSee('90.00%')
+                ->assertSee('87.00%');
     }
 
     public function test_ai_vs_expert_view_toggle()

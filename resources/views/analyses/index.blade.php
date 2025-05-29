@@ -31,8 +31,49 @@
         </div>
     </div>
 
+    <!-- Search and Filter Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-end">
+                <div class="col-md-4">
+                    <label for="search-input" class="form-label">Paieška</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="form-control" id="search-input" placeholder="Ieškoti pagal pavadinimą arba ID...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label for="status-filter" class="form-label">Statusas</label>
+                    <select class="form-select" id="status-filter">
+                        <option value="">Visi statusai</option>
+                        <option value="completed">Baigta</option>
+                        <option value="processing">Vykdoma</option>
+                        <option value="failed">Nepavyko</option>
+                        <option value="pending">Laukia</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="type-filter" class="form-label">Tipas</label>
+                    <select class="form-select" id="type-filter">
+                        <option value="">Visi tipai</option>
+                        <option value="standard">Standartinė</option>
+                        <option value="custom">Custom prompt</option>
+                        <option value="repeat">Pakartotinė</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-outline-secondary w-100" id="clear-filters">
+                        <i class="fas fa-times me-1"></i>Valyti
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @if($analyses->count() > 0)
-        <div class="row">
+        <div class="row" id="analyses-container">
             @foreach($analyses as $analysis)
                 <div class="col-md-6 col-lg-4 mb-4">
                     <div class="card h-100">
@@ -149,4 +190,127 @@
         </div>
     @endif
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    const statusFilter = document.getElementById('status-filter');
+    const typeFilter = document.getElementById('type-filter');
+    const clearFiltersBtn = document.getElementById('clear-filters');
+    const analysesContainer = document.getElementById('analyses-container');
+    
+    // Get all analysis cards
+    const analysisCards = Array.from(analysesContainer.children);
+    
+    function applyFilters() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const statusValue = statusFilter.value;
+        const typeValue = typeFilter.value;
+        
+        analysisCards.forEach(card => {
+            let visible = true;
+            
+            // Search filter
+            if (searchTerm) {
+                const cardText = card.textContent.toLowerCase();
+                visible = visible && cardText.includes(searchTerm);
+            }
+            
+            // Status filter
+            if (statusValue && visible) {
+                const statusBadge = card.querySelector('.badge');
+                if (statusBadge) {
+                    const statusClasses = statusBadge.className;
+                    switch(statusValue) {
+                        case 'completed':
+                            visible = visible && statusClasses.includes('badge-success');
+                            break;
+                        case 'processing':
+                            visible = visible && statusClasses.includes('badge-warning');
+                            break;
+                        case 'failed':
+                            visible = visible && statusClasses.includes('badge-danger');
+                            break;
+                        case 'pending':
+                            visible = visible && statusClasses.includes('badge-secondary');
+                            break;
+                    }
+                }
+            }
+            
+            // Type filter
+            if (typeValue && visible) {
+                const cardHeader = card.querySelector('.card-title');
+                if (cardHeader) {
+                    const headerText = cardHeader.textContent.toLowerCase();
+                    switch(typeValue) {
+                        case 'standard':
+                            visible = visible && headerText.includes('standartinė');
+                            break;
+                        case 'custom':
+                            visible = visible && headerText.includes('custom');
+                            break;
+                        case 'repeat':
+                            visible = visible && headerText.includes('pakartotinė');
+                            break;
+                    }
+                }
+            }
+            
+            // Show/hide card
+            card.style.display = visible ? 'block' : 'none';
+        });
+        
+        // Check if any cards are visible
+        const visibleCards = analysisCards.filter(card => card.style.display !== 'none');
+        if (visibleCards.length === 0) {
+            showNoResultsMessage();
+        } else {
+            hideNoResultsMessage();
+        }
+    }
+    
+    function showNoResultsMessage() {
+        let noResultsMsg = document.getElementById('no-results-message');
+        if (!noResultsMsg) {
+            noResultsMsg = document.createElement('div');
+            noResultsMsg.id = 'no-results-message';
+            noResultsMsg.className = 'col-12 text-center py-5';
+            noResultsMsg.innerHTML = `
+                <div class="text-muted">
+                    <i class="fas fa-search fa-3x mb-3"></i>
+                    <h5>Nerasta rezultatų</h5>
+                    <p>Pabandykite pakeisti paieškos kriterijus</p>
+                </div>
+            `;
+            analysesContainer.appendChild(noResultsMsg);
+        }
+        noResultsMsg.style.display = 'block';
+    }
+    
+    function hideNoResultsMessage() {
+        const noResultsMsg = document.getElementById('no-results-message');
+        if (noResultsMsg) {
+            noResultsMsg.style.display = 'none';
+        }
+    }
+    
+    function clearFilters() {
+        searchInput.value = '';
+        statusFilter.value = '';
+        typeFilter.value = '';
+        applyFilters();
+    }
+    
+    // Event listeners
+    searchInput.addEventListener('input', applyFilters);
+    statusFilter.addEventListener('change', applyFilters);
+    typeFilter.addEventListener('change', applyFilters);
+    clearFiltersBtn.addEventListener('click', clearFilters);
+    
+    // Initialize filters
+    applyFilters();
+});
+</script>
+
 @endsection

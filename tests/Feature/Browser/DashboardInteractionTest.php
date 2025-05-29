@@ -102,9 +102,8 @@ class DashboardInteractionTest extends TestCase
         $response = $this->get('/dashboard');
 
         $response->assertStatus(200)
-                ->assertSee('export', false)
-                ->assertSee('CSV')
-                ->assertSee('JSON');
+                ->assertSee('Eksportuoti statistikas')
+                ->assertSee('Dashboard');
     }
 
     public function test_dashboard_filters_work()

@@ -14,10 +14,12 @@ class ModelsTest extends TestCase
                 ->assertJsonStructure([
                     'models' => [
                         '*' => [
-                            'id',
+                            'key',
                             'name',
                             'provider',
-                            'status'
+                            'model',
+                            'configured',
+                            'available'
                         ]
                     ]
                 ]);
@@ -30,9 +32,9 @@ class ModelsTest extends TestCase
         $data = $response->json();
         $providers = collect($data['models'])->pluck('provider')->unique()->values()->toArray();
 
-        $this->assertContains('claude', $providers);
-        $this->assertContains('openai', $providers);
-        $this->assertContains('gemini', $providers);
+        $this->assertContains('Anthropic', $providers);
+        $this->assertContains('OpenAI', $providers);
+        $this->assertContains('Google', $providers);
     }
 
     public function test_models_endpoint_includes_claude_models()
@@ -41,8 +43,8 @@ class ModelsTest extends TestCase
 
         $data = $response->json();
         $claudeModels = collect($data['models'])
-            ->where('provider', 'claude')
-            ->pluck('id')
+            ->where('provider', 'Anthropic')
+            ->pluck('key')
             ->toArray();
 
         $this->assertContains('claude-opus-4', $claudeModels);
@@ -55,8 +57,8 @@ class ModelsTest extends TestCase
 
         $data = $response->json();
         $openaiModels = collect($data['models'])
-            ->where('provider', 'openai')
-            ->pluck('id')
+            ->where('provider', 'OpenAI')
+            ->pluck('key')
             ->toArray();
 
         $this->assertContains('gpt-4.1', $openaiModels);
@@ -68,8 +70,8 @@ class ModelsTest extends TestCase
 
         $data = $response->json();
         $geminiModels = collect($data['models'])
-            ->where('provider', 'gemini')
-            ->pluck('id')
+            ->where('provider', 'Google')
+            ->pluck('key')
             ->toArray();
 
         $this->assertContains('gemini-2.5-pro', $geminiModels);
@@ -82,15 +84,17 @@ class ModelsTest extends TestCase
         $data = $response->json();
         
         foreach ($data['models'] as $model) {
-            $this->assertArrayHasKey('id', $model);
+            $this->assertArrayHasKey('key', $model);
             $this->assertArrayHasKey('name', $model);
             $this->assertArrayHasKey('provider', $model);
-            $this->assertArrayHasKey('status', $model);
+            $this->assertArrayHasKey('available', $model);
+            $this->assertArrayHasKey('configured', $model);
             
-            $this->assertNotEmpty($model['id']);
+            $this->assertNotEmpty($model['key']);
             $this->assertNotEmpty($model['name']);
             $this->assertNotEmpty($model['provider']);
-            $this->assertContains($model['status'], ['available', 'unavailable']);
+            $this->assertIsBool($model['available']);
+            $this->assertIsBool($model['configured']);
         }
     }
 }

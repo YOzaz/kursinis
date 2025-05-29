@@ -103,6 +103,34 @@
         </div>
     </div>
 
+    <!-- Charts Section -->
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Modelių našumo palyginimas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="performanceChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>Propagandos technikų pasiskirstymas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="techniquesChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <!-- Model Performance Comparison Table -->
         <div class="col-lg-8">
@@ -507,4 +535,114 @@ $(document).ready(function() {
     background-color: #e9ecef;
 }
 </style>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Model Performance Chart
+    const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+    const performanceData = @json($globalStats['model_performance'] ?? []);
+    
+    const modelNames = Object.keys(performanceData);
+    const f1Scores = modelNames.map(model => (performanceData[model]['avg_f1_score'] || 0) * 100);
+    const precisionScores = modelNames.map(model => (performanceData[model]['avg_precision'] || 0) * 100);
+    const recallScores = modelNames.map(model => (performanceData[model]['avg_recall'] || 0) * 100);
+    
+    const performanceChart = new Chart(performanceCtx, {
+        type: 'bar',
+        data: {
+            labels: modelNames,
+            datasets: [{
+                label: 'F1 Score (%)',
+                data: f1Scores,
+                backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }, {
+                label: 'Precision (%)',
+                data: precisionScores,
+                backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            }, {
+                label: 'Recall (%)',
+                data: recallScores,
+                backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    }
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Modelių našumo metrikos'
+                },
+                legend: {
+                    position: 'top'
+                }
+            }
+        }
+    });
+
+    // Techniques Distribution Chart
+    const techniquesCtx = document.getElementById('techniquesChart').getContext('2d');
+    const techniqueStats = @json($globalStats['top_techniques'] ?? []);
+    
+    const techniqueLabels = Object.keys(techniqueStats);
+    const techniqueCounts = Object.values(techniqueStats);
+    
+    // Generate colors for techniques
+    const colors = [
+        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+        '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384'
+    ];
+    
+    const techniquesChart = new Chart(techniquesCtx, {
+        type: 'doughnut',
+        data: {
+            labels: techniqueLabels,
+            datasets: [{
+                data: techniqueCounts,
+                backgroundColor: colors.slice(0, techniqueLabels.length),
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Dažniausiai aptiktos technikos'
+                },
+                legend: {
+                    position: 'right',
+                    labels: {
+                        boxWidth: 15,
+                        padding: 15
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+
 @endsection

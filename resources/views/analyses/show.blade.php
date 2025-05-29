@@ -273,8 +273,79 @@
                         </div>
                     @endif
                 </div>
+            </div>
 
-                <div class="col-lg-4">
+            <!-- Text Highlighting Section -->
+            @if($analysis->status === 'completed' && $textAnalyses->count() > 0)
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-highlighter me-2"></i>Tekstų analizė
+                                </h5>
+                                <div class="btn-group view-toggle" role="group">
+                                    <input type="radio" class="btn-check" name="viewType" id="ai-view" value="ai" checked>
+                                    <label class="btn btn-outline-primary" for="ai-view">AI anotacijos</label>
+                                    
+                                    <input type="radio" class="btn-check" name="viewType" id="expert-view" value="expert">
+                                    <label class="btn btn-outline-secondary" for="expert-view">Ekspertų anotacijos</label>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <!-- Legend -->
+                                <div class="legend mb-3" id="annotation-legend" style="display: none;">
+                                    <h6>Propagandos technikų legenda:</h6>
+                                    <div class="row" id="legend-items">
+                                        <!-- Legend items will be populated by JavaScript -->
+                                    </div>
+                                </div>
+
+                                <!-- Text Display Area -->
+                                <div class="text-analysis-container">
+                                    <div class="form-group mb-3">
+                                        <label for="text-selector">Pasirinkite tekstą analizei:</label>
+                                        <select class="form-select" id="text-selector">
+                                            @foreach($textAnalyses as $textAnalysis)
+                                                <option value="{{ $textAnalysis->id }}" data-text-id="{{ $textAnalysis->text_id }}">
+                                                    Tekstas {{ $textAnalysis->text_id }}
+                                                    @if(strlen($textAnalysis->content) > 50)
+                                                        - {{ Str::limit($textAnalysis->content, 50) }}
+                                                    @endif
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <div class="highlighted-text-container">
+                                        <div id="highlighted-text" class="border p-3 rounded bg-light">
+                                            <div class="text-center text-muted">
+                                                <i class="fas fa-arrow-up me-2"></i>Pasirinkite tekstą viršuje
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-3">
+                                        <div class="loading-spinner text-center" id="loading-spinner" style="display: none;">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Kraunama...</span>
+                                            </div>
+                                            <p class="mt-2">Kraunamos anotacijos...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        </div>
+        
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- This empty column balances the layout -->
+            </div>
+            <div class="col-lg-4">
                     @if(isset($statistics))
                         <div class="card mb-4">
                             <div class="card-header">
@@ -955,6 +1026,202 @@ function loadDefaultPromptRepeat() {
             alert('Nepavyko įkelti standartinio prompt\'o');
         });
 }
+
+// Text highlighting functionality
+let currentTextId = null;
+let currentViewType = 'ai';
+
+// Color mapping for propaganda techniques
+const techniqueColors = {
+    'emotionalAppeal': '#ff6b6b',
+    'appealToFear': '#ff8e53', 
+    'loadedLanguage': '#4ecdc4',
+    'nameCalling': '#45b7d1',
+    'exaggeration': '#96ceb4',
+    'glitteringGeneralities': '#ffeaa7',
+    'whataboutism': '#dda0dd',
+    'redHerring': '#98d8c8',
+    'strawMan': '#f7dc6f',
+    'causalOversimplification': '#bb8fce',
+    'blackAndWhite': '#85c1e9',
+    'thoughtTerminatingCliche': '#f8c471',
+    'slogans': '#82e0aa',
+    'obfuscation': '#f1948a',
+    'appealToAuthority': '#85c1e9',
+    'flagWaving': '#f9e79f',
+    'bandwagon': '#d7bde2',
+    'doubt': '#aed6f1',
+    'smears': '#f5b7b1',
+    'reductioAdHitlerum': '#d5a6bd',
+    'repetition': '#a9dfbf'
+};
+
+function initializeTextHighlighting() {
+    const textSelector = document.getElementById('text-selector');
+    const viewToggle = document.getElementsByName('viewType');
+    
+    if (textSelector) {
+        textSelector.addEventListener('change', loadTextAnnotations);
+        
+        // Load the first text by default
+        if (textSelector.options.length > 0) {
+            loadTextAnnotations();
+        }
+    }
+    
+    // Add event listeners for view toggle
+    viewToggle.forEach(radio => {
+        radio.addEventListener('change', function() {
+            currentViewType = this.value;
+            loadTextAnnotations();
+        });
+    });
+}
+
+function loadTextAnnotations() {
+    const textSelector = document.getElementById('text-selector');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const highlightedText = document.getElementById('highlighted-text');
+    const legend = document.getElementById('annotation-legend');
+    
+    if (!textSelector.value) {
+        return;
+    }
+    
+    currentTextId = textSelector.value;
+    
+    // Show loading
+    loadingSpinner.style.display = 'block';
+    highlightedText.innerHTML = '<div class="text-center text-muted">Kraunama...</div>';
+    legend.style.display = 'none';
+    
+    // Fetch annotations from API
+    fetch(`/api/text-annotations/${currentTextId}?view=${currentViewType}`)
+        .then(response => response.json())
+        .then(data => {
+            loadingSpinner.style.display = 'none';
+            
+            if (data.success) {
+                displayHighlightedText(data.content, data.annotations, data.legend);
+                showLegend(data.legend);
+            } else {
+                highlightedText.innerHTML = `<div class="alert alert-warning">${data.message || 'Nepavyko įkelti anotacijų'}</div>`;
+            }
+        })
+        .catch(error => {
+            loadingSpinner.style.display = 'none';
+            console.error('Error loading annotations:', error);
+            highlightedText.innerHTML = '<div class="alert alert-danger">Klaida kraunant anotacijas</div>';
+        });
+}
+
+function displayHighlightedText(content, annotations, legend) {
+    const highlightedText = document.getElementById('highlighted-text');
+    
+    if (!annotations || annotations.length === 0) {
+        highlightedText.innerHTML = `<div class="p-3">${escapeHtml(content)}</div>`;
+        return;
+    }
+    
+    // Sort annotations by start position
+    const sortedAnnotations = [...annotations].sort((a, b) => a.start - b.start);
+    
+    let highlightedContent = '';
+    let lastIndex = 0;
+    
+    sortedAnnotations.forEach(annotation => {
+        // Add text before annotation
+        highlightedContent += escapeHtml(content.substring(lastIndex, annotation.start));
+        
+        // Add highlighted annotation
+        const color = techniqueColors[annotation.technique] || '#cccccc';
+        const labels = Array.isArray(annotation.labels) ? annotation.labels : [annotation.technique];
+        
+        highlightedContent += `<span class="highlighted-annotation" 
+                                     style="background-color: ${color}; padding: 2px 4px; border-radius: 3px; margin: 1px;"
+                                     data-labels="${labels.join(', ')}"
+                                     title="${labels.join(', ')}">${escapeHtml(annotation.text)}</span>`;
+        
+        lastIndex = annotation.end;
+    });
+    
+    // Add remaining text
+    highlightedContent += escapeHtml(content.substring(lastIndex));
+    
+    highlightedText.innerHTML = `<div class="p-3" style="line-height: 1.8;">${highlightedContent}</div>`;
+}
+
+function showLegend(legendItems) {
+    const legend = document.getElementById('annotation-legend');
+    const legendContainer = document.getElementById('legend-items');
+    
+    if (!legendItems || legendItems.length === 0) {
+        legend.style.display = 'none';
+        return;
+    }
+    
+    legendContainer.innerHTML = '';
+    
+    legendItems.forEach(item => {
+        const color = techniqueColors[item.technique] || '#cccccc';
+        const description = getTechniqueDescription(item.technique);
+        
+        const legendItem = document.createElement('div');
+        legendItem.className = 'col-md-6 col-lg-4 mb-2';
+        legendItem.innerHTML = `
+            <div class="d-flex align-items-center">
+                <div style="width: 20px; height: 20px; background-color: ${color}; border-radius: 3px; margin-right: 8px;"></div>
+                <div>
+                    <strong>${item.technique}</strong>
+                    <small class="d-block text-muted">${description}</small>
+                </div>
+            </div>
+        `;
+        
+        legendContainer.appendChild(legendItem);
+    });
+    
+    legend.style.display = 'block';
+}
+
+function getTechniqueDescription(technique) {
+    const descriptions = {
+        'emotionalAppeal': 'Apeliavimas į jausmus',
+        'appealToFear': 'Apeliavimas į baimę',
+        'loadedLanguage': 'Vertinamoji leksika',
+        'nameCalling': 'Etiketių klijavimas',
+        'exaggeration': 'Perdėtas vertinimas',
+        'glitteringGeneralities': 'Blizgantys apibendrinimai',
+        'whataboutism': 'Whataboutism',
+        'redHerring': 'Red Herring',
+        'strawMan': 'Straw Man',
+        'causalOversimplification': 'Supaprastinimas',
+        'blackAndWhite': 'Juoda-balta',
+        'thoughtTerminatingCliche': 'Kliše',
+        'slogans': 'Šūkiai',
+        'obfuscation': 'Neapibrėžtumas',
+        'appealToAuthority': 'Apeliavimas į autoritetą',
+        'flagWaving': 'Mojavimas vėliava',
+        'bandwagon': 'Bandwagon',
+        'doubt': 'Abejojimas',
+        'smears': 'Šmeižtas',
+        'reductioAdHitlerum': 'Reductio ad hitlerum',
+        'repetition': 'Pakartojimas'
+    };
+    
+    return descriptions[technique] || technique;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeTextHighlighting();
+});
 </script>
 
 @endsection

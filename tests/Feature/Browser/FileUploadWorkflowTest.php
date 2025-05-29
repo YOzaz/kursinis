@@ -210,7 +210,7 @@ class FileUploadWorkflowTest extends TestCase
                 ->assertSee('progress-circle', false);
     }
 
-    public function test_recent_analyses_display()
+    public function test_home_page_content_display()
     {
         $this->withSession(['authenticated' => true, 'username' => 'admin']);
         
@@ -222,7 +222,9 @@ class FileUploadWorkflowTest extends TestCase
         $response = $this->get('/');
 
         $response->assertStatus(200)
-                ->assertSee('Recent Analysis');
+                ->assertSee('Tekstų analizės paleidimas')
+                ->assertSee('Kaip naudoti sistemą')
+                ->assertSee('ATSPARA propaganda technika');
     }
 
     public function test_model_configuration_display()

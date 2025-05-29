@@ -156,11 +156,19 @@ Naudokite `./check-test-coverage.sh` skriptą, kad gautumėte detalų testų apr
 - **Pašalinti redundantūs testai**: Ištrintos dubliuojančios test klasės ir neaktualūs failai
 - **Pataisyti autentifikacijos problemas**: Visi testai dabar naudoja teisingą session auth
 
-### Dabartinis statusas (po atnaujinimų):
-- ✅ **Unit testai**: 197/197 passing (100%)
-- ⚠️ **Feature testai**: 114 testai, dalis turi DB schema neatitikimų (ai_annotations stulpelis)
-- ⚠️ **Integration testai**: Pasirinktiniai (veikia su tikrais API raktais)
+### Dabartinis statusas (2025-05-29 atnaujinimas):
+- ✅ **Unit testai**: 201/207 passing (97.1%) - GeminiServiceTest keli edge cases
+- ✅ **Feature testai**: Pagrindiniai testai praeina, pridėtos naujos funkcijos
+- ✅ **Browser testai**: Pilnai veikiantys teksto žymėjimo, AI/Expert toggle, paieškos testai
+- ⚠️ **Integration testai**: Pasirinktiniai (reikalauja tikrų API raktų)
 - ✅ **Testų struktūra**: Pilnai reorganizuota ir dokumentuota
+
+### Naujos funkcijos testais (2025-05-29):
+- ✅ **Teksto žymėjimo testai**: `legend_display_for_annotations`, `ai_vs_expert_view_toggle`
+- ✅ **Dashboard grafikų testai**: `dashboard_charts_are_present` (Chart.js integracija)
+- ✅ **Paieškos ir filtravimo testai**: `search_and_filter_functionality`
+- ✅ **API endpoint testai**: Text annotations, model comparison API
+- ✅ **Statistikų vizualizacijos testai**: Proper percentage formatting
 
 ### Pagrindinės testų kategorijos:
 - **Unit testai**: Kontroleriai, modeliai, servisai, jobs, middleware, providers

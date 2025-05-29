@@ -200,8 +200,10 @@ class AnalysisController extends Controller
 
             return response()->json([
                 'job_id' => $jobId,
+                'message' => 'Analizė sėkmingai pradėta',
                 'status' => 'processing',
-                'text_id' => $textAnalysis->text_id
+                'text_id' => $textAnalysis->text_id,
+                'progress_url' => route('progress', ['jobId' => $jobId])
             ]);
 
         } catch (\Exception $e) {
@@ -336,8 +338,10 @@ class AnalysisController extends Controller
 
             return response()->json([
                 'job_id' => $jobId,
+                'message' => 'Batch analizė sėkmingai pradėta',
                 'status' => 'processing',
-                'total_texts' => $totalTexts
+                'total_texts' => $totalTexts,
+                'progress_url' => route('progress', ['jobId' => $jobId])
             ]);
 
         } catch (\Exception $e) {

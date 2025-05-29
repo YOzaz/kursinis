@@ -14,19 +14,19 @@ class HealthCheckTest extends TestCase
         $response = $this->getJson('/api/health');
 
         $response->assertStatus(200)
-                ->assertJson([
-                    'status' => 'ok',
-                    'timestamp' => true
-                ])
                 ->assertJsonStructure([
                     'status',
                     'timestamp',
                     'services' => [
                         'database',
-                        'redis',
                         'queue'
-                    ]
+                    ],
+                    'models'
                 ]);
+        
+        $data = $response->json();
+        $this->assertContains($data['status'], ['healthy', 'unhealthy']);
+        $this->assertIsString($data['timestamp']);
     }
 
     public function test_health_endpoint_includes_service_status()
@@ -39,11 +39,11 @@ class HealthCheckTest extends TestCase
         
         $this->assertArrayHasKey('services', $data);
         $this->assertArrayHasKey('database', $data['services']);
-        $this->assertArrayHasKey('redis', $data['services']);
         $this->assertArrayHasKey('queue', $data['services']);
         
         // Database should be working since tests are running
-        $this->assertEquals('ok', $data['services']['database']);
+        $this->assertEquals('connected', $data['services']['database']);
+        $this->assertEquals('operational', $data['services']['queue']);
     }
 
     public function test_health_endpoint_timestamp_format()
