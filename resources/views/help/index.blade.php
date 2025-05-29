@@ -199,23 +199,25 @@
                 </div>
             </div>
 
-            <!-- Duomenų saugumas -->
+            <!-- Akademinis kontekstas -->
             <div class="card mb-4">
                 <div class="card-header">
-                    <h3><i class="fas fa-shield-virus me-2"></i>Duomenų saugumas ir privatumas</h3>
+                    <h3><i class="fas fa-graduation-cap me-2"></i>Akademinis tyrimo kontekstas</h3>
                 </div>
                 <div class="card-body">
-                    <div class="alert alert-success">
-                        <h6><i class="fas fa-check-circle me-2"></i>Saugumas garantuojamas</h6>
-                        <ul class="mb-0">
-                            <li>Visi duomenys apdorojami saugiai per HTTPS</li>
-                            <li>Tekstai siunčiami tik į patikimas AI API (OpenAI, Anthropic, Google)</li>
-                            <li>Jokių duomenų nesaugojama trečiųjų šalių serveriuose ilgalaikio</li>
-                            <li>Sistema veikia Vilniaus universiteto infrastruktūroje</li>
-                        </ul>
-                    </div>
+                    <p>Ši sistema sukurta kursinio darbo rėmuose, siekiant:</p>
+                    <ul>
+                        <li><strong>Ištirti</strong> AI modelių efektyvumą lietuvių kalbos propagandos analizėje</li>
+                        <li><strong>Pritaikyti</strong> ATSPARA projekto metodologiją automatinei analizei</li>
+                        <li><strong>Palyginti</strong> skirtingų AI modelių rezultatus</li>
+                        <li><strong>Sukurti</strong> įrankį, kuris galėtų būti naudojamas tolimesniems tyrimams</li>
+                    </ul>
                     
-                    <p>Jei turite specifinių duomenų saugumo klausimų, susisiekite su administratoriumi.</p>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Tyrimo pobūdis:</strong> Rezultatai naudojami akademiniais tikslais ir gali būti netikslūs. 
+                        Sistema yra prototipas, skirtas metodologijos tyrimui.
+                    </div>
                 </div>
             </div>
         </div>

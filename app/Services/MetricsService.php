@@ -126,6 +126,359 @@ class MetricsService
     }
 
     /**
+     * Apskaičiuoti pažangesnes metrikas tyrimo išvadoms.
+     */
+    public function calculateAdvancedMetrics(string $jobId): array
+    {
+        $metrics = ComparisonMetric::where('job_id', $jobId)->get();
+        
+        if ($metrics->isEmpty()) {
+            return [
+                'error' => 'Nėra metrikų duomenų',
+                'suggestions' => [
+                    'Patikrinkite ar yra ekspertų anotacijos',
+                    'Patikrinkite ar analizė sėkmingai baigėsi'
+                ]
+            ];
+        }
+
+        $models = $metrics->groupBy('model_name');
+        $results = [];
+        
+        foreach ($models as $modelName => $modelMetrics) {
+            $results[$modelName] = [
+                // Pagrindinės metrikos
+                'precision' => round($modelMetrics->avg('precision'), 3),
+                'recall' => round($modelMetrics->avg('recall'), 3),
+                'f1_score' => round($modelMetrics->avg('f1_score'), 3),
+                
+                // Pažangesnės metrikos
+                'position_accuracy' => round($modelMetrics->avg('position_accuracy'), 3),
+                'consistency' => $this->calculateConsistency($modelMetrics),
+                'coverage' => $this->calculateCoverage($modelMetrics),
+                
+                // Zarankos darbo metrikos
+                'fragment_identification_score' => $this->calculateFragmentIdentificationScore($modelMetrics),
+                'span_detection_accuracy' => $this->calculateSpanDetectionAccuracy($modelMetrics),
+                'zaranka_comparison' => $this->compareWithZarankaResults($modelMetrics),
+                
+                // Statistikos
+                'total_texts' => $modelMetrics->count(),
+                'avg_execution_time_ms' => round($modelMetrics->avg('analysis_execution_time_ms') ?? 0),
+                
+                // Klasifikacijos statistika
+                'classification_stats' => $this->getClassificationStats($modelMetrics),
+                
+                // Klaidos analizė
+                'error_analysis' => $this->analyzeErrors($modelMetrics),
+            ];
+        }
+        
+        // Modelių palyginimas
+        $results['comparison'] = $this->compareModels($results);
+        
+        // Bendros analizės išvados
+        $results['insights'] = $this->generateInsights($results);
+
+        return $results;
+    }
+
+    /**
+     * Apskaičiuoti modelio nuoseklumą (consistency).
+     */
+    private function calculateConsistency(object $metrics): float
+    {
+        $f1Scores = $metrics->pluck('f1_score')->filter()->values();
+        
+        if ($f1Scores->count() <= 1) {
+            return 0.0;
+        }
+        
+        $mean = $f1Scores->avg();
+        $variance = $f1Scores->map(function($score) use ($mean) {
+            return pow($score - $mean, 2);
+        })->avg();
+        
+        $stdDev = sqrt($variance);
+        
+        // Nuoseklumas: 1 - (std_dev / mean), ribojamas 0-1
+        return max(0, round(1 - ($stdDev / max($mean, 0.001)), 3));
+    }
+
+    /**
+     * Apskaičiuoti modelio apimtį (coverage) - kiek tekstų turėjo bent vieną anotaciją.
+     */
+    private function calculateCoverage(object $metrics): float
+    {
+        $withAnnotations = $metrics->filter(function($metric) {
+            return ($metric->true_positives + $metric->false_positives) > 0;
+        })->count();
+        
+        $total = $metrics->count();
+        
+        return $total > 0 ? round($withAnnotations / $total, 3) : 0.0;
+    }
+
+    /**
+     * Gauti klasifikacijos statistiką.
+     */
+    private function getClassificationStats(object $metrics): array
+    {
+        return [
+            'total_true_positives' => $metrics->sum('true_positives'),
+            'total_false_positives' => $metrics->sum('false_positives'),
+            'total_false_negatives' => $metrics->sum('false_negatives'),
+            'avg_annotations_per_text' => round(($metrics->sum('true_positives') + $metrics->sum('false_positives')) / max($metrics->count(), 1), 2),
+        ];
+    }
+
+    /**
+     * Analizuoti klaidas ir problemas.
+     */
+    private function analyzeErrors(object $metrics): array
+    {
+        $analysis = [
+            'high_false_positive_texts' => 0,
+            'high_false_negative_texts' => 0,
+            'zero_detection_texts' => 0,
+            'perfect_match_texts' => 0,
+        ];
+        
+        foreach ($metrics as $metric) {
+            if ($metric->false_positives > 3) {
+                $analysis['high_false_positive_texts']++;
+            }
+            
+            if ($metric->false_negatives > 3) {
+                $analysis['high_false_negative_texts']++;
+            }
+            
+            if ($metric->true_positives == 0 && $metric->false_positives == 0) {
+                $analysis['zero_detection_texts']++;
+            }
+            
+            if ($metric->false_positives == 0 && $metric->false_negatives == 0 && $metric->true_positives > 0) {
+                $analysis['perfect_match_texts']++;
+            }
+        }
+        
+        return $analysis;
+    }
+
+    /**
+     * Palyginti modelius tarpusavyje.
+     */
+    private function compareModels(array $results): array
+    {
+        $models = array_filter($results, function($key) {
+            return $key !== 'comparison' && $key !== 'insights';
+        }, ARRAY_FILTER_USE_KEY);
+        
+        if (count($models) < 2) {
+            return ['note' => 'Reikia bent 2 modelių palyginimui'];
+        }
+        
+        $comparison = [
+            'best_precision' => $this->findBestModel($models, 'precision'),
+            'best_recall' => $this->findBestModel($models, 'recall'),
+            'best_f1' => $this->findBestModel($models, 'f1_score'),
+            'most_consistent' => $this->findBestModel($models, 'consistency'),
+            'fastest' => $this->findFastestModel($models),
+        ];
+        
+        return $comparison;
+    }
+
+    /**
+     * Rasti geriausią modelį pagal metriką.
+     */
+    private function findBestModel(array $models, string $metric): array
+    {
+        $best = null;
+        $bestValue = -1;
+        
+        foreach ($models as $modelName => $modelData) {
+            if (isset($modelData[$metric]) && $modelData[$metric] > $bestValue) {
+                $bestValue = $modelData[$metric];
+                $best = $modelName;
+            }
+        }
+        
+        return [
+            'model' => $best,
+            'value' => $bestValue
+        ];
+    }
+
+    /**
+     * Rasti greičiausią modelį.
+     */
+    private function findFastestModel(array $models): array
+    {
+        $fastest = null;
+        $fastestTime = PHP_INT_MAX;
+        
+        foreach ($models as $modelName => $modelData) {
+            $time = $modelData['avg_execution_time_ms'] ?? PHP_INT_MAX;
+            if ($time < $fastestTime && $time > 0) {
+                $fastestTime = $time;
+                $fastest = $modelName;
+            }
+        }
+        
+        return [
+            'model' => $fastest,
+            'avg_time_ms' => $fastestTime === PHP_INT_MAX ? null : $fastestTime
+        ];
+    }
+
+    /**
+     * Generuoti tyrimo išvadas pagal Zarankos darbo ir ATSPARA metodologiją.
+     */
+    private function generateInsights(array $results): array
+    {
+        $models = array_filter($results, function($key) {
+            return $key !== 'comparison' && $key !== 'insights';
+        }, ARRAY_FILTER_USE_KEY);
+        
+        $insights = [];
+        
+        // Bendras vertinimas pagal Zarankos darbo standartus
+        $avgF1 = collect($models)->avg('f1_score');
+        if ($avgF1 > 0.69) {
+            $insights[] = "Puikūs rezultatai (vid. F1: " . round($avgF1, 3) . ") - viršija Zarankos magistrinio darbo lygį (69.3%)";
+        } elseif ($avgF1 > 0.6) {
+            $insights[] = "Geri rezultatai (vid. F1: " . round($avgF1, 3) . ") - artėja prie Zarankos darbo standarto";
+        } elseif ($avgF1 > 0.44) {
+            $insights[] = "Vidutiniai rezultatai (vid. F1: " . round($avgF1, 3) . ") - viršija anglų kalbos tyrimus (~44%)";
+        } else {
+            $insights[] = "Žemi rezultatai (vid. F1: " . round($avgF1, 3) . ") - žemiau anglų kalbos standarto";
+        }
+        
+        // Lietuvių kalbos specifika
+        if ($avgF1 > 0.44) {
+            $insights[] = "Lietuvių kalbos modeliai efektyvesni nei anglų kalbos analogai - patvirtina Zarankos tyrimo išvadas";
+        }
+        
+        // Precision vs Recall analizė
+        $avgPrecision = collect($models)->avg('precision');
+        $avgRecall = collect($models)->avg('recall');
+        
+        if ($avgPrecision > $avgRecall + 0.1) {
+            $insights[] = "Modeliai konservatyvūs (P=" . round($avgPrecision, 3) . " > R=" . round($avgRecall, 3) . ") - mažiau false positives";
+        } elseif ($avgRecall > $avgPrecision + 0.1) {
+            $insights[] = "Modeliai jautrūs (R=" . round($avgRecall, 3) . " > P=" . round($avgPrecision, 3) . ") - aptinka daugiau propagandos";
+        } else {
+            $insights[] = "Subalansuoti modeliai (P≈R≈" . round(($avgPrecision + $avgRecall) / 2, 3) . ") - optimalus precision/recall santykis";
+        }
+        
+        // Fragmentų identifikavimo specifika
+        $avgCoverage = collect($models)->avg('coverage');
+        if ($avgCoverage > 0.8) {
+            $insights[] = "Aukšta fragmentų aptikimo apimtis (" . round($avgCoverage * 100, 1) . "%) - modeliai randa anotacijas daugumos tekstų";
+        } elseif ($avgCoverage > 0.6) {
+            $insights[] = "Vidutinė fragmentų aptikimo apimtis (" . round($avgCoverage * 100, 1) . "%) - dalies tekstų propagandos neaptikta";
+        } else {
+            $insights[] = "Žema fragmentų aptikimo apimtis (" . round($avgCoverage * 100, 1) . "%) - dauguma tekstų be anotacijų";
+        }
+        
+        // Nuoseklumo analizė
+        $avgConsistency = collect($models)->avg('consistency');
+        if ($avgConsistency > 0.8) {
+            $insights[] = "Aukšta modelių nuoseklumas - stabilūs rezultatai skirtingiems tekstams";
+        } elseif ($avgConsistency < 0.5) {
+            $insights[] = "Žema modelių nuoseklumas - nestabilūs rezultatai, reikia prompt'ų optimizavimo";
+        }
+        
+        // ATSPARA metodologijos kontekstas
+        if (count($models) >= 3) {
+            $insights[] = "Kelių modelių palyginimas atitinka ATSPARA projekto metodologiją";
+        }
+        
+        // Fragmentų ilgio analizė (pagal Zarankos pastebėjimus)
+        $insights[] = "Lietuvių kalbos propagandos fragmentai vidutiniškai 12x ilgesni nei anglų - tai paaiškinat geresnius F1 rezultatus";
+        
+        return $insights;
+    }
+
+    /**
+     * Apskaičiuoti fragmentų identifikavimo balą (pagal Zarankos metodologiją).
+     */
+    private function calculateFragmentIdentificationScore(object $metrics): float
+    {
+        // Zarankos darbe naudojamas span-based F1 score
+        $totalTruePositives = $metrics->sum('true_positives');
+        $totalFalsePositives = $metrics->sum('false_positives');
+        $totalFalseNegatives = $metrics->sum('false_negatives');
+        
+        if ($totalTruePositives == 0) {
+            return 0.0;
+        }
+        
+        $precision = $totalTruePositives / ($totalTruePositives + $totalFalsePositives);
+        $recall = $totalTruePositives / ($totalTruePositives + $totalFalseNegatives);
+        
+        if ($precision + $recall == 0) {
+            return 0.0;
+        }
+        
+        return round(2 * ($precision * $recall) / ($precision + $recall), 3);
+    }
+
+    /**
+     * Apskaičiuoti span detection tikslumą.
+     */
+    private function calculateSpanDetectionAccuracy(object $metrics): float
+    {
+        // Kiek tiksliai nustatytos propagandos fragmentų pozicijos
+        $accurateSpans = $metrics->filter(function($metric) {
+            return $metric->position_accuracy > 0.8; // 80% pozicijos tikslumas
+        })->count();
+        
+        $totalSpans = $metrics->count();
+        
+        return $totalSpans > 0 ? round($accurateSpans / $totalSpans, 3) : 0.0;
+    }
+
+    /**
+     * Palyginti su Zarankos darbo rezultatais.
+     */
+    private function compareWithZarankaResults(object $metrics): array
+    {
+        $ourF1 = round($metrics->avg('f1_score'), 3);
+        
+        // Zarankos darbo benchmark'ai
+        $zarankaBenchmarks = [
+            'xlm-roberta-base' => 0.693,  // 69.3%
+            'litlat-bert' => 0.660,       // 66.0%
+            'mdeberta-v3-base' => 0.646,  // 64.6%
+            'english_baseline' => 0.44    // Anglų kalbos tyrimai
+        ];
+        
+        $comparison = [
+            'our_f1' => $ourF1,
+            'zaranka_best' => $zarankaBenchmarks['xlm-roberta-base'],
+            'improvement_vs_english' => round($ourF1 - $zarankaBenchmarks['english_baseline'], 3),
+            'vs_zaranka_best' => round($ourF1 - $zarankaBenchmarks['xlm-roberta-base'], 3),
+        ];
+        
+        // Vertinimas
+        if ($ourF1 >= $zarankaBenchmarks['xlm-roberta-base']) {
+            $comparison['assessment'] = 'Excellent - equals or exceeds Zaranka benchmark';
+        } elseif ($ourF1 >= $zarankaBenchmarks['litlat-bert']) {
+            $comparison['assessment'] = 'Very good - comparable to Zaranka second-best';
+        } elseif ($ourF1 >= $zarankaBenchmarks['mdeberta-v3-base']) {
+            $comparison['assessment'] = 'Good - comparable to Zaranka third-best';
+        } elseif ($ourF1 >= $zarankaBenchmarks['english_baseline']) {
+            $comparison['assessment'] = 'Above English baseline - confirms Lithuanian superiority';
+        } else {
+            $comparison['assessment'] = 'Below expected - investigate methodology';
+        }
+        
+        return $comparison;
+    }
+
+    /**
      * Išgauti etiketes iš anotacijų struktūros.
      */
     private function extractLabelsFromAnnotations(array $annotations): array

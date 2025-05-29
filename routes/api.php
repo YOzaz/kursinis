@@ -103,6 +103,10 @@ Route::get('/default-prompt', function() {
 Route::get('/text-annotations/{textAnalysisId}', [AnalysisController::class, 'getTextAnnotations'])
     ->name('api.text.annotations');
 
+// Advanced metrics for research analysis
+Route::get('/results/{jobId}/advanced-metrics', [AnalysisController::class, 'getAdvancedMetrics'])
+    ->name('api.results.advanced-metrics');
+
 // Dashboard statistikų eksportas
 Route::get('/dashboard/export', function(\Illuminate\Http\Request $request) {
     $format = $request->get('format', 'json');

@@ -74,13 +74,24 @@ class TextAnalysis extends Model
     public function getAllModelAnnotations(): array
     {
         $annotations = [];
-        $models = array_keys(config('llm.models', []));
         
-        foreach ($models as $model) {
-            $annotations[$model] = $this->getModelAnnotations($model);
+        // Check which providers have annotations and get actual model names
+        if (!empty($this->claude_annotations)) {
+            $actualModel = $this->claude_actual_model ?? 'claude-opus-4';
+            $annotations[$actualModel] = $this->claude_annotations;
         }
         
-        return array_filter($annotations); // Remove null values
+        if (!empty($this->gpt_annotations)) {
+            $actualModel = $this->gpt_actual_model ?? 'gpt-4.1';
+            $annotations[$actualModel] = $this->gpt_annotations;
+        }
+        
+        if (!empty($this->gemini_annotations)) {
+            $actualModel = $this->gemini_actual_model ?? 'gemini-2.5-pro';
+            $annotations[$actualModel] = $this->gemini_annotations;
+        }
+        
+        return $annotations;
     }
 
     /**

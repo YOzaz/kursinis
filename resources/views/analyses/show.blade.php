@@ -118,22 +118,22 @@
                                     <table class="table table-striped" id="analysisResultsTable">
                                         <thead>
                                             <tr>
-                                                <th style="width: 35%;">Tekstas</th>
-                                                <th style="width: 15%;">
+                                                <th style="width: 30%;">Tekstas</th>
+                                                <th style="width: 12%;">
                                                     Modeliai
                                                     <i class="fas fa-question-circle text-muted ms-1" 
                                                        data-bs-toggle="tooltip" 
                                                        data-bs-placement="top" 
                                                        title="AI modelių skaičius, analizavęs tekstą"></i>
                                                 </th>
-                                                <th style="width: 20%;">
+                                                <th style="width: 25%;">
                                                     Bendrieji rezultatai
                                                     <i class="fas fa-question-circle text-muted ms-1" 
                                                        data-bs-toggle="tooltip" 
                                                        data-bs-placement="top" 
                                                        title="Suvestinė visų modelių sprendimų ir rastų technikų"></i>
                                                 </th>
-                                                <th style="width: 15%;">
+                                                <th style="width: 18%;">
                                                     Vidutinės metrikos
                                                     <i class="fas fa-question-circle text-muted ms-1" 
                                                        data-bs-toggle="tooltip" 
@@ -181,7 +181,7 @@
                                                 @endphp
                                                 <tr>
                                                     <td>
-                                                        <div class="text-truncate" style="max-width: 300px;">
+                                                        <div class="text-truncate" style="max-width: 250px;">
                                                             <span class="text-preview" data-text-id="{{ $textAnalysis->id }}">
                                                                 {{ Str::limit($textAnalysis->content, 100) }}
                                                             </span>

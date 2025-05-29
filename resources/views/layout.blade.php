@@ -145,7 +145,7 @@
                         <strong>Vilniaus universitetas</strong> - Propagandos ir dezinformacijos analizės sistema
                     </p>
                     <small class="text-muted">
-                        ATSPARA projektas | Magistro baigiamasis darbas, 2025
+                        Kursinis darbas | Paremtas ATSPARA projektu, 2025
                     </small>
                 </div>
                 <div class="col-md-4 text-md-end">

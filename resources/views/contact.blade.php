@@ -26,7 +26,7 @@
                         </div>
                         <div class="card-body">
                             <h6>Marijus Plančiūnas</h6>
-                            <p class="text-muted">Magistro studijos, Duomenų mokslas</p>
+                            <p class="text-muted">Kursinio darbo autorius, Duomenų mokslas</p>
                             
                             <div class="contact-info">
                                 <div class="mb-2">
@@ -98,8 +98,8 @@
                 </div>
                 <div class="card-body">
                     <p>
-                        Ši sistema yra ATSPARA projekto dalis - Vilniaus universiteto iniciatyvos, 
-                        skirtos propagandos ir dezinformacijos tyrimams lietuvių kalboje.
+                        Šis kursinis darbas remiasi ATSPARA projektu - Vilniaus universiteto iniciatyva, 
+                        skirta propagandos ir dezinformacijos tyrimams lietuvių kalboje.
                     </p>
                     
                     <div class="row">
@@ -123,64 +123,23 @@
             <div class="card mb-4">
                 <div class="card-header">
                     <h5 class="mb-0">
-                        <i class="fas fa-bug me-2"></i>Problemų pranešimas
+                        <i class="fas fa-info-circle me-2"></i>Akademinis tyrimas
                     </h5>
                 </div>
                 <div class="card-body">
-                    <p>Jei susidūrėte su techninėmis problemomis, prašome pateikti šią informaciją:</p>
+                    <p>Ši sistema yra sukurta akademinio tyrimo tikslais. Jei turite klausimų apie:</p>
                     
-                    <div class="alert alert-info">
-                        <h6>Reikiama informacija:</h6>
-                        <ul class="mb-0">
-                            <li><strong>Analizės ID</strong> (jei susijęs su konkrečia analize)</li>
-                            <li><strong>Klaidos aprašymas</strong> (ką bandėte daryti, kas nutiko)</li>
-                            <li><strong>Naršyklė ir versija</strong> (pvz., Chrome 118)</li>
-                            <li><strong>Įkelto failo dydis ir struktūra</strong> (jei susijęs su įkėlimu)</li>
-                            <li><strong>Ekrano nuotrauka</strong> (jei yra klaidos pranešimas)</li>
-                        </ul>
-                    </div>
+                    <ul>
+                        <li><strong>Tyrimo metodologiją</strong> ir ATSPARA projekto pritaikymą</li>
+                        <li><strong>Rezultatų interpretavimą</strong> ir analizės proceso ypatumus</li>
+                        <li><strong>Techninės sistemos veikimą</strong> ir galimas problemas</li>
+                        <li><strong>Duomenų naudojimą</strong> tyrimo kontekste</li>
+                    </ul>
                     
-                    <p>Kuo išsamesnė informacija, tuo greičiau galėsime išspręsti problemą.</p>
+                    <p>Prašome susisiekti el. paštu pateikiant kuo išsamesnę informaciją apie jūsų klausimą.</p>
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-clock me-2"></i>Atsako laikas
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-4">
-                            <div class="p-3">
-                                <i class="fas fa-exclamation-triangle fa-2x text-danger mb-2"></i>
-                                <h6>Kritinės klaidos</h6>
-                                <small class="text-muted">Iki 24 val.</small>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="p-3">
-                                <i class="fas fa-tools fa-2x text-warning mb-2"></i>
-                                <h6>Techninės problemos</h6>
-                                <small class="text-muted">2-3 darbo dienos</small>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="p-3">
-                                <i class="fas fa-question-circle fa-2x text-info mb-2"></i>
-                                <h6>Bendrieji klausimai</h6>
-                                <small class="text-muted">Iki 1 savaitės</small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="alert alert-warning mt-3">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Pastaba:</strong> Atsakymo laikas gali būti ilgesnis studentų sesijos metu arba atostogų laikotarpiu.
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>

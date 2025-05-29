@@ -105,7 +105,7 @@
                     <div class="card-footer text-center bg-light">
                         <small class="text-muted">
                             <i class="fas fa-university me-1"></i>
-                            Vilniaus universitetas | ATSPARA projektas
+                            Vilniaus universitetas | Kursinis darbas
                         </small>
                     </div>
                 </div>

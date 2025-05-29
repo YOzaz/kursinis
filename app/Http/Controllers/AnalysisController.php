@@ -1161,4 +1161,40 @@ class AnalysisController extends Controller
         
         return $legend;
     }
+
+    /**
+     * Gauti pažangesnes metrikas analizei.
+     */
+    public function getAdvancedMetrics(string $jobId): JsonResponse
+    {
+        try {
+            $analysis = AnalysisJob::where('job_id', $jobId)->first();
+            
+            if (!$analysis) {
+                return response()->json([
+                    'error' => 'Analizė nerasta'
+                ], 404);
+            }
+
+            $advancedMetrics = $this->metricsService->calculateAdvancedMetrics($jobId);
+
+            return response()->json([
+                'success' => true,
+                'job_id' => $jobId,
+                'advanced_metrics' => $advancedMetrics
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Klaida gaunant pažangesnes metrikas', [
+                'job_id' => $jobId,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'error' => 'Serverio klaida gaunant metrikas',
+                'details' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

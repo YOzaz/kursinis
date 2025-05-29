@@ -43,13 +43,14 @@
                     </h2>
                     <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
                         <div class="accordion-body">
-                            <p>Sistemos tikslumas priklauso nuo teksto pobūdžio ir AI modelio. Vidutiniškai:</p>
+                            <p>Sistemos tikslumas priklauso nuo:</p>
                             <ul>
-                                <li><strong>Precision:</strong> 70-85% (premium modeliai)</li>
-                                <li><strong>Recall:</strong> 65-80%</li>
-                                <li><strong>F1 Score:</strong> 70-82%</li>
+                                <li><strong>Teksto pobūdžio:</strong> Aiškesnė propaganda aptinkama geriau</li>
+                                <li><strong>Pasirinkto AI modelio:</strong> Skirtingi modeliai turi skirtingus stiprumus</li>
+                                <li><strong>Kultūrinio konteksto:</strong> Lietuvių kalbos specifikos</li>
+                                <li><strong>Teksto ilgio:</strong> Ilgesni tekstai gali suteikti daugiau konteksto</li>
                             </ul>
-                            <p>Geriausi rezultatai pasiekiami su Claude Opus 4 ir GPT-4.1 modeliais.</p>
+                            <p>Rekomenduojame naudoti kelis modelius ir palyginti rezultatus, kadangi kiekvienas AI modelis turi savų ypatumų.</p>
                         </div>
                     </div>
                 </div>
@@ -68,7 +69,7 @@
                                 <li><strong>Pasirinktų modelių skaičiaus:</strong> 6 modeliai = 6x ilgiau</li>
                                 <li><strong>Teksto ilgio:</strong> Ilgesni tekstai užtrunka šiek tiek ilgiau</li>
                             </ul>
-                            <p><strong>Pavyzdys:</strong> 100 tekstų su 3 modeliais = ~10-15 minučių</p>
+                            <p><strong>Pavyzdys:</strong> 100 tekstų su 3 modeliais gali užtrukti 10-30 minučių priklausomai nuo API apkrovos.</p>
                         </div>
                     </div>
                 </div>
@@ -118,17 +119,19 @@
                         <div class="accordion-body">
                             <p><strong>Premium modeliai</strong> (pagal nutylėjimą pažymėti):</p>
                             <ul>
-                                <li><strong>Claude Opus 4:</strong> Geriausias bendras tikslumas</li>
-                                <li><strong>GPT-4.1:</strong> Greitas ir tikslus</li>
-                                <li><strong>Gemini 2.5 Pro:</strong> Geras sudėtingų tekstų analizei</li>
+                                <li><strong>Claude Opus 4:</strong> Naujausia Anthropic versija</li>
+                                <li><strong>GPT-4.1:</strong> Optimizuota OpenAI versija</li>
+                                <li><strong>Gemini 2.5 Pro:</strong> Google pažangiausias modelis</li>
                             </ul>
                             
                             <p><strong>Standard modeliai:</strong></p>
                             <ul>
-                                <li><strong>Claude Sonnet 4:</strong> Geras balansas tarp greičio ir tikslumo</li>
-                                <li><strong>GPT-4o:</strong> Multimodalus, bet šiek tiek mažiau tikslus tekstui</li>
-                                <li><strong>Gemini 2.5 Flash:</strong> Greičiausias, bet mažiausiai tikslus</li>
+                                <li><strong>Claude Sonnet 4:</strong> Greitas Anthropic modelis</li>
+                                <li><strong>GPT-4o:</strong> OpenAI multimodalus modelis</li>
+                                <li><strong>Gemini 2.5 Flash:</strong> Google greitas modelis</li>
                             </ul>
+                            
+                            <p>Rekomenduojame išbandyti kelis modelius ir palyginti rezultatus, nes skirtingi modeliai gali skirtingai interpretuoti tą patį tekstą.</p>
                         </div>
                     </div>
                 </div>

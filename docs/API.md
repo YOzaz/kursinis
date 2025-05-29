@@ -2,7 +2,7 @@
 
 ## 📋 Overview
 
-The Propaganda Analysis API provides programmatic access to Lithuanian text analysis using multiple Large Language Models (LLMs). The API supports both single text analysis and batch processing with expert annotation comparisons. Custom prompts can be provided directly in analysis requests to optimize results.
+The Propaganda Analysis API provides programmatic access to Lithuanian text analysis using multiple Large Language Models (LLMs). This system is part of a course work (kursinis darbas) that builds upon the ATSPARA project methodology. The API supports both single text analysis and batch processing with expert annotation comparisons, implementing metrics comparable to Zaranka's Master's thesis research (achieving 69.3% F1-score with xlm-roberta-base).
 
 **Base URL**: `http://propaganda.local/api`  
 **Authentication**: API keys configured in environment  

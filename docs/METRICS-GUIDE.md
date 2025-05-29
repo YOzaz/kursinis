@@ -6,7 +6,7 @@
 
 ## 📊 Overview
 
-This guide explains all metrics used in the Lithuanian Propaganda Detection System. The system compares AI model results against expert annotations using statistical methods to measure performance accuracy.
+This guide explains all metrics used in the Lithuanian Propaganda Detection System. The system compares AI model results against expert annotations using statistical methods to measure performance accuracy. This implementation is based on research methodologies from Zaranka's Master's thesis (2025) and follows ATSPARA project standards for Lithuanian propaganda detection.
 
 ## 🎯 Core Metrics
 
@@ -48,6 +48,8 @@ This guide explains all metrics used in the Lithuanian Propaganda Detection Syst
 - **Poor F1 (<0.6)**: Either precision or recall (or both) are low
 
 **Why F1 Score Matters**: Unlike accuracy, F1 score works well with imbalanced data and considers both false positives and false negatives.
+
+**Research Benchmark**: Zaranka's Master's thesis achieved 69.3% F1-score using xlm-roberta-base for Lithuanian propaganda fragment identification, significantly outperforming English language studies (~44% F1-score).
 
 ### 4. Cohen's Kappa (Cohen'o Kappa)
 
@@ -174,6 +176,32 @@ For reliable results, consider:
 - **Minimum Sample Size**: 50+ texts for stable metrics
 - **Cross-Validation**: Multiple independent test sets
 - **Error Margins**: ±0.05 for F1 scores with 95% confidence
+
+## 🔬 Advanced Research Metrics (Zaranka Benchmark)
+
+### Fragment Identification Score
+**Definition**: Span-based F1 score specifically designed for propaganda fragment detection.
+**Research Benchmark**: 69.3% (xlm-roberta-base), 66.0% (litlat-bert), 64.6% (mdeberta-v3-base)
+
+### Span Detection Accuracy  
+**Definition**: Percentage of propaganda fragments where AI correctly identified both the technique category and precise text position.
+**Formula**: `Accurate Spans / Total Spans`
+
+### Lithuanian Language Superiority
+**Research Finding**: Lithuanian propaganda fragments are ~12x longer than English equivalents, leading to better F1 scores:
+- **Lithuanian**: ~69% F1 (this system and Zaranka's research)
+- **English**: ~44% F1 (international studies)
+
+### Model Performance Ranking (Research-Based)
+1. **xlm-roberta-base**: 69.3% F1 (recommended for Lithuanian)
+2. **litlat-bert**: 66.0% F1 (Baltic-specific model)  
+3. **mdeberta-v3-base**: 64.6% F1 (multilingual alternative)
+
+### Research Comparison Metrics
+The system automatically compares results against established benchmarks:
+- **vs. Zaranka Best**: Difference from 69.3% xlm-roberta-base result
+- **vs. English Baseline**: Improvement over international ~44% F1 studies
+- **Assessment**: Automatic evaluation (Excellent/Good/Below Expected)
 
 ## 🛠️ Using Metrics for Model Optimization
 

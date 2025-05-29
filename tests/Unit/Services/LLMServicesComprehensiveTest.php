@@ -246,30 +246,26 @@ class LLMServicesComprehensiveTest extends TestCase
 
     public function test_services_use_correct_model_configurations()
     {
-        Http::fake();
+        Http::fake([
+            'api.anthropic.com/*' => Http::response([
+                'content' => [['type' => 'text', 'text' => '{"primaryChoice":{"choices":["yes"]},"annotations":[],"desinformationTechnique":{"choices":[]}}']]
+            ], 200),
+            'api.openai.com/*' => Http::response([
+                'choices' => [['message' => ['content' => '{"primaryChoice":{"choices":["yes"]},"annotations":[],"desinformationTechnique":{"choices":[]}}']]],
+            ], 200),
+            'generativelanguage.googleapis.com/*' => Http::response([
+                'candidates' => [['content' => ['parts' => [['text' => '{"primaryChoice":{"choices":["yes"]},"annotations":[],"desinformationTechnique":{"choices":[]}}']]]]],
+            ], 200)
+        ]);
 
         $claudeService = $this->app->make(ClaudeService::class);
         $geminiService = $this->app->make(GeminiService::class);
         $openaiService = $this->app->make(OpenAIService::class);
 
         // Test that services use the correct configuration
-        try {
-            $claudeService->analyzeText('Test text', 'claude-opus-4', 'Test prompt');
-        } catch (\Exception $e) {
-            // Expected to fail, but should use correct config
-        }
-
-        try {
-            $geminiService->analyzeText('Test text', 'gemini-2.5-pro', 'Test prompt');
-        } catch (\Exception $e) {
-            // Expected to fail, but should use correct config
-        }
-
-        try {
-            $openaiService->analyzeText('Test text', 'gpt-4.1', 'Test prompt');
-        } catch (\Exception $e) {
-            // Expected to fail, but should use correct config
-        }
+        $claudeService->analyzeText('Test text', 'claude-opus-4', 'Test prompt');
+        $geminiService->analyzeText('Test text', 'gemini-2.5-pro', 'Test prompt');
+        $openaiService->analyzeText('Test text', 'gpt-4.1', 'Test prompt');
 
         // Verify correct API endpoints were called
         Http::assertSent(function ($request) {
@@ -308,10 +304,14 @@ class LLMServicesComprehensiveTest extends TestCase
     public function test_services_handle_custom_prompts()
     {
         Http::fake([
-            '*' => Http::response([
-                'content' => [['type' => 'text', 'text' => '[]']],
-                'choices' => [['message' => ['content' => '[]']]],
-                'candidates' => [['content' => ['parts' => [['text' => '[]']]]]]
+            'api.anthropic.com/*' => Http::response([
+                'content' => [['type' => 'text', 'text' => '{"primaryChoice":{"choices":["yes"]},"annotations":[],"desinformationTechnique":{"choices":[]}}']]
+            ], 200),
+            'api.openai.com/*' => Http::response([
+                'choices' => [['message' => ['content' => '{"primaryChoice":{"choices":["yes"]},"annotations":[],"desinformationTechnique":{"choices":[]}}']]],
+            ], 200),
+            'generativelanguage.googleapis.com/*' => Http::response([
+                'candidates' => [['content' => ['parts' => [['text' => '{"primaryChoice":{"choices":["yes"]},"annotations":[],"desinformationTechnique":{"choices":[]}}']]]]],
             ], 200)
         ]);
 

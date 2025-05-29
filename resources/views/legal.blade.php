@@ -37,7 +37,7 @@
                         <div class="col-md-6">
                             <h6><i class="fas fa-calendar text-success me-2"></i>Sukūrimo data</h6>
                             <p>2025 m.<br>
-                            Magistro baigiamasis darbas</p>
+                            Kursinis darbas</p>
                         </div>
                     </div>
                 </div>
@@ -163,7 +163,7 @@
                         <h6>Rekomenduojamas citavimas:</h6>
                         <p class="mb-0 font-monospace small">
                             Plančiūnas, M. (2025). Propagandos analizės sistema naudojant RISEN metodologiją 
-                            ir ATSPARA korpusą. Magistro baigiamasis darbas. Vilniaus universitetas.
+                            ir ATSPARA korpusą. Kursinis darbas. Vilniaus universitetas.
                         </p>
                     </div>
                 </div>
