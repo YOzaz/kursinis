@@ -321,7 +321,56 @@ text_id,technique,expert_start,expert_end,expert_text,model,model_start,model_en
 37735,simplification,0,360,"Visų pirma nusiimkim...",claude-opus-4,0,196,"Visų pirma nusiimkim...",true,0.92,0.85,0.78,0.81
 ```
 
-### 6. Repeat Analysis
+### 6. Text Annotations
+
+**Endpoint**: `GET /api/text-annotations/{text_analysis_id}`
+
+Get annotations for text highlighting, supporting both AI model and expert annotations.
+
+#### Query Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `view` | string | `ai` | Annotation source: `ai` or `expert` |
+| `model` | string | `all` | Specific AI model (when view=ai): model name or `all` |
+| `enabled` | boolean | `true` | Whether annotations are enabled |
+
+#### Response
+
+```json
+{
+  "success": true,
+  "content": "Analizuojamas tekstas su propagandos technikomis...",
+  "annotations": [
+    {
+      "start": 15,
+      "end": 35,
+      "technique": "emotionalAppeal",
+      "text": "labai pavojingas",
+      "models": ["claude-opus-4", "gemini-2.5-pro"]
+    }
+  ],
+  "legend": [
+    {
+      "technique": "emotionalAppeal",
+      "color": "#ff6b6b",
+      "number": 1
+    }
+  ],
+  "view_type": "ai"
+}
+```
+
+#### Error Response
+
+```json
+{
+  "success": false,
+  "message": "Šiam tekstui nėra ekspertų anotacijų"
+}
+```
+
+### 7. Repeat Analysis
 
 **Endpoint**: `POST /api/repeat-analysis`
 

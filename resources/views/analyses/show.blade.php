@@ -186,10 +186,50 @@
                                                                 {{ Str::limit($textAnalysis->content, 100) }}
                                                             </span>
                                                             <button class="btn btn-sm btn-link p-0 ms-1" onclick="toggleFullText({{ $textAnalysis->id }})">
-                                                                <i class="fas fa-expand-alt"></i>
+                                                                <i class="fas fa-expand-alt"></i> Daugiau
                                                             </button>
                                                             <div class="full-text d-none" id="full-text-{{ $textAnalysis->id }}">
-                                                                {{ $textAnalysis->content }}
+                                                                <div class="expanded-text-controls mb-3">
+                                                                    <div class="d-flex justify-content-between align-items-center">
+                                                                        <h6 class="mb-0">Tekstas {{ $textAnalysis->text_id }}</h6>
+                                                                        <div class="annotation-controls-expanded">
+                                                                            <div class="btn-group me-2" role="group">
+                                                                                <input type="radio" class="btn-check" name="expandedViewType-{{ $textAnalysis->id }}" id="expanded-ai-view-{{ $textAnalysis->id }}" value="ai" checked>
+                                                                                <label class="btn btn-outline-primary btn-sm" for="expanded-ai-view-{{ $textAnalysis->id }}">AI anotacijos</label>
+                                                                                
+                                                                                <input type="radio" class="btn-check" name="expandedViewType-{{ $textAnalysis->id }}" id="expanded-expert-view-{{ $textAnalysis->id }}" value="expert">
+                                                                                <label class="btn btn-outline-secondary btn-sm" for="expanded-expert-view-{{ $textAnalysis->id }}">Ekspertų anotacijos</label>
+                                                                            </div>
+                                                                            
+                                                                            <div class="model-selector-expanded me-2" id="model-selector-expanded-{{ $textAnalysis->id }}">
+                                                                                <select class="form-select form-select-sm" id="ai-model-select-{{ $textAnalysis->id }}">
+                                                                                    <option value="all">Visi modeliai</option>
+                                                                                    @foreach($textAnalysis->getAllModelAnnotations() as $modelName => $annotations)
+                                                                                        <option value="{{ $modelName }}">{{ $modelName }}</option>
+                                                                                    @endforeach
+                                                                                </select>
+                                                                            </div>
+                                                                            
+                                                                            <div class="form-check form-switch">
+                                                                                <input class="form-check-input" type="checkbox" id="annotation-toggle-{{ $textAnalysis->id }}" checked>
+                                                                                <label class="form-check-label" for="annotation-toggle-{{ $textAnalysis->id }}">
+                                                                                    Spalvoti
+                                                                                </label>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                                <div class="highlighted-text-expanded" id="highlighted-text-{{ $textAnalysis->id }}">
+                                                                    {{ $textAnalysis->content }}
+                                                                </div>
+                                                                
+                                                                <div class="legend-expanded" id="legend-{{ $textAnalysis->id }}" style="display: none;">
+                                                                    <h6 class="mt-3">Propagandos technikų legenda:</h6>
+                                                                    <div class="row" id="legend-items-{{ $textAnalysis->id }}">
+                                                                        <!-- Legend items will be populated by JavaScript -->
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                         <small class="text-muted d-block mt-1">ID: {{ $textAnalysis->text_id }}</small>
@@ -284,12 +324,30 @@
                                 <h5 class="card-title mb-0">
                                     <i class="fas fa-highlighter me-2"></i>Tekstų analizė
                                 </h5>
-                                <div class="btn-group view-toggle" role="group">
-                                    <input type="radio" class="btn-check" name="viewType" id="ai-view" value="ai" checked>
-                                    <label class="btn btn-outline-primary" for="ai-view">AI anotacijos</label>
+                                <div class="annotation-controls">
+                                    <div class="btn-group view-toggle" role="group">
+                                        <input type="radio" class="btn-check" name="viewType" id="ai-view" value="ai" checked>
+                                        <label class="btn btn-outline-primary" for="ai-view">AI anotacijos</label>
+                                        
+                                        <input type="radio" class="btn-check" name="viewType" id="expert-view" value="expert">
+                                        <label class="btn btn-outline-secondary" for="expert-view">Ekspertų anotacijos</label>
+                                    </div>
                                     
-                                    <input type="radio" class="btn-check" name="viewType" id="expert-view" value="expert">
-                                    <label class="btn btn-outline-secondary" for="expert-view">Ekspertų anotacijos</label>
+                                    <div class="model-selector ms-3" id="model-selector" style="display: none;">
+                                        <label class="form-label small">Pasirinkite AI modelį:</label>
+                                        <select class="form-select form-select-sm" id="ai-model-select">
+                                            <option value="all">Visi modeliai</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="annotation-toggle ms-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="annotation-toggle" checked>
+                                            <label class="form-check-label" for="annotation-toggle">
+                                                Rodyti anotacijas
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="card-body">
@@ -444,9 +502,10 @@
                         </div>
                         
                         @php
+                            // Get all model annotations that actually exist
                             $allModelAnnotations = $textAnalysis->getAllModelAnnotations();
                             
-                            // Taip pat pridėti modelius iš metrikų, jei jų anotacijos buvo perrašytos
+                            // Only add models from metrics if they don't have annotations but have metrics data
                             $metricsModels = [];
                             foreach($textAnalysis->comparisonMetrics as $metric) {
                                 if (!isset($allModelAnnotations[$metric->model_name])) {
@@ -454,7 +513,15 @@
                                 }
                             }
                             
-                            $allModelsToShow = array_merge($allModelAnnotations, $metricsModels);
+                            // Show only models that have annotations, prioritizing actual annotations
+                            $allModelsToShow = $allModelAnnotations;
+                            
+                            // Only add metric-only models if they're not duplicates
+                            foreach ($metricsModels as $modelName => $annotations) {
+                                if (!isset($allModelsToShow[$modelName])) {
+                                    $allModelsToShow[$modelName] = $annotations;
+                                }
+                            }
                         @endphp
                         
                         @foreach($allModelsToShow as $modelName => $annotations)
@@ -644,11 +711,16 @@ function toggleFullText(textId) {
         fullText.classList.remove('d-none');
         preview.classList.add('d-none');
         icon.className = 'fas fa-compress-alt';
+        button.innerHTML = '<i class="fas fa-compress-alt"></i> Mažiau';
         button.title = 'Sutrumpinti';
+        
+        // Initialize expanded text view
+        initializeExpandedTextView(textId);
     } else {
         fullText.classList.add('d-none');
         preview.classList.remove('d-none');
         icon.className = 'fas fa-expand-alt';
+        button.innerHTML = '<i class="fas fa-expand-alt"></i> Daugiau';
         button.title = 'Išplėsti';
     }
 }
@@ -1186,27 +1258,27 @@ function showLegend(legendItems) {
 
 function getTechniqueDescription(technique) {
     const descriptions = {
-        'emotionalAppeal': 'Apeliavimas į jausmus',
-        'appealToFear': 'Apeliavimas į baimę',
-        'loadedLanguage': 'Vertinamoji leksika',
-        'nameCalling': 'Etiketių klijavimas',
-        'exaggeration': 'Perdėtas vertinimas',
-        'glitteringGeneralities': 'Blizgantys apibendrinimai',
-        'whataboutism': 'Whataboutism',
-        'redHerring': 'Red Herring',
-        'strawMan': 'Straw Man',
-        'causalOversimplification': 'Supaprastinimas',
-        'blackAndWhite': 'Juoda-balta',
-        'thoughtTerminatingCliche': 'Kliše',
-        'slogans': 'Šūkiai',
-        'obfuscation': 'Neapibrėžtumas',
-        'appealToAuthority': 'Apeliavimas į autoritetą',
-        'flagWaving': 'Mojavimas vėliava',
-        'bandwagon': 'Bandwagon',
-        'doubt': 'Abejojimas',
-        'smears': 'Šmeižtas',
-        'reductioAdHitlerum': 'Reductio ad hitlerum',
-        'repetition': 'Pakartojimas'
+        'emotionalAppeal': 'Apeliavimas į jausmus - bandymas paveikti auditoriją per emocijas',
+        'appealToFear': 'Apeliavimas į baimę - bauginimai ir grėsmių kėlimas',
+        'loadedLanguage': 'Vertinamoji leksika - žodžiai su stipria emocinę konotacija',
+        'nameCalling': 'Etiketių klijavimas - neigiamų vardų priskyrimams oponentams',
+        'exaggeration': 'Perdėtas vertinimas - situacijos ar faktų išpūtimas',
+        'glitteringGeneralities': 'Blizgantys apibendrinimai - abstraktūs teigiami žodžiai be konkretaus turinio',
+        'whataboutism': 'Whataboutism - dėmesio nukreipimas į kitų klaidas',
+        'redHerring': 'Red Herring - dėmesio nukreipimas nuo pagrindinės temos',
+        'strawMan': 'Straw Man - oponento pozicijos iškraipymas ir kritika',
+        'causalOversimplification': 'Supaprastinimas - sudėtingų priežasčių suvienijimas',
+        'blackAndWhite': 'Juoda-balta - situacijos pateikimas kaip tik dviejų variantų',
+        'thoughtTerminatingCliche': 'Kliše - frazės, stabdančios kritinį mąstymą',
+        'slogans': 'Šūkiai - trumpi, lengvai įsimenami posakiai',
+        'obfuscation': 'Neapibrėžtumas - tyčinis sąvokų miglotumas',
+        'appealToAuthority': 'Apeliavimas į autoritetą - argumentavimas autoriteto pagrindu',
+        'flagWaving': 'Mojavimas vėliava - patriotinių jausmų eksploatavimas',
+        'bandwagon': 'Bandwagon - spaudimas prisijungti prie daugumos',
+        'doubt': 'Abejojimas - nepagrįstų abejonių kėlimas',
+        'smears': 'Šmeižtas - reputacijos gadinimas',
+        'reductioAdHitlerum': 'Reductio ad hitlerum - palyginimas su Hitleriu ar naciais',
+        'repetition': 'Pakartojimas - to paties žinios pakartojimas'
     };
     
     return descriptions[technique] || technique;
@@ -1216,6 +1288,159 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Initialize expanded text view with annotations
+function initializeExpandedTextView(textId) {
+    const viewToggle = document.getElementsByName(`expandedViewType-${textId}`);
+    const modelSelect = document.getElementById(`ai-model-select-${textId}`);
+    const annotationToggle = document.getElementById(`annotation-toggle-${textId}`);
+    
+    // Add event listeners for view toggle
+    viewToggle.forEach(radio => {
+        radio.addEventListener('change', function() {
+            loadExpandedTextAnnotations(textId);
+        });
+    });
+    
+    // Add event listener for model selection
+    if (modelSelect) {
+        modelSelect.addEventListener('change', function() {
+            loadExpandedTextAnnotations(textId);
+        });
+    }
+    
+    // Add event listener for annotation toggle
+    if (annotationToggle) {
+        annotationToggle.addEventListener('change', function() {
+            loadExpandedTextAnnotations(textId);
+        });
+    }
+    
+    // Load initial annotations
+    loadExpandedTextAnnotations(textId);
+}
+
+function loadExpandedTextAnnotations(textId) {
+    const viewType = document.querySelector(`input[name="expandedViewType-${textId}"]:checked`)?.value || 'ai';
+    const selectedModel = document.getElementById(`ai-model-select-${textId}`)?.value || 'all';
+    const annotationsEnabled = document.getElementById(`annotation-toggle-${textId}`)?.checked || false;
+    const highlightedText = document.getElementById(`highlighted-text-${textId}`);
+    const legend = document.getElementById(`legend-${textId}`);
+    
+    if (!highlightedText) return;
+    
+    // Show loading
+    highlightedText.innerHTML = '<div class="text-center text-muted p-3"><i class="fas fa-spinner fa-spin"></i> Kraunama...</div>';
+    legend.style.display = 'none';
+    
+    // Fetch annotations from API
+    const params = new URLSearchParams({
+        view: viewType,
+        model: selectedModel,
+        enabled: annotationsEnabled
+    });
+    
+    fetch(`/api/text-annotations/${textId}?${params}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (annotationsEnabled && data.annotations && data.annotations.length > 0) {
+                    displayExpandedHighlightedText(textId, data.content, data.annotations, data.legend);
+                    showExpandedLegend(textId, data.legend);
+                } else {
+                    // Show plain text without annotations
+                    highlightedText.innerHTML = `<div class="p-3">${escapeHtml(data.content)}</div>`;
+                    legend.style.display = 'none';
+                }
+            } else {
+                highlightedText.innerHTML = `<div class="alert alert-warning">${data.message || 'Nepavyko įkelti anotacijų'}</div>`;
+                legend.style.display = 'none';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading annotations:', error);
+            highlightedText.innerHTML = '<div class="alert alert-danger">Klaida kraunant anotacijas</div>';
+            legend.style.display = 'none';
+        });
+}
+
+function displayExpandedHighlightedText(textId, content, annotations, legend) {
+    const highlightedText = document.getElementById(`highlighted-text-${textId}`);
+    
+    if (!annotations || annotations.length === 0) {
+        highlightedText.innerHTML = `<div class="p-3">${escapeHtml(content)}</div>`;
+        return;
+    }
+    
+    // Sort annotations by start position
+    const sortedAnnotations = [...annotations].sort((a, b) => a.start - b.start);
+    
+    let highlightedContent = '';
+    let lastIndex = 0;
+    
+    sortedAnnotations.forEach(annotation => {
+        // Add text before annotation
+        highlightedContent += escapeHtml(content.substring(lastIndex, annotation.start));
+        
+        // Add highlighted annotation with tooltip
+        const color = techniqueColors[annotation.technique] || '#cccccc';
+        const labels = Array.isArray(annotation.labels) ? annotation.labels : [annotation.technique];
+        const description = getTechniqueDescription(annotation.technique);
+        
+        highlightedContent += `<span class="highlighted-annotation" 
+                                     style="background-color: ${color}; padding: 2px 4px; border-radius: 3px; margin: 1px; cursor: help;"
+                                     data-labels="${labels.join(', ')}"
+                                     data-bs-toggle="tooltip"
+                                     data-bs-placement="top"
+                                     title="${description}">${escapeHtml(annotation.text)}</span>`;
+        
+        lastIndex = annotation.end;
+    });
+    
+    // Add remaining text
+    highlightedContent += escapeHtml(content.substring(lastIndex));
+    
+    highlightedText.innerHTML = `<div class="p-3" style="line-height: 1.8;">${highlightedContent}</div>`;
+    
+    // Initialize tooltips for new elements
+    const tooltipTriggerList = highlightedText.querySelectorAll('[data-bs-toggle="tooltip"]');
+    tooltipTriggerList.forEach(function(tooltipTriggerEl) {
+        new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+}
+
+function showExpandedLegend(textId, legendItems) {
+    const legend = document.getElementById(`legend-${textId}`);
+    const legendContainer = document.getElementById(`legend-items-${textId}`);
+    
+    if (!legendItems || legendItems.length === 0) {
+        legend.style.display = 'none';
+        return;
+    }
+    
+    legendContainer.innerHTML = '';
+    
+    legendItems.forEach(item => {
+        const color = techniqueColors[item.technique] || '#cccccc';
+        const description = getTechniqueDescription(item.technique);
+        
+        const legendItem = document.createElement('div');
+        legendItem.className = 'col-md-6 col-lg-4 mb-2';
+        legendItem.innerHTML = `
+            <div class="d-flex align-items-center">
+                <div style="width: 20px; height: 20px; background-color: ${color}; border-radius: 3px; margin-right: 8px;"></div>
+                <div>
+                    <strong>${item.technique}</strong>
+                    <small class="d-block text-muted">${description}</small>
+                </div>
+            </div>
+        `;
+        
+        legendContainer.appendChild(legendItem);
+    });
+    
+    legend.style.display = 'block';
 }
 
 // Initialize when page loads

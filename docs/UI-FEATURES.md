@@ -9,8 +9,11 @@ Interaktyvi teksto analizės sistema, kuri spalvų kodais pažymi propagandos te
 
 #### AI vs Ekspertų anotacijos
 - **AI View**: Rodo automatiškai aptiktas propagandos technikas iš LLM modelių
+  - **Modelių pasirinkimas**: Galimybė pasirinkti konkretų AI modelį arba rodyti visų modelių suvienytus rezultatus
+  - **Suvestinė anotacijų**: Rodo technikas, aptiktas bent vieno modelio
 - **Expert View**: Rodo ekspertų rankiniu būdu sukurtas anotacijas
 - **Toggle perjungimas**: Greitas persijungimas tarp skirtingų anotacijų tipų
+- **Spalvojimo valdymas**: Galimybė įjungti/išjungti anotacijų spalvojimą
 
 #### Spalvų kodavimas
 Kiekviena ATSPARA propagandos technika turi unikalų spalvos kodą:
@@ -35,8 +38,10 @@ Kiekviena ATSPARA propagandos technika turi unikalų spalvos kodą:
 
 #### API integracija
 - **Real-time įkėlimas**: Anotacijos gaunamos per `/api/text-annotations/{id}` endpoint
+- **Modelių filtracija**: API palaiko `model` parametrą konkretaus modelio anotacijoms gauti
 - **Progreso indikatorius**: Loading spinner duomenų įkėlimo metu
 - **Klaidos valdymas**: Aiškūs pranešimai apie nepavykusius užklausas
+- **Tooltips palaikimas**: Detalūs propagandos technikų aprašymai Bootstrap tooltips
 
 ### Techninis sprendimas
 ```javascript
@@ -56,6 +61,40 @@ function displayHighlightedText(content, annotations, legend) {
                                      style="background-color: ${color}; padding: 2px 4px;"
                                      title="${annotation.technique}">${escapeHtml(annotation.text)}</span>`;
         lastIndex = annotation.end;
+    });
+}
+```
+
+## 📝 Tekstų anotacijų plėtinė peržiūra
+
+### Aprašymas
+Kiekvienam tekste galima atidaryti detalią peržiūrą su visomis anotacijomis ir interaktyviais valdymo elementais.
+
+### Funkcionalumas
+
+#### Teksto plėtiniai
+- **"Daugiau" mygtukas**: Atskleidžia pilną tekstą su anotacijų valdymu
+- **Kontrolinė panelė**: AI/ekspertų anotacijų perjungimas, modelių pasirinkimas, spalvojimo valdymas
+- **Dinaminė legenda**: Rodo tik aptiktas propagandos technikas konkrečiame tekste
+
+#### Anotacijų valdymas
+- **Modelių filtracija**: Dropdown su visais analizei naudotais modeliais
+- **Toggle funkijomis**:
+  - AI anotacijos / Ekspertų anotacijos
+  - Spalvojimo įjungimas/išjungimas
+- **Tooltips**: Hover efektai su detaliais technikų aprašymais
+
+#### Interaktyvumas
+```javascript
+// Expanded text view inicializacija
+function initializeExpandedTextView(textId) {
+    const viewToggle = document.getElementsByName(`expandedViewType-${textId}`);
+    const modelSelect = document.getElementById(`ai-model-select-${textId}`);
+    const annotationToggle = document.getElementById(`annotation-toggle-${textId}`);
+    
+    // Event listeners anotacijų perkrovimui
+    viewToggle.forEach(radio => {
+        radio.addEventListener('change', () => loadExpandedTextAnnotations(textId));
     });
 }
 ```

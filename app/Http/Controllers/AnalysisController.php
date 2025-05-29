@@ -147,7 +147,7 @@ class AnalysisController extends Controller
         $availableModels = collect(config('llm.models', []))->keys()->implode(',');
         
         $validator = Validator::make($request->all(), [
-            'text' => 'required|string|min:10',
+            'content' => 'required|string|min:10',
             'models' => 'required|array|min:1',
             'models.*' => "required|string|in:{$availableModels}",
             'expert_annotations' => 'nullable|array',
@@ -183,7 +183,7 @@ class AnalysisController extends Controller
             $textAnalysis = TextAnalysis::create([
                 'job_id' => $jobId,
                 'text_id' => 'single_' . uniqid(),
-                'content' => $request->text,
+                'content' => $request->content,
                 'expert_annotations' => $request->input('expert_annotations', []), // Pasirinktinės ekspertų anotacijos
             ]);
 
@@ -209,7 +209,7 @@ class AnalysisController extends Controller
         } catch (\Exception $e) {
             Log::error('Vieno teksto analizės klaida', [
                 'error' => $e->getMessage(),
-                'text' => substr($request->text ?? 'nežinomas', 0, 50)
+                'content' => substr($request->content ?? 'nežinomas', 0, 50)
             ]);
 
             return response()->json([
@@ -284,7 +284,7 @@ class AnalysisController extends Controller
         $availableModels = collect(config('llm.models', []))->keys()->implode(',');
         
         $validator = Validator::make($request->all(), [
-            'data' => 'required|array',
+            'file_content' => 'required|array',
             'models' => 'required|array|min:1',
             'models.*' => "required|string|in:{$availableModels}",
             'custom_prompt' => 'nullable|string',
@@ -301,7 +301,7 @@ class AnalysisController extends Controller
         }
 
         try {
-            $fileContent = $request->data;
+            $fileContent = $request->file_content;
             $models = $request->models;
             
             // Validuoti JSON struktūrą
@@ -1010,10 +1010,19 @@ class AnalysisController extends Controller
                     $legend = $this->createLegend(array_keys($techniqueCount));
                 }
             } else {
-                // Get AI annotations (merge from all models)
+                // Get AI annotations (merge from all models or specific model)
+                $selectedModel = $request->get('model', 'all');
                 $modelAnnotations = $textAnalysis->getAllModelAnnotations();
                 $allTechniques = [];
                 $techniquePositions = [];
+                
+                // Filter by specific model if requested
+                if ($selectedModel !== 'all' && isset($modelAnnotations[$selectedModel])) {
+                    $modelAnnotations = [$selectedModel => $modelAnnotations[$selectedModel]];
+                } elseif ($selectedModel !== 'all') {
+                    // Model not found, return empty annotations
+                    $modelAnnotations = [];
+                }
                 
                 foreach ($modelAnnotations as $modelName => $modelData) {
                     if (isset($modelData['annotations'])) {
@@ -1028,10 +1037,12 @@ class AnalysisController extends Controller
                                             'end' => $annotation['value']['end'],
                                             'technique' => $technique,
                                             'text' => $annotation['value']['text'] ?? '',
-                                            'count' => 0
+                                            'count' => 0,
+                                            'models' => []
                                         ];
                                     }
                                     $techniquePositions[$key]['count']++;
+                                    $techniquePositions[$key]['models'][] = $modelName;
                                     $allTechniques[$technique] = true;
                                 }
                             }
@@ -1046,7 +1057,8 @@ class AnalysisController extends Controller
                             'start' => $annotation['start'],
                             'end' => $annotation['end'],
                             'technique' => $annotation['technique'],
-                            'text' => $annotation['text']
+                            'text' => $annotation['text'],
+                            'models' => $annotation['models']
                         ];
                     }
                 }
