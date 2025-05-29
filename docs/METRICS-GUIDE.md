@@ -8,6 +8,8 @@
 
 This guide explains all metrics used in the Lithuanian Propaganda Detection System. The system compares AI model results against expert annotations using statistical methods to measure performance accuracy. This implementation is based on research methodologies from Zaranka's Master's thesis (2025) and follows ATSPARA project standards for Lithuanian propaganda detection.
 
+**Recent Improvements (2025-05-29)**: Enhanced prompt engineering for more realistic metrics generation, improved model display accuracy, and better quality control measures to align with academic research standards.
+
 ## 🎯 Core Metrics
 
 ### 1. Precision (Tikslumas)
@@ -140,6 +142,37 @@ Based on ATSPARA validation data and system testing:
 | **Good** | 0.70-0.80 | 0.60-0.70 | 0.80-0.90 |
 | **Acceptable** | 0.60-0.70 | 0.50-0.60 | 0.70-0.80 |
 | **Poor** | < 0.60 | < 0.50 | < 0.70 |
+
+## 🎯 Prompt Quality Improvements (2025-05-29)
+
+### Enhanced Prompt Engineering
+
+The system now includes advanced prompt engineering techniques to generate more realistic and accurate metrics:
+
+#### Quality Requirements
+- **Conservative Annotation**: AI models are instructed to be conservative, marking only clearly identifiable propaganda techniques
+- **Text Coverage**: Annotations should cover 15-60% of text, with minimum 50 characters
+- **Fragment Size**: Avoid micro-fragments (<10 characters) or whole-text annotations
+- **Position Accuracy**: Enhanced validation of start/end positions matching actual text content
+
+#### Academic Alignment
+- **Zaranka Methodology**: Prompts specifically reference Zaranka's research methodologies for consistency
+- **ATSPARA Standards**: Explicit alignment with ATSPARA project annotation guidelines
+- **Statistical Relevance**: Text statistics are provided to models for better context understanding
+
+#### Technical Implementation
+```
+TEKSTO STATISTIKA:
+- Teksto ilgis: 450 simbolių
+- Rekomenduojamas anotacijų kiekis: 67-270 simbolių  
+- Minimalus fragmento ilgis: 10 simbolių
+
+ANALIZĖS KOKYBĖS REIKALAVIMAI:
+1. Būk konservatyvus - žymi tik aiškiai identifikuojamas propaganda technikas
+2. Tiksliai nurodyti teksto pozicijas (start/end)
+3. Anotacijos turi sudaryti 15-60% teksto
+4. Prioritetas - Zarankos ir ATSPARA metodologijos tikslumui
+```
 
 ## 🔍 Practical Examples
 

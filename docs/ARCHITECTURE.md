@@ -43,7 +43,7 @@ The Propaganda and Disinformation Analysis System is a Laravel-based web applica
 app/
 ├── Http/
 │   ├── Controllers/
-│   │   ├── AnalysisController.php      # Main analysis workflow with custom prompts
+│   │   ├── AnalysisController.php      # Main analysis workflow with enhanced metrics
 │   │   ├── DashboardController.php     # Statistics and overview
 │   │   └── WebController.php           # Main web interface
 │   └── Middleware/                     # Custom middleware

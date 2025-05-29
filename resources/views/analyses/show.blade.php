@@ -396,21 +396,16 @@
                             // Get all model annotations that actually exist
                             $allModelAnnotations = $textAnalysis->getAllModelAnnotations();
                             
-                            // Only add models from metrics if they don't have annotations but have metrics data
-                            $metricsModels = [];
-                            foreach($textAnalysis->comparisonMetrics as $metric) {
-                                if (!isset($allModelAnnotations[$metric->model_name])) {
-                                    $metricsModels[$metric->model_name] = null; // Anotacijos nebeegzistuoja
-                                }
-                            }
+                            // Get unique models from comparison metrics 
+                            $metricsModelNames = $textAnalysis->comparisonMetrics->pluck('model_name')->unique()->toArray();
                             
-                            // Show only models that have annotations, prioritizing actual annotations
+                            // Combine models from annotations and metrics, avoiding duplicates
                             $allModelsToShow = $allModelAnnotations;
                             
-                            // Only add metric-only models if they're not duplicates
-                            foreach ($metricsModels as $modelName => $annotations) {
+                            // Add models that have metrics but no annotations
+                            foreach ($metricsModelNames as $modelName) {
                                 if (!isset($allModelsToShow[$modelName])) {
-                                    $allModelsToShow[$modelName] = $annotations;
+                                    $allModelsToShow[$modelName] = null; // No annotations, but has metrics
                                 }
                             }
                         @endphp
@@ -601,7 +596,7 @@
                                         <div class="model-selector-modal" id="modal-model-selector-{{ $textAnalysis->id }}" style="display: none;">
                                             <select class="form-select form-select-sm" id="modal-ai-model-select-{{ $textAnalysis->id }}" style="min-width: 120px;">
                                                 <option value="all">Visi modeliai</option>
-                                                @foreach($textAnalysis->getAllModelAnnotations() as $modelName => $annotations)
+                                                @foreach($allModelsToShow as $modelName => $annotations)
                                                     <option value="{{ $modelName }}">{{ $modelName }}</option>
                                                 @endforeach
                                             </select>

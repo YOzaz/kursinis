@@ -47,7 +47,7 @@ class PromptService
             'role' => 'Tu esi ATSPARA projekto propagandos analizės ekspertas, specializuojantis lietuvių kalbos tekstų analizėje.',
             'instructions' => 'Analizuok pateiktą tekstą ir identifikuok visas propagandos technikas bei dezinformacijos naratyvus pagal ATSPARA projekto metodologiją. Būk preciziškas ir objektyvus.',
             'situation' => 'Analizuojamas tekstas yra iš lietuviškų žiniasklaidos šaltinių, socialinių tinklų ar viešųjų pranešimų. Tavo užduotis - identifikuoti propaganda technikas ir įvertinti tekstą.',
-            'execution' => 'Atlikdamas analizę: 1) Perskaityk tekstą atidžiai 2) Identifikuok kiekvieną propagandos techniką 3) Nurodyk tikslias teksto dalis ir jų pozicijas 4) Klasifikuok pagal ATSPARA kategoriją 5) Pateik rezultatus JSON formatu',
+            'execution' => 'Atlikdamas analizę: 1) Perskaityk tekstą atidžiai ir įvertink jo ilgį 2) Identifikuok aiškiai matomus propaganda elementus 3) Nurodyk tikslias teksto dalis (15-60% teksto, ne mažiau 50 simbolių) 4) Patikrink pozicijų tikslumą (start/end) 5) Klasifikuok pagal ATSPARA kategoriją 6) Pateik rezultatus JSON formatu',
             'needle' => 'Gražink TIKSLIAI šio formato JSON atsakymą be jokių papildomų komentarų ar paaiškinimų:'
         ];
     }
@@ -80,6 +80,13 @@ class PromptService
         foreach ($techniques as $key => $description) {
             $prompt .= "- {$key}: {$description}\n";
         }
+        
+        $prompt .= "\n**ANALIZĖS METODOLOGIJA**:\n";
+        $prompt .= "- Identifikuok aiškiai matomus propaganda elementus\n";
+        $prompt .= "- Anotacijos turi sudaryti 15-60% teksto (ne mažiau 50 simbolių)\n";
+        $prompt .= "- Vengti per smulkių (<10 simbolių) fragmentų\n";
+        $prompt .= "- Prioritetas - Zarankos ir ATSPARA metodologijos tikslumui\n";
+        $prompt .= "- Tiksliai nurodyti pozicijas (start/end) pagal realų tekstą\n";
         
         $prompt .= "\n**NEEDLE**: {$parts['needle']}\n\n";
         $prompt .= $this->getJsonFormat();
@@ -114,6 +121,13 @@ class PromptService
 }
 ```
 
+**ANALIZĖS KOKYBĖS REIKALAVIMAI**:
+1. Būk konservatyvus - žymi tik aiškiai identifikuojamas propaganda technikas
+2. Tiksliai nurodyti teksto pozicijas (start/end) - patikrink, kad atitinka realų tekstą
+3. Anotacijos turi sudaryti 15-60% teksto, ne mažiau nei 50 simbolių
+4. Vengti mikroskopinių fragmentų (<10 simbolių) ar viso teksto žymėjimo
+5. Prioritetas - Zarankos ir ATSPARA metodologijos tikslumui
+
 **SVARBU**: Analizuojamas tekstas lietuvių kalba. Atsakyk TIK JSON formatu.';
     }
 
@@ -136,6 +150,16 @@ class PromptService
         $standard = $this->getStandardRisenPrompt();
         $prompt = $this->buildRisenPrompt($standard);
         
+        // Add text statistics for better context
+        $textLength = mb_strlen($text);
+        $minAnnotationLength = max(50, intval($textLength * 0.15)); // At least 15% or 50 chars
+        $maxAnnotationLength = intval($textLength * 0.60); // Max 60%
+        
+        $prompt .= "\n\n**TEKSTO STATISTIKA**:\n";
+        $prompt .= "- Teksto ilgis: {$textLength} simbolių\n";
+        $prompt .= "- Rekomenduojamas anotacijų kiekis: {$minAnnotationLength}-{$maxAnnotationLength} simbolių\n";
+        $prompt .= "- Minimalus fragmento ilgis: 10 simbolių\n";
+        
         return $prompt . "\n\n---\n\n**Analizuojamas tekstas:**\n{$text}";
     }
 
@@ -144,7 +168,7 @@ class PromptService
      */
     public function getSystemMessage(): string
     {
-        return "Tu esi ATSPARA propagandos analizės sistema. Analizuoji lietuvių kalbos tekstus pagal griežtus objektyvius kriterijus. Visada grąžink tik galiojantį JSON formatą be papildomų komentarų. Būk maksimaliai tikslus pozicijų nustatyme ir konservatyvus anotacijų kiekio atžvilgiu - žymi tik aiškiai identifikuojamas propagandos technikas.";
+        return "Tu esi ATSPARA propagandos analizės sistema, specializuojanti lietuvių kalbos tekstų analizėje. Analizuoji tekstus pagal griežtus objektyvius kriterijus, orientuodamasis į Zarankos ir ATSPARA metodologijos standartus. Visada grąžink tik galiojantį JSON formatą be papildomų komentarų. \n\nKOKYBĖS REIKALAVIMAI:\n- Būk konservatyvus anotacijų kiekio atžvilgiu\n- Žymi fragmentus sudorančius 15-60% teksto\n- Tiksliai nurodyti pozicijas (start/end)\n- Vengti <10 simbolių fragmentų\n- Prioritetas - akademinio lygio tikslumui";
     }
 
     /**

@@ -30,6 +30,8 @@ class PromptServiceTest extends TestCase
         $this->assertStringContainsString('ATSPARA', $prompt);
         $this->assertStringContainsString('propaganda', $prompt);
         $this->assertStringContainsString('JSON', $prompt);
+        $this->assertStringContainsString('TEKSTO STATISTIKA', $prompt);
+        $this->assertStringContainsString('Rekomenduojamas anotacijų kiekis', $prompt);
     }
 
     public function test_generates_gemini_prompt_with_text(): void
@@ -42,6 +44,8 @@ class PromptServiceTest extends TestCase
         $this->assertStringContainsString('ATSPARA', $prompt);
         $this->assertStringContainsString('propaganda', $prompt);
         $this->assertStringContainsString('JSON', $prompt);
+        $this->assertStringContainsString('TEKSTO STATISTIKA', $prompt);
+        $this->assertStringContainsString('Rekomenduojamas anotacijų kiekis', $prompt);
     }
 
     public function test_generates_openai_prompt_with_text(): void
@@ -54,6 +58,8 @@ class PromptServiceTest extends TestCase
         $this->assertStringContainsString('ATSPARA', $prompt);
         $this->assertStringContainsString('propaganda', $prompt);
         $this->assertStringContainsString('JSON', $prompt);
+        $this->assertStringContainsString('TEKSTO STATISTIKA', $prompt);
+        $this->assertStringContainsString('Rekomenduojamas anotacijų kiekis', $prompt);
     }
 
     public function test_get_system_message_returns_valid_content(): void
@@ -63,6 +69,8 @@ class PromptServiceTest extends TestCase
         $this->assertStringContainsString('ATSPARA propagandos analizės sistema', $message);
         $this->assertStringContainsString('JSON formatą', $message);
         $this->assertStringContainsString('objektyvius kriterijus', $message);
+        $this->assertStringContainsString('Zarankos ir ATSPARA metodologijos', $message);
+        $this->assertStringContainsString('KOKYBĖS REIKALAVIMAI', $message);
         $this->assertNotEmpty($message);
     }
 
@@ -263,5 +271,35 @@ class PromptServiceTest extends TestCase
         ];
 
         $this->assertFalse($this->service->validateResponse($invalidResponse));
+    }
+
+    public function test_prompts_include_quality_requirements(): void
+    {
+        $text = "Sample text for quality analysis that should be long enough to test the statistics feature.";
+        
+        $claudePrompt = $this->service->generateClaudePrompt($text);
+        
+        // Test that quality requirements are present
+        $this->assertStringContainsString('ANALIZĖS KOKYBĖS REIKALAVIMAI', $claudePrompt);
+        $this->assertStringContainsString('15-60% teksto', $claudePrompt);
+        $this->assertStringContainsString('ne mažiau nei 50 simbolių', $claudePrompt);
+        $this->assertStringContainsString('Zarankos', $claudePrompt);
+        $this->assertStringContainsString('konservatyvus', $claudePrompt);
+        
+        // Test text statistics are calculated
+        $this->assertStringContainsString('Teksto ilgis:', $claudePrompt);
+        $this->assertStringContainsString('Minimalus fragmento ilgis: 10 simbolių', $claudePrompt);
+    }
+
+    public function test_prompts_contain_improved_methodology_section(): void
+    {
+        $text = "Test text for methodology validation";
+        
+        $prompt = $this->service->generateClaudePrompt($text);
+        
+        $this->assertStringContainsString('ANALIZĖS METODOLOGIJA', $prompt);
+        $this->assertStringContainsString('Identifikuok aiškiai matomus propaganda elementus', $prompt);
+        $this->assertStringContainsString('Vengti per smulkių', $prompt);
+        $this->assertStringContainsString('Zarankos ir ATSPARA metodologijos tikslumui', $prompt);
     }
 }
