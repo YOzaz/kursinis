@@ -69,7 +69,7 @@
                         <div>
                             <h2 class="mb-1">{{ count($globalStats['model_performance'] ?? []) }}</h2>
                             <p class="mb-0 opacity-75">Aktyvūs modeliai</p>
-                            <small class="opacity-50">Claude, Gemini, GPT</small>
+                            <small class="opacity-50">Claude Sonnet 4, GPT-4o/4.1, Gemini Pro/Flash</small>
                         </div>
                         <div class="text-end">
                             <i class="fas fa-robot fa-2x opacity-50"></i>

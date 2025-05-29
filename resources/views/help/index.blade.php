@@ -168,8 +168,8 @@
                         <div class="col-md-6">
                             <h6><i class="fas fa-robot text-primary me-2"></i>AI modeliai</h6>
                             <ul class="small">
-                                <li>Claude Opus 4 & Sonnet 4 (Anthropic)</li>
-                                <li>GPT-4.1 & GPT-4o (OpenAI)</li>
+                                <li>Claude Sonnet 4 (Anthropic)</li>
+                                <li>GPT-4o & GPT-4.1 (OpenAI)</li>
                                 <li>Gemini 2.5 Pro & Flash (Google)</li>
                             </ul>
                             

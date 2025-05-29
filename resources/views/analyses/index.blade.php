@@ -22,10 +22,10 @@
             <div>
                 <h6 class="alert-heading mb-2">Analizių tipai</h6>
                 <ul class="mb-0">
-                    <li><strong>Su ekspertų anotacijomis</strong> - palyginamos AI ir ekspertų anotacijos, skaičiuojamos metrikos</li>
-                    <li><strong>Be ekspertų anotacijų</strong> - tik AI analizė naujam tekstui</li>
-                    <li><strong>Su custom prompt'u</strong> - naudojant specialų prompt'ą</li>
-                    <li><strong>Pakartotinės</strong> - pakartoja ankstesnę analizę su naujais parametrais</li>
+                    <li><strong>Su ekspertų anotacijomis</strong> - sistema palygina AI ir ekspertų rezultatus, apskaičiuoja P/R/F1 metrikas</li>
+                    <li><strong>Be ekspertų anotacijų</strong> - tik AI modeliai analizuoja tekstus pagal ATSPARA metodologiją</li>
+                    <li><strong>Su RISEN prompt'u</strong> - naudoja modifikuotą prompt'ą specifiniems poreikiams</li>
+                    <li><strong>Pakartotinės</strong> - pakartoja esamą analizę su kitais modeliais ar prompt'ais</li>
                 </ul>
             </div>
         </div>

@@ -29,7 +29,7 @@
                     </h2>
                     <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
                         <div class="accordion-body">
-                            <p>ATSPARA yra Vilniaus universiteto projektas, skirtas lietuvių kalbos propagandos ir dezinformacijos tyrimams. Metodologija aprėpia 21 propagandos techniką, pritaikytą lietuvių kultūros kontekstui.</p>
+                            <p>ATSPARA yra Vilniaus universiteto projektas, skirtas lietuvių kalbos propagandos ir dezinformacijos tyrimams. Metodologija aprėpia propagandos technikos klasifikaciją, pritaikytą lietuvių kultūros kontekstui. Ši sistema naudoja 11 pagrindinių ATSPARA propagandos technikų.</p>
                             <p>Daugiau informacijos: <a href="https://www.atspara.mif.vu.lt/" target="_blank">atspara.mif.vu.lt</a></p>
                         </div>
                     </div>
@@ -119,14 +119,13 @@
                         <div class="accordion-body">
                             <p><strong>Premium modeliai</strong> (pagal nutylėjimą pažymėti):</p>
                             <ul>
-                                <li><strong>Claude Opus 4:</strong> Naujausia Anthropic versija</li>
+                                <li><strong>Claude Sonnet 4:</strong> Anthropic pažangiausias modelis</li>
                                 <li><strong>GPT-4.1:</strong> Optimizuota OpenAI versija</li>
                                 <li><strong>Gemini 2.5 Pro:</strong> Google pažangiausias modelis</li>
                             </ul>
                             
                             <p><strong>Standard modeliai:</strong></p>
                             <ul>
-                                <li><strong>Claude Sonnet 4:</strong> Greitas Anthropic modelis</li>
                                 <li><strong>GPT-4o:</strong> OpenAI multimodalus modelis</li>
                                 <li><strong>Gemini 2.5 Flash:</strong> Google greitas modelis</li>
                             </ul>

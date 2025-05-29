@@ -31,7 +31,7 @@
                                 <div class="col-md-6">
                                     <p class="mb-1"><strong>2. Rezultatai:</strong></p>
                                     <ul class="mb-2 small">
-                                        <li>21 ATSPARA propaganda technika</li>
+                                        <li>11 ATSPARA propagandos technikų</li>
                                         <li>CSV/JSON eksportas</li>
                                         <li>Realaus laiko progresas</li>
                                     </ul>
@@ -244,7 +244,7 @@
                                     <div class="text-center mt-3">
                                         <small class="text-muted">
                                             <i class="fas fa-info-circle me-1"></i>
-                                            Šis promptas apima 21 ATSPARA propagandos techniką ir JSON formato specifikaciją
+                                            Šis promptas apima 11 ATSPARA propagandos technikas ir JSON formato specifikaciją
                                         </small>
                                     </div>
                                 </div>
