@@ -224,7 +224,7 @@ class FileUploadWorkflowTest extends TestCase
         $response->assertStatus(200)
                 ->assertSee('Tekstų analizės paleidimas')
                 ->assertSee('Kaip naudoti sistemą')
-                ->assertSee('ATSPARA propaganda technika');
+                ->assertSee('ATSPARA propagandos technikų');
     }
 
     public function test_model_configuration_display()

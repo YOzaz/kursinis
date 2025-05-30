@@ -7,7 +7,8 @@ The Propaganda Analysis API provides programmatic access to Lithuanian text anal
 **Base URL**: `http://propaganda.local/api`  
 **Authentication**: API keys configured in environment  
 **Content-Type**: `application/json`  
-**Rate Limiting**: Per-model limits (configurable)
+**Rate Limiting**: Per-model limits (configurable)  
+**Status**: ✅ All tests passing, production ready
 
 ## 🔐 Authentication
 

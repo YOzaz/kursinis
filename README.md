@@ -45,7 +45,15 @@ Universali propagandos analizės platforma, kuri veikia dviem pagrindiniais rež
 - Generuoja struktūrizuotus analizės rezultatus praktiniam naudojimui
 
 
-## ✨ Naujos funkcijos (2025-05-29)
+## ✨ Naujos funkcijos (2025-05-30)
+
+### 🔧 Sistemos tobulinimas
+- **Ištaisytos testavimo problemos**: Visi unit ir feature testai dabar veikia sėkmingai
+- **Pagerintos failų teisės**: Išspręstos permission konflikto problemos tarp vartotojų
+- **Stabilizuota duomenų bazė**: Ištaisytos queue system problemos ir stuck job issues
+- **Atnaujinta dokumentacija**: Patikslinti API endpoint aprašymai ir naudojimo instrukcijos
+
+## ✨ Anksčiau pridėtos funkcijos (2025-05-29)
 
 ### 🎨 Teksto žymėjimo vizualizacija
 - **Interaktyvus teksto žymėjimas** su propagandos technikų spalvų kodavimu

@@ -104,10 +104,10 @@ class SettingsWorkflowTest extends TestCase
         $response = $this->get('/settings');
         $response->assertRedirect('/login');
 
-        $response = $this->post('/settings/update-defaults');
+        $response = $this->post('/settings/defaults');
         $response->assertRedirect('/login');
 
-        $response = $this->post('/settings/reset-defaults');
+        $response = $this->post('/settings/reset');
         $response->assertRedirect('/login');
     }
 

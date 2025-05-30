@@ -40,6 +40,7 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        <env name="LOG_CHANNEL" value="null"/>
         
         <!-- LLM API Keys for testing (can be fake values) -->
         <env name="CLAUDE_API_KEY" value="test-claude-key"/>
