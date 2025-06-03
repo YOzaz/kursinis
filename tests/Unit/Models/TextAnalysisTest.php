@@ -292,4 +292,46 @@ class TextAnalysisTest extends TestCase
             $this->assertContains($technique, $foundTechniques);
         }
     }
+
+    public function test_get_all_attempted_models_with_successful_and_failed(): void
+    {
+        $job = AnalysisJob::factory()->create();
+        
+        $analysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => 'test-123',
+            'claude_annotations' => [
+                'primaryChoice' => ['choices' => ['yes']],
+                'annotations' => []
+            ],
+            'claude_actual_model' => 'claude-sonnet-4-20250514',
+            'gpt_annotations' => [
+                'error' => 'API quota exceeded',
+                'model' => 'gpt-4o-latest'
+            ],
+            'gemini_annotations' => [
+                'error' => 'Invalid response format',
+                'model' => 'gemini-2.5-flash'
+            ]
+        ]);
+
+        $attemptedModels = $analysis->getAllAttemptedModels();
+
+        // Should have 3 models: 1 successful, 2 failed
+        $this->assertCount(3, $attemptedModels);
+        
+        // Check successful model
+        $this->assertArrayHasKey('claude-sonnet-4-20250514', $attemptedModels);
+        $this->assertEquals('success', $attemptedModels['claude-sonnet-4-20250514']['status']);
+        $this->assertNotNull($attemptedModels['claude-sonnet-4-20250514']['annotations']);
+        
+        // Check failed models
+        $this->assertArrayHasKey('gpt-4o-latest', $attemptedModels);
+        $this->assertEquals('failed', $attemptedModels['gpt-4o-latest']['status']);
+        $this->assertEquals('API quota exceeded', $attemptedModels['gpt-4o-latest']['error']);
+        
+        $this->assertArrayHasKey('gemini-2.5-flash', $attemptedModels);
+        $this->assertEquals('failed', $attemptedModels['gemini-2.5-flash']['status']);
+        $this->assertEquals('Invalid response format', $attemptedModels['gemini-2.5-flash']['error']);
+    }
 }

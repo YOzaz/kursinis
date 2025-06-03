@@ -65,7 +65,8 @@ class TextAnalysis extends Model
      */
     public function comparisonMetrics(): HasMany
     {
-        return $this->hasMany(ComparisonMetric::class, 'text_id', 'text_id');
+        return $this->hasMany(ComparisonMetric::class, 'text_id', 'text_id')
+                    ->where('job_id', $this->job_id);
     }
 
     /**
@@ -75,23 +76,86 @@ class TextAnalysis extends Model
     {
         $annotations = [];
         
-        // Check which providers have annotations and get actual model names
-        if (!empty($this->claude_annotations)) {
+        // Check which providers have successful annotations and get actual model names
+        if (!empty($this->claude_annotations) && !isset($this->claude_annotations['error'])) {
             $actualModel = $this->claude_actual_model ?? 'claude-opus-4';
             $annotations[$actualModel] = $this->claude_annotations;
         }
         
-        if (!empty($this->gpt_annotations)) {
+        if (!empty($this->gpt_annotations) && !isset($this->gpt_annotations['error'])) {
             $actualModel = $this->gpt_actual_model ?? 'gpt-4.1';
             $annotations[$actualModel] = $this->gpt_annotations;
         }
         
-        if (!empty($this->gemini_annotations)) {
+        if (!empty($this->gemini_annotations) && !isset($this->gemini_annotations['error'])) {
             $actualModel = $this->gemini_actual_model ?? 'gemini-2.5-pro';
             $annotations[$actualModel] = $this->gemini_annotations;
         }
         
         return $annotations;
+    }
+
+    /**
+     * Gauti visų bandytų modelių sąrašą (ir sėkmingų, ir nesėkmingų).
+     */
+    public function getAllAttemptedModels(): array
+    {
+        $models = [];
+        
+        // Get successful models
+        $successfulModels = $this->getAllModelAnnotations();
+        foreach ($successfulModels as $modelName => $annotations) {
+            $models[$modelName] = [
+                'status' => 'success',
+                'annotations' => $annotations,
+                'actual_model' => $modelName
+            ];
+        }
+        
+        // Get failed models from stored annotations with errors
+        if (!empty($this->claude_annotations) && isset($this->claude_annotations['error'])) {
+            $modelName = $this->claude_annotations['model'] ?? 'claude-unknown';
+            $models[$modelName] = [
+                'status' => 'failed',
+                'annotations' => null,
+                'error' => $this->claude_annotations['error'],
+                'actual_model' => $modelName
+            ];
+        }
+        
+        if (!empty($this->gpt_annotations) && isset($this->gpt_annotations['error'])) {
+            $modelName = $this->gpt_annotations['model'] ?? 'gpt-unknown';
+            $models[$modelName] = [
+                'status' => 'failed',
+                'annotations' => null,
+                'error' => $this->gpt_annotations['error'],
+                'actual_model' => $modelName
+            ];
+        }
+        
+        if (!empty($this->gemini_annotations) && isset($this->gemini_annotations['error'])) {
+            $modelName = $this->gemini_annotations['model'] ?? 'gemini-unknown';
+            $models[$modelName] = [
+                'status' => 'failed',
+                'annotations' => null,
+                'error' => $this->gemini_annotations['error'],
+                'actual_model' => $modelName
+            ];
+        }
+        
+        // Add models from comparison metrics that aren't already listed
+        foreach ($this->comparisonMetrics as $metric) {
+            if (!isset($models[$metric->model_name])) {
+                $models[$metric->model_name] = [
+                    'status' => 'failed',
+                    'annotations' => null,
+                    'actual_model' => $metric->actual_model_name ?? $metric->model_name,
+                    'has_metrics' => true
+                ];
+            }
+        }
+        
+        return $models;
     }
 
     /**

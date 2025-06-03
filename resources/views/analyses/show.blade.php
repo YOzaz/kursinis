@@ -393,56 +393,34 @@
                     <div class="modal-body">
                         
                         @php
-                            // Get all model annotations that actually exist
-                            $allModelAnnotations = $textAnalysis->getAllModelAnnotations();
-                            
-                            // Get unique models from comparison metrics 
-                            $metricsModelNames = $textAnalysis->comparisonMetrics->pluck('model_name')->unique()->toArray();
-                            
-                            // Combine models from annotations and metrics, avoiding duplicates
-                            $allModelsToShow = $allModelAnnotations;
-                            
-                            // Add models that have metrics but no annotations
-                            foreach ($metricsModelNames as $modelName) {
-                                if (!isset($allModelsToShow[$modelName])) {
-                                    $allModelsToShow[$modelName] = null; // No annotations, but has metrics
-                                }
-                            }
+                            // Get all attempted models (successful and failed)
+                            $allAttemptedModels = $textAnalysis->getAllAttemptedModels();
                         @endphp
                         
-                        @foreach($allModelsToShow as $modelName => $annotations)
+                        @foreach($allAttemptedModels as $modelName => $modelData)
                             <div class="mb-3">
                                 <label class="form-label fw-bold">
                                     {{ $modelName }} rezultatas
-                                    @php
-                                        // Get actual model name from metrics if annotations don't exist
-                                        $actualModelName = null;
-                                        $metricForModel = $textAnalysis->comparisonMetrics->firstWhere('model_name', $modelName);
-                                        if ($metricForModel && $metricForModel->actual_model_name) {
-                                            $actualModelName = $metricForModel->actual_model_name;
-                                        } else {
-                                            // Fallback to direct fields
-                                            if (str_contains(strtolower($modelName), 'claude')) {
-                                                $actualModelName = $textAnalysis->claude_actual_model;
-                                            } elseif (str_contains(strtolower($modelName), 'gemini')) {
-                                                $actualModelName = $textAnalysis->gemini_actual_model;
-                                            } elseif (str_contains(strtolower($modelName), 'gpt')) {
-                                                $actualModelName = $textAnalysis->gpt_actual_model;
-                                            }
-                                        }
-                                    @endphp
-                                    @if($actualModelName)
-                                        <small class="text-muted">({{ $actualModelName }})</small>
+                                    @if($modelData['actual_model'] && $modelData['actual_model'] !== $modelName)
+                                        <small class="text-muted">({{ $modelData['actual_model'] }})</small>
                                     @endif
                                 </label>
                                 <div class="border p-3 rounded">
-                                    @if($annotations === null)
+                                    @if($modelData['status'] === 'failed')
                                         <div class="alert alert-warning mb-2">
                                             <i class="fas fa-exclamation-triangle me-2"></i>
-                                            <strong>Anotacijos nebesaugomas:</strong> Šio modelio anotacijos buvo perrašytos kito to paties tiekėjo modelio. 
-                                            Metrikos išlieka žemiau esančioje lentelėje.
+                                            <strong>Analizė nepavyko:</strong> 
+                                            @if(isset($modelData['error']))
+                                                {{ $modelData['error'] }}
+                                            @else
+                                                Šis modelis nepateikė tinkamo atsako arba analizė buvo nutraukta dėl klaidos.
+                                            @endif
+                                            @if(isset($modelData['has_metrics']))
+                                                <br><small class="text-muted">Metrikos rodo žemų rezultatų duomenis žemiau esančioje lentelėje.</small>
+                                            @endif
                                         </div>
                                     @else
+                                        @php $annotations = $modelData['annotations']; @endphp
                                         @if(isset($annotations['primaryChoice']))
                                             <div class="mb-2">
                                                 <strong>Propaganda sprendimas:</strong>
@@ -596,7 +574,7 @@
                                         <div class="model-selector-modal" id="modal-model-selector-{{ $textAnalysis->id }}" style="display: none;">
                                             <select class="form-select form-select-sm" id="modal-ai-model-select-{{ $textAnalysis->id }}" style="min-width: 120px;">
                                                 <option value="all">Visi modeliai</option>
-                                                @foreach($allModelsToShow as $modelName => $annotations)
+                                                @foreach($allAttemptedModels as $modelName => $modelData)
                                                     <option value="{{ $modelName }}">{{ $modelName }}</option>
                                                 @endforeach
                                             </select>

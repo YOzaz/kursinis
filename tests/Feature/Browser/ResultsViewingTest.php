@@ -248,7 +248,7 @@ class ResultsViewingTest extends TestCase
 
         $response->assertStatus(200)
                 ->assertSee('modal', false)
-                ->assertSee('text-details', false);
+                ->assertSee('Analizės detalės', false);
     }
 
     public function test_legend_display_for_annotations()
