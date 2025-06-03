@@ -91,7 +91,7 @@ return [
         'gemini-2.5-pro' => [
             'api_key' => env('GEMINI_API_KEY'),
             'base_url' => 'https://generativelanguage.googleapis.com/',
-            'model' => 'gemini-2.5-pro-experimental',
+            'model' => 'gemini-2.5-pro-preview-05-06',
             'max_tokens' => 4096,
             'temperature' => 0.05,  // Lower for propaganda analysis consistency
             'top_p' => 0.95,
@@ -105,15 +105,14 @@ return [
         'gemini-2.5-flash' => [
             'api_key' => env('GEMINI_API_KEY'),
             'base_url' => 'https://generativelanguage.googleapis.com/',
-            'model' => 'gemini-2.5-flash-preview-04-17',
+            'model' => 'gemini-2.5-flash-preview-05-20',
             'max_tokens' => 4096,
             'temperature' => 0.05,  // Lower for propaganda analysis consistency
             'top_p' => 0.95,
             'top_k' => 40,
             'provider' => 'google',
             'tier' => 'standard',
-            'description' => 'Google\'s best price-performance model with thinking capabilities',
-            'thinking_budget' => 2048,
+            'description' => 'Google\'s fast and efficient model with latest capabilities',
             'is_default' => false,
         ],
 
