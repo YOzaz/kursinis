@@ -40,7 +40,14 @@ class OpenAIService implements LLMServiceInterface
         }
         
         if ($this->config && !empty($this->config['api_key'])) {
-            $this->client = OpenAI::client($this->config['api_key']);
+            $this->client = OpenAI::factory()
+                ->withApiKey($this->config['api_key'])
+                ->withHttpHeader('User-Agent', 'ATSPARA-Analysis/1.0')
+                ->withBaseUri($this->config['base_url'])
+                ->withHttpClient(new \GuzzleHttp\Client([
+                    'timeout' => config('llm.error_handling.timeout_seconds', 120)
+                ]))
+                ->make();
         } else {
             $this->client = null;
         }
@@ -80,8 +87,7 @@ class OpenAIService implements LLMServiceInterface
                     'temperature' => $this->config['temperature'],
                     'response_format' => [
                         'type' => 'json_object'
-                    ],
-                    'timeout' => config('llm.error_handling.timeout_seconds', 120)
+                    ]
                 ]);
 
                 if (empty($response->choices)) {
@@ -191,7 +197,15 @@ class OpenAIService implements LLMServiceInterface
         $this->config = $models[$modelKey] ?? null;
         
         if ($this->config && !empty($this->config['api_key'])) {
-            $this->client = \OpenAI::client($this->config['api_key']);
+            $this->client = \OpenAI::factory()
+                ->withApiKey($this->config['api_key'])
+                ->withHttpHeader('User-Agent', 'ATSPARA-Analysis/1.0')
+                ->withBaseUri($this->config['base_url'])
+                ->withHttpClient(new \GuzzleHttp\Client([
+                    'timeout' => config('llm.error_handling.timeout_seconds', 120)
+                ]))
+                ->make();
+            $this->modelKey = $modelKey;
             return true;
         }
         

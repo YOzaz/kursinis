@@ -76,20 +76,44 @@ class TextAnalysis extends Model
     {
         $annotations = [];
         
-        // Check which providers have successful annotations and get actual model names
-        if (!empty($this->claude_annotations) && !isset($this->claude_annotations['error'])) {
-            $actualModel = $this->claude_actual_model ?? 'claude-opus-4';
-            $annotations[$actualModel] = $this->claude_annotations;
+        // Return annotations with config keys, not actual model names
+        if (!empty($this->claude_annotations)) {
+            // Determine which Claude model was used based on the actual model name
+            $configKey = 'claude-opus-4'; // default
+            if ($this->claude_actual_model) {
+                if (str_contains($this->claude_actual_model, 'sonnet')) {
+                    $configKey = 'claude-sonnet-4';
+                } elseif (str_contains($this->claude_actual_model, 'opus')) {
+                    $configKey = 'claude-opus-4';
+                }
+            }
+            $annotations[$configKey] = $this->claude_annotations;
         }
         
-        if (!empty($this->gpt_annotations) && !isset($this->gpt_annotations['error'])) {
-            $actualModel = $this->gpt_actual_model ?? 'gpt-4.1';
-            $annotations[$actualModel] = $this->gpt_annotations;
+        if (!empty($this->gpt_annotations)) {
+            // Determine which GPT model was used based on the actual model name
+            $configKey = 'gpt-4.1'; // default
+            if ($this->gpt_actual_model) {
+                if (str_contains($this->gpt_actual_model, 'gpt-4o')) {
+                    $configKey = 'gpt-4o-latest';
+                } elseif (str_contains($this->gpt_actual_model, 'gpt-4.1')) {
+                    $configKey = 'gpt-4.1';
+                }
+            }
+            $annotations[$configKey] = $this->gpt_annotations;
         }
         
-        if (!empty($this->gemini_annotations) && !isset($this->gemini_annotations['error'])) {
-            $actualModel = $this->gemini_actual_model ?? 'gemini-2.5-pro';
-            $annotations[$actualModel] = $this->gemini_annotations;
+        if (!empty($this->gemini_annotations)) {
+            // Determine which Gemini model was used based on the actual model name
+            $configKey = 'gemini-2.5-pro'; // default
+            if ($this->gemini_actual_model) {
+                if (str_contains($this->gemini_actual_model, 'flash')) {
+                    $configKey = 'gemini-2.5-flash';
+                } elseif (str_contains($this->gemini_actual_model, 'pro')) {
+                    $configKey = 'gemini-2.5-pro';
+                }
+            }
+            $annotations[$configKey] = $this->gemini_annotations;
         }
         
         return $annotations;

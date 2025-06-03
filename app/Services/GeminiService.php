@@ -96,7 +96,49 @@ class GeminiService implements LLMServiceInterface
 
                 $responseData = $response->json();
                 
-                if (!isset($responseData['candidates'][0]['content']['parts'][0]['text'])) {
+                // Check for various possible response structures
+                if (!isset($responseData['candidates']) || empty($responseData['candidates'])) {
+                    Log::error('Gemini API: nėra candidates', [
+                        'response_keys' => array_keys($responseData ?? []),
+                        'response' => $responseData
+                    ]);
+                    throw new \Exception('Gemini API negrąžino kandidatų');
+                }
+                
+                $candidate = $responseData['candidates'][0];
+                $finishReason = $candidate['finishReason'] ?? 'unknown';
+                
+                // Handle different finish reasons
+                if ($finishReason === 'MAX_TOKENS') {
+                    Log::warning('Gemini API atsakymas nutrauktas dėl maksimalaus token kiekio', [
+                        'finish_reason' => $finishReason,
+                        'attempt' => $attempt
+                    ]);
+                    
+                    if ($attempt < $retries) {
+                        $delay = $useExponentialBackoff 
+                            ? $baseRetryDelay * pow(2, $attempt - 1)
+                            : $baseRetryDelay * $attempt;
+                        sleep($delay);
+                        continue;
+                    }
+                    
+                    throw new \Exception('Gemini API atsakymas per ilgas - viršytas token limitas');
+                }
+                
+                if ($finishReason === 'SAFETY') {
+                    Log::warning('Gemini API atsakymas blokuotas dėl saugumo filtrų', [
+                        'safety_ratings' => $candidate['safetyRatings'] ?? []
+                    ]);
+                    throw new \Exception('Gemini API blokavo atsakymą dėl saugumo');
+                }
+                
+                if (!isset($candidate['content']['parts'][0]['text'])) {
+                    Log::error('Gemini API neteisingas kandidato formatas', [
+                        'candidate_keys' => array_keys($candidate ?? []),
+                        'finish_reason' => $finishReason,
+                        'safety_ratings' => $candidate['safetyRatings'] ?? []
+                    ]);
                     throw new \Exception('Neteisingas Gemini API atsakymo formatas');
                 }
 

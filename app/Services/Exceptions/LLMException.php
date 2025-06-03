@@ -68,7 +68,9 @@ class LLMException extends Exception
         $skipableErrors = [
             'timeout_error',
             'rate_limit_error', 
-            'overloaded_error'
+            'overloaded_error',
+            'max_tokens_error',
+            'safety_error'
         ];
         
         return !in_array($this->errorType, $skipableErrors) && !$this->isQuotaRelated;

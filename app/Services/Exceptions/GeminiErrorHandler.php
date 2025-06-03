@@ -101,6 +101,17 @@ class GeminiErrorHandler implements LLMErrorHandlerInterface
             return 'timeout_error';
         }
         
+        if (str_contains($lowerMessage, 'viršytas token limitas') ||
+            str_contains($lowerMessage, 'max tokens') ||
+            str_contains($lowerMessage, 'per ilgas')) {
+            return 'max_tokens_error';
+        }
+        
+        if (str_contains($lowerMessage, 'blokavo atsakymą dėl saugumo') ||
+            str_contains($lowerMessage, 'safety')) {
+            return 'safety_error';
+        }
+        
         if (str_contains($lowerMessage, 'failed_precondition') || 
             str_contains($lowerMessage, 'free tier is not available') ||
             str_contains($lowerMessage, 'enable billing')) {
