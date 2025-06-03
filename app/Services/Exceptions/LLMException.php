@@ -64,7 +64,13 @@ class LLMException extends Exception
      */
     public function shouldFailBatch(): bool
     {
-        // Quota and rate limit errors shouldn't fail the entire batch
-        return !$this->isQuotaRelated && !$this->isRetryable;
+        // These errors should not fail the entire batch, just skip this model
+        $skipableErrors = [
+            'timeout_error',
+            'rate_limit_error', 
+            'overloaded_error'
+        ];
+        
+        return !in_array($this->errorType, $skipableErrors) && !$this->isQuotaRelated;
     }
 }

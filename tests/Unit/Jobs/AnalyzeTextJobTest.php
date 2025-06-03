@@ -390,7 +390,7 @@ class AnalyzeTextJobTest extends TestCase
             new LLMException(
                 message: 'Rate limit exceeded. Please wait before making more requests.',
                 statusCode: 429,
-                errorType: 'rate_limit_exceeded',
+                errorType: 'rate_limit_error',
                 provider: 'openai',
                 isRetryable: true,
                 isQuotaRelated: false

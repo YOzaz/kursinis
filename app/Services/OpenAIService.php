@@ -58,8 +58,9 @@ class OpenAIService implements LLMServiceInterface
         $prompt = $this->promptService->generateAnalysisPrompt($text, $customPrompt);
         $systemMessage = $this->promptService->getSystemMessage();
 
-        $retries = config('llm.retry_attempts');
-        $retryDelay = config('llm.retry_delay');
+        $retries = config('llm.error_handling.max_retries_per_model', 3);
+        $baseRetryDelay = config('llm.error_handling.retry_delay_seconds', 2);
+        $useExponentialBackoff = config('llm.error_handling.exponential_backoff', true);
 
         for ($attempt = 1; $attempt <= $retries; $attempt++) {
             try {
@@ -79,7 +80,8 @@ class OpenAIService implements LLMServiceInterface
                     'temperature' => $this->config['temperature'],
                     'response_format' => [
                         'type' => 'json_object'
-                    ]
+                    ],
+                    'timeout' => config('llm.error_handling.timeout_seconds', 120)
                 ]);
 
                 if (empty($response->choices)) {
@@ -100,7 +102,10 @@ class OpenAIService implements LLMServiceInterface
                     ]);
                     
                     if ($attempt < $retries) {
-                        sleep($retryDelay * $attempt);
+                        $delay = $useExponentialBackoff 
+                            ? $baseRetryDelay * pow(2, $attempt - 1)
+                            : $baseRetryDelay * $attempt;
+                        sleep($delay);
                         continue;
                     }
                     
@@ -130,7 +135,18 @@ class OpenAIService implements LLMServiceInterface
 
                 // Only retry if it's retryable and we haven't exceeded attempts
                 if ($llmException->isRetryable() && $attempt < $retries) {
-                    sleep($retryDelay * $attempt);
+                    $delay = $useExponentialBackoff 
+                        ? $baseRetryDelay * pow(2, $attempt - 1)
+                        : $baseRetryDelay * $attempt;
+                    
+                    Log::info('Retrying OpenAI API request', [
+                        'attempt' => $attempt,
+                        'delay_seconds' => $delay,
+                        'error_type' => $llmException->getErrorType(),
+                        'status_code' => $llmException->getStatusCode()
+                    ]);
+                    
+                    sleep($delay);
                     continue;
                 }
 

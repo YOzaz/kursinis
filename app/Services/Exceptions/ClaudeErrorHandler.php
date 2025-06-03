@@ -52,7 +52,10 @@ class ClaudeErrorHandler implements LLMErrorHandlerInterface
             502, // Bad gateway  
             503, // Service unavailable
             504, // Gateway timeout
-            529  // Overloaded error (as mentioned in docs)
+            529, // Overloaded error (as mentioned in docs)
+            408, // Request timeout
+            598, // Network read timeout error
+            599  // Network connect timeout error
                 => true,
             default => false,
         };
@@ -97,6 +100,12 @@ class ClaudeErrorHandler implements LLMErrorHandlerInterface
 
         // Classify based on message content
         $lowerMessage = strtolower($message);
+        
+        if (str_contains($lowerMessage, 'curl error 28') || 
+            str_contains($lowerMessage, 'operation timed out') ||
+            str_contains($lowerMessage, 'timeout')) {
+            return 'timeout_error';
+        }
         
         if (str_contains($lowerMessage, 'rate_limit_error') || 
             str_contains($lowerMessage, 'rate limit')) {

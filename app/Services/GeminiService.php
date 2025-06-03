@@ -47,14 +47,15 @@ class GeminiService implements LLMServiceInterface
         $prompt = $this->promptService->generateAnalysisPrompt($text, $customPrompt);
         $systemMessage = $this->promptService->getSystemMessage();
 
-        $retries = config('llm.retry_attempts');
-        $retryDelay = config('llm.retry_delay');
+        $retries = config('llm.error_handling.max_retries_per_model', 3);
+        $baseRetryDelay = config('llm.error_handling.retry_delay_seconds', 2);
+        $useExponentialBackoff = config('llm.error_handling.exponential_backoff', true);
 
         for ($attempt = 1; $attempt <= $retries; $attempt++) {
             try {
                 $url = rtrim($this->config['base_url'], '/') . "/v1beta/models/{$this->config['model']}:generateContent";
                 
-                $response = Http::timeout(config('llm.request_timeout'))
+                $response = Http::timeout(config('llm.error_handling.timeout_seconds', 120))
                     ->withHeaders(['Content-Type' => 'application/json'])
                     ->post($url . '?key=' . $this->config['api_key'], [
                         'contents' => [
@@ -109,7 +110,10 @@ class GeminiService implements LLMServiceInterface
                     ]);
                     
                     if ($attempt < $retries) {
-                        sleep($retryDelay * $attempt);
+                        $delay = $useExponentialBackoff 
+                            ? $baseRetryDelay * pow(2, $attempt - 1)
+                            : $baseRetryDelay * $attempt;
+                        sleep($delay);
                         continue;
                     }
                     
@@ -137,7 +141,18 @@ class GeminiService implements LLMServiceInterface
 
                 // Only retry if it's retryable and we haven't exceeded attempts
                 if ($llmException->isRetryable() && $attempt < $retries) {
-                    sleep($retryDelay * $attempt);
+                    $delay = $useExponentialBackoff 
+                        ? $baseRetryDelay * pow(2, $attempt - 1)
+                        : $baseRetryDelay * $attempt;
+                    
+                    Log::info('Retrying Gemini API request', [
+                        'attempt' => $attempt,
+                        'delay_seconds' => $delay,
+                        'error_type' => $llmException->getErrorType(),
+                        'status_code' => $llmException->getStatusCode()
+                    ]);
+                    
+                    sleep($delay);
                     continue;
                 }
 

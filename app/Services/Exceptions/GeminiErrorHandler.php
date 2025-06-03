@@ -51,7 +51,10 @@ class GeminiErrorHandler implements LLMErrorHandlerInterface
             500, // Internal server error
             502, // Bad gateway
             503, // Service unavailable
-            504  // Gateway timeout
+            504, // Gateway timeout
+            408, // Request timeout
+            598, // Network read timeout error
+            599  // Network connect timeout error
                 => true,
             default => false,
         };
@@ -91,6 +94,12 @@ class GeminiErrorHandler implements LLMErrorHandlerInterface
     {
         // Look for Gemini specific error conditions
         $lowerMessage = strtolower($message);
+        
+        if (str_contains($lowerMessage, 'curl error 28') || 
+            str_contains($lowerMessage, 'operation timed out') ||
+            str_contains($lowerMessage, 'timeout')) {
+            return 'timeout_error';
+        }
         
         if (str_contains($lowerMessage, 'failed_precondition') || 
             str_contains($lowerMessage, 'free tier is not available') ||

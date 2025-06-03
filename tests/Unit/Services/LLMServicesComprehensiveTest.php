@@ -51,17 +51,27 @@ class LLMServicesComprehensiveTest extends TestCase
                 'content' => [
                     [
                         'type' => 'text',
-                        'text' => json_encode([
-                            [
-                                'type' => 'labels',
-                                'value' => [
-                                    'start' => 0,
-                                    'end' => 10,
-                                    'text' => 'Test text',
-                                    'labels' => ['emotionalExpression']
-                                ]
-                            ]
-                        ])
+                        'text' => '```json
+{
+    "primaryChoice": {
+        "choices": ["yes"]
+    },
+    "annotations": [
+        {
+            "type": "labels",
+            "value": {
+                "start": 0,
+                "end": 10,
+                "text": "Test text",
+                "labels": ["emotionalExpression"]
+            }
+        }
+    ],
+    "desinformationTechnique": {
+        "choices": ["emotionalExpression"]
+    }
+}
+```'
                     ]
                 ],
                 'usage' => [
@@ -72,12 +82,14 @@ class LLMServicesComprehensiveTest extends TestCase
         ]);
 
         $service = $this->app->make(ClaudeService::class);
-        $result = $service->analyzeText('Test propaganda text', 'claude-opus-4', 'Test prompt');
+        $service->setModel('claude-opus-4');
+        $result = $service->analyzeText('Test propaganda text', 'Test prompt');
 
         $this->assertIsArray($result);
-        $this->assertGreaterThanOrEqual(1, $result);
-        $this->assertEquals('labels', $result[0]['type']);
-        $this->assertEquals('emotionalExpression', $result[0]['value']['labels'][0]);
+        $this->assertArrayHasKey('annotations', $result);
+        $this->assertGreaterThanOrEqual(1, count($result['annotations']));
+        $this->assertEquals('labels', $result['annotations'][0]['type']);
+        $this->assertEquals('emotionalExpression', $result['annotations'][0]['value']['labels'][0]);
         
         Http::assertSent(function ($request) {
             return str_contains($request->url(), 'api.anthropic.com') &&
@@ -95,17 +107,27 @@ class LLMServicesComprehensiveTest extends TestCase
                         'content' => [
                             'parts' => [
                                 [
-                                    'text' => json_encode([
-                                        [
-                                            'type' => 'labels',
-                                            'value' => [
-                                                'start' => 0,
-                                                'end' => 10,
-                                                'text' => 'Test text',
-                                                'labels' => ['simplification']
-                                            ]
-                                        ]
-                                    ])
+                                    'text' => '```json
+{
+    "primaryChoice": {
+        "choices": ["yes"]
+    },
+    "annotations": [
+        {
+            "type": "labels",
+            "value": {
+                "start": 0,
+                "end": 10,
+                "text": "Test text",
+                "labels": ["simplification"]
+            }
+        }
+    ],
+    "desinformationTechnique": {
+        "choices": ["simplification"]
+    }
+}
+```'
                                 ]
                             ]
                         ]
@@ -119,12 +141,14 @@ class LLMServicesComprehensiveTest extends TestCase
         ]);
 
         $service = $this->app->make(GeminiService::class);
-        $result = $service->analyzeText('Test propaganda text', 'gemini-2.5-pro', 'Test prompt');
+        $service->setModel('gemini-2.5-pro');
+        $result = $service->analyzeText('Test propaganda text', 'Test prompt');
 
         $this->assertIsArray($result);
-        $this->assertGreaterThanOrEqual(1, $result);
-        $this->assertEquals('labels', $result[0]['type']);
-        $this->assertEquals('simplification', $result[0]['value']['labels'][0]);
+        $this->assertArrayHasKey('annotations', $result);
+        $this->assertGreaterThanOrEqual(1, count($result['annotations']));
+        $this->assertEquals('labels', $result['annotations'][0]['type']);
+        $this->assertEquals('simplification', $result['annotations'][0]['value']['labels'][0]);
         
         Http::assertSent(function ($request) {
             return str_contains($request->url(), 'generativelanguage.googleapis.com') &&
@@ -139,17 +163,27 @@ class LLMServicesComprehensiveTest extends TestCase
                 'choices' => [
                     [
                         'message' => [
-                            'content' => json_encode([
-                                [
-                                    'type' => 'labels',
-                                    'value' => [
-                                        'start' => 0,
-                                        'end' => 10,
-                                        'text' => 'Test text',
-                                        'labels' => ['appealToAuthority']
-                                    ]
-                                ]
-                            ])
+                            'content' => '```json
+{
+    "primaryChoice": {
+        "choices": ["yes"]
+    },
+    "annotations": [
+        {
+            "type": "labels",
+            "value": {
+                "start": 0,
+                "end": 10,
+                "text": "Test text",
+                "labels": ["appealToAuthority"]
+            }
+        }
+    ],
+    "desinformationTechnique": {
+        "choices": ["appealToAuthority"]
+    }
+}
+```'
                         ]
                     ]
                 ],
@@ -161,12 +195,14 @@ class LLMServicesComprehensiveTest extends TestCase
         ]);
 
         $service = $this->app->make(OpenAIService::class);
-        $result = $service->analyzeText('Test propaganda text', 'gpt-4.1', 'Test prompt');
+        $service->setModel('gpt-4.1');
+        $result = $service->analyzeText('Test propaganda text', 'Test prompt');
 
         $this->assertIsArray($result);
-        $this->assertCount(1, $result);
-        $this->assertEquals('labels', $result[0]['type']);
-        $this->assertEquals('appealToAuthority', $result[0]['value']['labels'][0]);
+        $this->assertArrayHasKey('annotations', $result);
+        $this->assertCount(1, $result['annotations']);
+        $this->assertEquals('labels', $result['annotations'][0]['type']);
+        $this->assertEquals('appealToAuthority', $result['annotations'][0]['value']['labels'][0]);
         
         Http::assertSent(function ($request) {
             return str_contains($request->url(), 'api.openai.com') &&
@@ -186,7 +222,8 @@ class LLMServicesComprehensiveTest extends TestCase
 
         // Test Claude service throws exception on API error
         try {
-            $claudeService->analyzeText('Test text', 'claude-opus-4', 'Test prompt');
+            $claudeService->setModel('claude-opus-4');
+            $claudeService->analyzeText('Test text', 'Test prompt');
             $this->fail('Claude service should have thrown an exception');
         } catch (Exception $e) {
             $this->assertNotEmpty($e->getMessage());
@@ -194,7 +231,8 @@ class LLMServicesComprehensiveTest extends TestCase
 
         // Test Gemini service throws exception on API error
         try {
-            $geminiService->analyzeText('Test text', 'gemini-2.5-pro', 'Test prompt');
+            $geminiService->setModel('gemini-2.5-pro');
+            $geminiService->analyzeText('Test text', 'Test prompt');
             $this->fail('Gemini service should have thrown an exception');
         } catch (Exception $e) {
             $this->assertNotEmpty($e->getMessage());
@@ -202,7 +240,8 @@ class LLMServicesComprehensiveTest extends TestCase
 
         // Test OpenAI service throws exception on API error
         try {
-            $openaiService->analyzeText('Test text', 'gpt-4.1', 'Test prompt');
+            $openaiService->setModel('gpt-4.1');
+            $openaiService->analyzeText('Test text', 'Test prompt');
             $this->fail('OpenAI service should have thrown an exception');
         } catch (Exception $e) {
             $this->assertNotEmpty($e->getMessage());
@@ -249,9 +288,12 @@ class LLMServicesComprehensiveTest extends TestCase
         $openaiService = $this->app->make(OpenAIService::class);
 
         // Services should handle invalid JSON gracefully and return empty array or throw specific exception
-        $claudeResult = $claudeService->analyzeText('Test text', 'claude-opus-4', 'Test prompt');
-        $geminiResult = $geminiService->analyzeText('Test text', 'gemini-2.5-pro', 'Test prompt');
-        $openaiResult = $openaiService->analyzeText('Test text', 'gpt-4.1', 'Test prompt');
+        $claudeService->setModel('claude-opus-4');
+        $claudeResult = $claudeService->analyzeText('Test text', 'Test prompt');
+        $geminiService->setModel('gemini-2.5-pro');
+        $geminiResult = $geminiService->analyzeText('Test text', 'Test prompt');
+        $openaiService->setModel('gpt-4.1');
+        $openaiResult = $openaiService->analyzeText('Test text', 'Test prompt');
 
         // The exact behavior depends on implementation, but should not crash
         $this->assertTrue(is_array($claudeResult) || is_null($claudeResult));
@@ -278,9 +320,12 @@ class LLMServicesComprehensiveTest extends TestCase
         $openaiService = $this->app->make(OpenAIService::class);
 
         // Test that services use the correct configuration
-        $claudeService->analyzeText('Test text', 'claude-opus-4', 'Test prompt');
-        $geminiService->analyzeText('Test text', 'gemini-2.5-pro', 'Test prompt');
-        $openaiService->analyzeText('Test text', 'gpt-4.1', 'Test prompt');
+        $claudeService->setModel('claude-opus-4');
+        $claudeService->analyzeText('Test text', 'Test prompt');
+        $geminiService->setModel('gemini-2.5-pro');
+        $geminiService->analyzeText('Test text', 'Test prompt');
+        $openaiService->setModel('gpt-4.1');
+        $openaiService->analyzeText('Test text', 'Test prompt');
 
         // Verify correct API endpoints were called
         Http::assertSent(function ($request) {
@@ -336,9 +381,12 @@ class LLMServicesComprehensiveTest extends TestCase
         $geminiService = $this->app->make(GeminiService::class);
         $openaiService = $this->app->make(OpenAIService::class);
 
-        $claudeService->analyzeText('Test text', 'claude-opus-4', $customPrompt);
-        $geminiService->analyzeText('Test text', 'gemini-2.5-pro', $customPrompt);
-        $openaiService->analyzeText('Test text', 'gpt-4.1', $customPrompt);
+        $claudeService->setModel('claude-opus-4');
+        $claudeService->analyzeText('Test text', $customPrompt);
+        $geminiService->setModel('gemini-2.5-pro');
+        $geminiService->analyzeText('Test text', $customPrompt);
+        $openaiService->setModel('gpt-4.1');
+        $openaiService->analyzeText('Test text', $customPrompt);
 
         // Verify custom prompt was sent in requests
         Http::assertSent(function ($request) use ($customPrompt) {
