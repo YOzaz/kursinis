@@ -9,6 +9,7 @@ use App\Services\ClaudeService;
 use App\Services\GeminiService;
 use App\Services\OpenAIService;
 use App\Services\MetricsService;
+use App\Services\Exceptions\LLMException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
@@ -310,5 +311,223 @@ class AnalyzeTextJobTest extends TestCase
             'text_id' => '1',
             'model_name' => 'claude-opus-4'
         ]);
+    }
+
+    public function test_job_handles_openai_quota_exceeded_error_gracefully(): void
+    {
+        $job = AnalysisJob::factory()->create([
+            'status' => AnalysisJob::STATUS_PROCESSING,
+            'total_texts' => 2,
+            'processed_texts' => 0
+        ]);
+
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => '1',
+            'content' => 'Test text for quota exceeded scenario',
+            'expert_annotations' => []
+        ]);
+
+        // Mock OpenAI service to throw proper LLM exception for quota exceeded
+        $mockOpenAI = $this->createMock(OpenAIService::class);
+        $mockOpenAI->method('isConfigured')->willReturn(true);
+        $mockOpenAI->method('setModel')->willReturn(true);
+        $mockOpenAI->method('analyzeText')->willThrowException(
+            new LLMException(
+                message: 'You exceeded your current quota, please check your plan and billing details.',
+                statusCode: 429,
+                errorType: 'insufficient_quota',
+                provider: 'openai',
+                isRetryable: false,
+                isQuotaRelated: true
+            )
+        );
+
+        $analyzeJob = new AnalyzeTextJob($textAnalysis->id, 'gpt-4.1', $job->job_id);
+        
+        // The job should handle the quota error gracefully without throwing
+        $analyzeJob->handle(
+            app(ClaudeService::class),
+            app(GeminiService::class),
+            $mockOpenAI,
+            app(MetricsService::class)
+        );
+
+        // The job should still be processing (not failed)
+        $job->refresh();
+        $this->assertEquals(AnalysisJob::STATUS_PROCESSING, $job->status);
+        
+        // Progress should be updated even though the model failed
+        $this->assertEquals(1, $job->processed_texts);
+
+        // Text analysis should contain error information for the failed model
+        $textAnalysis->refresh();
+        $modelAnnotations = $textAnalysis->getModelAnnotations('gpt-4.1');
+        $this->assertArrayHasKey('error', $modelAnnotations);
+        $this->assertStringContainsString('exceeded your current quota', $modelAnnotations['error']);
+    }
+
+    public function test_job_handles_rate_limit_error_gracefully(): void
+    {
+        $job = AnalysisJob::factory()->create([
+            'status' => AnalysisJob::STATUS_PROCESSING,
+            'total_texts' => 1,
+            'processed_texts' => 0
+        ]);
+
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => '1',
+            'content' => 'Test text for rate limit scenario',
+            'expert_annotations' => []
+        ]);
+
+        // Mock OpenAI service to throw proper LLM exception for rate limit
+        $mockOpenAI = $this->createMock(OpenAIService::class);
+        $mockOpenAI->method('isConfigured')->willReturn(true);
+        $mockOpenAI->method('setModel')->willReturn(true);
+        $mockOpenAI->method('analyzeText')->willThrowException(
+            new LLMException(
+                message: 'Rate limit exceeded. Please wait before making more requests.',
+                statusCode: 429,
+                errorType: 'rate_limit_exceeded',
+                provider: 'openai',
+                isRetryable: true,
+                isQuotaRelated: false
+            )
+        );
+
+        $analyzeJob = new AnalyzeTextJob($textAnalysis->id, 'gpt-4.1', $job->job_id);
+        
+        // The job should handle the rate limit error gracefully
+        $analyzeJob->handle(
+            app(ClaudeService::class),
+            app(GeminiService::class),
+            $mockOpenAI,
+            app(MetricsService::class)
+        );
+
+        $job->refresh();
+        $this->assertEquals(AnalysisJob::STATUS_COMPLETED, $job->status);
+        $this->assertEquals(1, $job->processed_texts);
+    }
+
+    public function test_failed_method_handles_quota_errors(): void
+    {
+        $job = AnalysisJob::factory()->create([
+            'status' => AnalysisJob::STATUS_PROCESSING,
+            'total_texts' => 1,
+            'processed_texts' => 0
+        ]);
+
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => '1',
+            'content' => 'Test text',
+            'expert_annotations' => []
+        ]);
+
+        $analyzeJob = new AnalyzeTextJob($textAnalysis->id, 'gpt-4.1', $job->job_id);
+        
+        // Simulate failed() method being called with LLM quota exception
+        $quotaException = new LLMException(
+            message: 'You exceeded your current quota, please check your plan and billing details.',
+            statusCode: 429,
+            errorType: 'insufficient_quota',
+            provider: 'openai',
+            isRetryable: false,
+            isQuotaRelated: true
+        );
+        $analyzeJob->failed($quotaException);
+
+        // Job should still be processing, not failed
+        $job->refresh();
+        $this->assertEquals(AnalysisJob::STATUS_COMPLETED, $job->status);
+        $this->assertEquals(1, $job->processed_texts);
+
+        // Text analysis should contain error information
+        $textAnalysis->refresh();
+        $modelAnnotations = $textAnalysis->getModelAnnotations('gpt-4.1');
+        $this->assertArrayHasKey('error', $modelAnnotations);
+    }
+
+    public function test_failed_method_handles_non_quota_errors(): void
+    {
+        $job = AnalysisJob::factory()->create([
+            'status' => AnalysisJob::STATUS_PROCESSING,
+            'total_texts' => 1,
+            'processed_texts' => 0
+        ]);
+
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => '1',
+            'content' => 'Test text',
+            'expert_annotations' => []
+        ]);
+
+        $analyzeJob = new AnalyzeTextJob($textAnalysis->id, 'gpt-4.1', $job->job_id);
+        
+        // Simulate failed() method being called with serious LLM error
+        $networkException = new LLMException(
+            message: 'Invalid API configuration',
+            statusCode: 400,
+            errorType: 'configuration_error',
+            provider: 'openai',
+            isRetryable: false,
+            isQuotaRelated: false
+            // shouldFailBatch will be true for non-retryable, non-quota errors
+        );
+        $analyzeJob->failed($networkException);
+
+        // Job should be marked as failed for serious errors
+        $job->refresh();
+        $this->assertEquals(AnalysisJob::STATUS_FAILED, $job->status);
+        $this->assertStringContainsString('Invalid API configuration', $job->error_message);
+    }
+
+    public function test_authentication_errors_fail_batch(): void
+    {
+        $job = AnalysisJob::factory()->create([
+            'status' => AnalysisJob::STATUS_PROCESSING,
+            'total_texts' => 1,
+            'processed_texts' => 0
+        ]);
+
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => '1',
+            'content' => 'Test text',
+            'expert_annotations' => []
+        ]);
+
+        // Mock OpenAI service to throw authentication error
+        $mockOpenAI = $this->createMock(OpenAIService::class);
+        $mockOpenAI->method('isConfigured')->willReturn(true);
+        $mockOpenAI->method('setModel')->willReturn(true);
+        $mockOpenAI->method('analyzeText')->willThrowException(
+            new LLMException(
+                message: 'Invalid API key provided',
+                statusCode: 401,
+                errorType: 'authentication_error',
+                provider: 'openai',
+                isRetryable: false,
+                isQuotaRelated: false
+                // shouldFailBatch will be true for auth errors
+            )
+        );
+
+        $analyzeJob = new AnalyzeTextJob($textAnalysis->id, 'gpt-4.1', $job->job_id);
+        
+        // Authentication errors should fail the entire batch
+        $this->expectException(LLMException::class);
+        $this->expectExceptionMessage('Invalid API key provided');
+        
+        $analyzeJob->handle(
+            app(ClaudeService::class),
+            app(GeminiService::class),
+            $mockOpenAI,
+            app(MetricsService::class)
+        );
     }
 }

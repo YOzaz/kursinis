@@ -4,6 +4,8 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Services\Exceptions\ClaudeErrorHandler;
+use App\Services\Exceptions\LLMException;
 
 /**
  * Claude API servisas.
@@ -16,10 +18,12 @@ class ClaudeService implements LLMServiceInterface
     private PromptService $promptService;
     private ?array $config;
     private ?string $modelKey;
+    private ClaudeErrorHandler $errorHandler;
 
     public function __construct(PromptService $promptService)
     {
         $this->promptService = $promptService;
+        $this->errorHandler = new ClaudeErrorHandler();
         $models = config('llm.models', []);
         
         // Rasti bet kurį Claude modelį kaip numatytąjį
@@ -105,18 +109,26 @@ class ClaudeService implements LLMServiceInterface
                 return $jsonResponse;
 
             } catch (\Exception $e) {
+                $llmException = $this->errorHandler->handleException($e);
+                
                 Log::error('Claude API klaida', [
                     'attempt' => $attempt,
                     'error' => $e->getMessage(),
-                    'model' => $this->config['model']
+                    'model' => $this->config['model'],
+                    'status_code' => $llmException->getStatusCode(),
+                    'error_type' => $llmException->getErrorType(),
+                    'is_quota_related' => $llmException->isQuotaRelated(),
+                    'is_retryable' => $llmException->isRetryable()
                 ]);
 
-                if ($attempt < $retries) {
+                // Only retry if it's retryable and we haven't exceeded attempts
+                if ($llmException->isRetryable() && $attempt < $retries) {
                     sleep($retryDelay * $attempt);
                     continue;
                 }
 
-                throw new \Exception('Claude API neprieinamas po ' . $retries . ' bandymų: ' . $e->getMessage());
+                // Throw the classified LLM exception instead of generic exception
+                throw $llmException;
             }
         }
 

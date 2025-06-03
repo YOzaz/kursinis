@@ -138,6 +138,104 @@ curl https://api.openai.com/v1/models/gpt-4.1 \
   -H "Authorization: Bearer $OPENAI_API_KEY"
 ```
 
+#### Problem: API Quota and Billing Errors
+
+The system now uses **intelligent error handling** based on HTTP status codes and API-specific error types rather than string matching. This provides more reliable error detection and handling.
+
+#### Supported Error Types by Provider:
+
+**OpenAI API Errors:**
+- `429` + `insufficient_quota` - Quota exceeded
+- `402` - Payment required  
+- `401` - Authentication error
+- `429` + `rate_limit_exceeded` - Rate limit (retryable)
+
+**Claude/Anthropic API Errors:**
+- `429` + `rate_limit_error` - Rate limit exceeded
+- `401` + `authentication_error` - Invalid API key
+- `529` + `overloaded_error` - Service overloaded (retryable)
+
+**Gemini API Errors:**
+- `400` + `FAILED_PRECONDITION` - Billing required
+- `429` + `RESOURCE_EXHAUSTED` - Rate limit exceeded  
+- `403` + `PERMISSION_DENIED` - API key permissions
+
+#### Intelligent Error Handling Behavior:
+
+**✅ Quota/Billing Errors (Continue Processing):**
+```
+Status: 429 - You exceeded your current quota
+Status: 400 - Gemini API free tier billing required  
+Status: 429 - Rate limit exceeded
+```
+- Analysis **continues** with other available models
+- Failed model shows specific error message in results
+- Batch processing **does not stop**
+- Job **completes successfully** with partial results
+
+**⚠️ Authentication Errors (Stop Processing):**
+```
+Status: 401 - Invalid API key provided
+Status: 403 - API key lacks permissions
+```
+- **Stops entire batch** (configuration issue)
+- Requires manual intervention
+- All models for this job will fail
+
+**🔄 Server Errors (Retryable):**
+```
+Status: 500/502/503/504 - Server errors
+Status: 529 - Service overloaded
+```
+- Automatically retried up to 3 times
+- Uses exponential backoff delay
+- If all retries fail, continues with other models
+
+#### Solutions:
+
+**Check Quota Status:**
+```bash
+# OpenAI usage
+curl https://api.openai.com/v1/usage \
+  -H "Authorization: Bearer $OPENAI_API_KEY"
+
+# Gemini models list (requires billing)
+curl "https://generativelanguage.googleapis.com/v1beta/models?key=$GEMINI_API_KEY"
+
+# Claude API test
+curl -H "x-api-key: $CLAUDE_API_KEY" \
+     -H "anthropic-version: 2023-06-01" \
+     https://api.anthropic.com/v1/messages
+```
+
+**Monitor System Logs:**
+```bash
+# Check detailed error information
+tail -f storage/logs/laravel.log | grep -E "(quota|billing|rate_limit)"
+
+# Look for error classifications
+grep "status_code\|error_type\|is_quota_related" storage/logs/laravel.log
+```
+
+**Handle Different Error Types:**
+
+1. **Quota Exceeded (OpenAI):**
+   - Upgrade plan at https://platform.openai.com/account/billing
+   - Results will show successful analysis from other models
+
+2. **Billing Required (Gemini):**  
+   - Enable billing in Google AI Studio
+   - Claude and OpenAI will continue working
+
+3. **Rate Limits:**
+   - Temporary - system will retry automatically
+   - Reduce concurrent requests if persistent
+
+4. **Authentication Errors:**
+   - Check API key validity and permissions
+   - Update keys in `.env` file
+   - Run `php artisan config:clear`
+
 ### 3. Queue Processing Issues
 
 #### Problem: Jobs Stuck in Queue

@@ -5,6 +5,8 @@ namespace App\Services;
 use OpenAI;
 use OpenAI\Client;
 use Illuminate\Support\Facades\Log;
+use App\Services\Exceptions\OpenAIErrorHandler;
+use App\Services\Exceptions\LLMException;
 
 /**
  * OpenAI ChatGPT API servisas.
@@ -18,10 +20,12 @@ class OpenAIService implements LLMServiceInterface
     private PromptService $promptService;
     private ?array $config;
     private ?string $modelKey;
+    private OpenAIErrorHandler $errorHandler;
 
     public function __construct(PromptService $promptService)
     {
         $this->promptService = $promptService;
+        $this->errorHandler = new OpenAIErrorHandler();
         $this->config = null;
         $this->modelKey = null;
         $models = config('llm.models', []);
@@ -112,18 +116,26 @@ class OpenAIService implements LLMServiceInterface
                 return $jsonResponse;
 
             } catch (\Exception $e) {
+                $llmException = $this->errorHandler->handleException($e);
+                
                 Log::error('OpenAI API klaida', [
                     'attempt' => $attempt,
                     'error' => $e->getMessage(),
-                    'model' => $this->config['model']
+                    'model' => $this->config['model'],
+                    'status_code' => $llmException->getStatusCode(),
+                    'error_type' => $llmException->getErrorType(),
+                    'is_quota_related' => $llmException->isQuotaRelated(),
+                    'is_retryable' => $llmException->isRetryable()
                 ]);
 
-                if ($attempt < $retries) {
+                // Only retry if it's retryable and we haven't exceeded attempts
+                if ($llmException->isRetryable() && $attempt < $retries) {
                     sleep($retryDelay * $attempt);
                     continue;
                 }
 
-                throw new \Exception('OpenAI API neprieinamas po ' . $retries . ' bandymų: ' . $e->getMessage());
+                // Throw the classified LLM exception instead of generic exception
+                throw $llmException;
             }
         }
 

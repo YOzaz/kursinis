@@ -53,6 +53,12 @@ app/
 │   │   ├── GeminiService.php          # Google Gemini API
 │   │   ├── OpenAIService.php          # OpenAI GPT-4o API
 │   │   └── LLMServiceInterface.php    # Common interface
+│   ├── Exceptions/                    # Error handling system
+│   │   ├── LLMException.php           # Classified LLM errors
+│   │   ├── LLMErrorHandlerInterface.php # Error handler contract
+│   │   ├── OpenAIErrorHandler.php     # OpenAI-specific error classification
+│   │   ├── ClaudeErrorHandler.php     # Claude-specific error classification
+│   │   └── GeminiErrorHandler.php     # Gemini-specific error classification
 │   ├── Core Services/
 │   │   ├── PromptService.php          # Standard and custom prompt generation
 │   │   ├── MetricsService.php         # Advanced statistical calculations with category mapping
@@ -239,6 +245,61 @@ Reference Analysis ID
 - **Custom Prompt Support**: Ability to provide custom prompts for specialized analysis
 - **Reference Analysis**: Link analyses to previous ones for comparison studies
 - **Prompt Template System**: Standardized prompt templates with custom override capability
+
+### Intelligent Error Handling System
+
+**Purpose**: Provides robust, API-specific error handling that allows batch processing to continue when individual models fail.
+
+#### Error Classification Architecture
+
+```
+LLMException (Base)
+├── statusCode: HTTP status code
+├── errorType: API-specific error type
+├── provider: 'openai' | 'claude' | 'gemini'
+├── isRetryable: boolean
+├── isQuotaRelated: boolean
+└── shouldFailBatch(): boolean
+```
+
+#### Provider-Specific Error Handlers
+
+**OpenAIErrorHandler:**
+- Handles `429` quota exceeded, `402` payment required
+- Detects `insufficient_quota` vs `rate_limit_exceeded`
+- Classifies authentication and permission errors
+- Supports JSON error response parsing
+
+**ClaudeErrorHandler:**
+- Handles `429` rate limits, `529` overloaded errors
+- Supports Anthropic's error format specifications
+- Classifies `authentication_error`, `permission_error`
+
+**GeminiErrorHandler:**
+- Handles `400` billing requirements, `429` resource exhausted
+- Supports Google's `FAILED_PRECONDITION`, `RESOURCE_EXHAUSTED` format
+- Classifies `PERMISSION_DENIED`, `UNAUTHENTICATED`
+
+#### Error Handling Behavior
+
+**Continue Processing (Graceful Failures):**
+- Quota exceeded (OpenAI 429 + insufficient_quota)
+- Billing required (Gemini 400 + FAILED_PRECONDITION)
+- Rate limits (all providers 429 + rate_limit)
+- Server errors (5xx - retryable)
+
+**Stop Processing (Critical Failures):**
+- Authentication errors (401)
+- Permission errors (403)
+- Configuration errors (400 - non-billing)
+
+#### Implementation Flow
+
+1. **LLM Service** throws generic Exception
+2. **Provider-specific ErrorHandler** classifies the exception
+3. **LLMException** created with proper metadata
+4. **AnalyzeTextJob** uses `shouldFailBatch()` to determine handling
+5. **Batch continues** for graceful failures, stops for critical ones
 
 ### Performance Monitoring
 - **Execution Time Metrics**: Track processing times across models and analyses

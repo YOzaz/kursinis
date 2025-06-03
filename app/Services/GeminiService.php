@@ -4,6 +4,8 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Services\Exceptions\GeminiErrorHandler;
+use App\Services\Exceptions\LLMException;
 
 /**
  * Google Gemini API servisas.
@@ -15,10 +17,12 @@ class GeminiService implements LLMServiceInterface
     private PromptService $promptService;
     private ?array $config;
     private ?string $modelKey;
+    private GeminiErrorHandler $errorHandler;
 
     public function __construct(PromptService $promptService)
     {
         $this->promptService = $promptService;
+        $this->errorHandler = new GeminiErrorHandler();
         $models = config('llm.models', []);
         
         // Rasti bet kurį Gemini modelį kaip numatytąjį
@@ -120,17 +124,25 @@ class GeminiService implements LLMServiceInterface
                 return $jsonResponse;
 
             } catch (\Exception $e) {
+                $llmException = $this->errorHandler->handleException($e);
+                
                 Log::error('Gemini API klaida', [
                     'attempt' => $attempt,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
+                    'status_code' => $llmException->getStatusCode(),
+                    'error_type' => $llmException->getErrorType(),
+                    'is_quota_related' => $llmException->isQuotaRelated(),
+                    'is_retryable' => $llmException->isRetryable()
                 ]);
 
-                if ($attempt < $retries) {
+                // Only retry if it's retryable and we haven't exceeded attempts
+                if ($llmException->isRetryable() && $attempt < $retries) {
                     sleep($retryDelay * $attempt);
                     continue;
                 }
 
-                throw new \Exception('Gemini API neprieinamas po ' . $retries . ' bandymų: ' . $e->getMessage());
+                // Throw the classified LLM exception instead of generic exception
+                throw $llmException;
             }
         }
 

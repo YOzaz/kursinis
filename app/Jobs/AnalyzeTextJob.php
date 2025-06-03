@@ -14,6 +14,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use App\Services\Exceptions\LLMException;
 
 /**
  * Vieno teksto analizės darbo klasė.
@@ -120,14 +121,40 @@ class AnalyzeTextJob implements ShouldQueue
             $this->updateJobProgress();
 
         } catch (\Exception $e) {
+            // Check if it's already an LLMException, otherwise treat as generic error
+            $llmException = $e instanceof LLMException ? $e : null;
+            
             Log::error('Teksto analizės klaida', [
                 'text_analysis_id' => $this->textAnalysisId,
                 'model' => $this->modelName,
                 'job_id' => $this->jobId,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'status_code' => $llmException ? $llmException->getStatusCode() : null,
+                'error_type' => $llmException ? $llmException->getErrorType() : 'unknown',
+                'is_quota_related' => $llmException ? $llmException->isQuotaRelated() : false,
+                'should_fail_batch' => $llmException ? $llmException->shouldFailBatch() : true
             ]);
 
-            // Žymėti darbą kaip nepavykusį
+            // Use LLM exception information to determine how to handle the error
+            if ($llmException && !$llmException->shouldFailBatch()) {
+                Log::warning('API error that should not fail entire batch', [
+                    'text_analysis_id' => $this->textAnalysisId,
+                    'model' => $this->modelName,
+                    'job_id' => $this->jobId,
+                    'error_type' => $llmException->getErrorType()
+                ]);
+                
+                // Pažymėti šį teksto-modelio apdorojimą kaip nepavykusį
+                $this->markTextAnalysisAsFailed($e->getMessage());
+                
+                // Atnaujinti progresą (kad procesas tęstųsi)
+                $this->updateJobProgress();
+                
+                // Nemetame exception, kad nedaužtų visos eilės
+                return;
+            }
+
+            // Serious errors should fail the entire batch
             $this->markJobAsFailed($e->getMessage());
             
             throw $e;
@@ -195,17 +222,49 @@ class AnalyzeTextJob implements ShouldQueue
     }
 
     /**
+     * Žymėti tik šį teksto-modelio apdorojimą kaip nepavykusį.
+     */
+    private function markTextAnalysisAsFailed(string $errorMessage): void
+    {
+        $textAnalysis = TextAnalysis::find($this->textAnalysisId);
+        
+        if ($textAnalysis) {
+            // Išsaugoti klaidos pranešimą tam tikram modeliui
+            $failedAnnotations = [
+                'error' => $errorMessage,
+                'failed_at' => now()->toISOString(),
+                'model' => $this->modelName
+            ];
+            
+            $textAnalysis->setModelAnnotations($this->modelName, $failedAnnotations, null, 0);
+            $textAnalysis->save();
+        }
+    }
+
+
+    /**
      * Apdoroti darbo nesėkmę.
      */
     public function failed(\Throwable $exception): void
     {
+        $llmException = $exception instanceof LLMException ? $exception : null;
+        
         Log::error('Analizės darbas nepavyko galutinai', [
             'text_analysis_id' => $this->textAnalysisId,
             'model' => $this->modelName,
             'job_id' => $this->jobId,
-            'error' => $exception->getMessage()
+            'error' => $exception->getMessage(),
+            'status_code' => $llmException ? $llmException->getStatusCode() : null,
+            'error_type' => $llmException ? $llmException->getErrorType() : 'unknown',
+            'should_fail_batch' => $llmException ? $llmException->shouldFailBatch() : true
         ]);
 
-        $this->markJobAsFailed($exception->getMessage());
+        // Use LLM exception information to determine how to handle the failure
+        if ($llmException && !$llmException->shouldFailBatch()) {
+            $this->markTextAnalysisAsFailed($exception->getMessage());
+            $this->updateJobProgress();
+        } else {
+            $this->markJobAsFailed($exception->getMessage());
+        }
     }
 }
