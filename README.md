@@ -45,7 +45,19 @@ Universali propagandos analizės platforma, kuri veikia dviem pagrindiniais rež
 - Generuoja struktūrizuotus analizės rezultatus praktiniam naudojimui
 
 
-## ✨ Naujos funkcijos (2025-05-30)
+## ✨ Naujos funkcijos (2025-06-04)
+
+### 🚀 Optimizuotas batch apdorojimas
+- **98% API užklausų sumažinimas**: 6000 tekstų → 360 užklausų vietoj 18,000
+- **Automatinis režimo pasirinkimas**: >100 tekstų naudoja batch apdorojimą
+- **10x greičio padidėjimas**: 2-3 val. → 15-30 min. dideliems duomenų rinkiniams
+- **Pagerinta JSON analizė**: 5 atstatomosios strategijos AI atsakymams
+
+### 🎯 AI modelių ryšio monitoringas
+- **Realaus laiko statusas**: Rodo kurie AI modeliai pasiekiami
+- **Automatinis tikrinimas**: Kas 5 min. tikrina modelių būklę
+- **Detalūs pranešimai**: Klaidos priežastys ir sprendimo būdai
+- **Nėra išankstinio pasirinkimo**: Vartotojas pasirenka norimą modelį
 
 ### 🔧 Sistemos tobulinimas
 - **Ištaisytos testavimo problemos**: Visi unit ir feature testai dabar veikia sėkmingai

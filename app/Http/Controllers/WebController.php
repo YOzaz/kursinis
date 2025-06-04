@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\BatchAnalysisJob;
+use App\Jobs\BatchAnalysisJobV2;
 use App\Models\AnalysisJob;
 use App\Services\PromptService;
 use Illuminate\Http\Request;
@@ -94,8 +95,23 @@ class WebController extends Controller
                 'custom_prompt' => $customPrompt,
             ]);
 
-            // Paleisti batch analizės darbą
-            BatchAnalysisJob::dispatch($jobId, $jsonData, $models);
+            // Use optimized batch processing for large datasets
+            $useOptimizedBatch = count($jsonData) > 100; // Use batch processing for 100+ texts
+            
+            if ($useOptimizedBatch) {
+                BatchAnalysisJobV2::dispatch($jobId, $jsonData, $models);
+                Log::info('Using optimized batch processing', [
+                    'job_id' => $jobId,
+                    'text_count' => count($jsonData),
+                    'optimization' => 'batch_requests'
+                ]);
+            } else {
+                BatchAnalysisJob::dispatch($jobId, $jsonData, $models);
+                Log::info('Using standard individual processing', [
+                    'job_id' => $jobId,
+                    'text_count' => count($jsonData)
+                ]);
+            }
 
             Log::info('Analizė paleista per web sąsają', [
                 'job_id' => $jobId,

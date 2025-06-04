@@ -32,12 +32,14 @@ return [
             'base_url' => 'https://api.anthropic.com/v1/',
             'model' => 'claude-opus-4-20250514',
             'max_tokens' => 4096,
+            'context_window' => 200000, // 200K tokens input context
             'temperature' => 0.05,  // Lower for propaganda analysis consistency
             'top_p' => 0.95,
             'provider' => 'anthropic',
             'tier' => 'premium',
             'description' => 'Anthropic\'s most advanced coding model, world\'s best coding model',
             'is_default' => true,
+            'batch_size' => 50, // Number of texts to process in one request
         ],
         
         'claude-sonnet-4' => [
@@ -45,12 +47,14 @@ return [
             'base_url' => 'https://api.anthropic.com/v1/',
             'model' => 'claude-sonnet-4-20250514',
             'max_tokens' => 4096,
+            'context_window' => 200000, // 200K tokens input context
             'temperature' => 0.05,  // Lower for propaganda analysis consistency
             'top_p' => 0.95,
             'provider' => 'anthropic',
             'tier' => 'standard',
             'description' => 'Evolution of Claude 3.5 Sonnet, excelling in coding',
             'is_default' => false,
+            'batch_size' => 50, // Number of texts to process in one request
         ],
 
         // === OPENAI GPT MODELIAI ===
@@ -67,8 +71,9 @@ return [
             'provider' => 'openai',
             'tier' => 'premium',
             'description' => 'OpenAI\'s latest flagship model with improved coding',
-            'context_window' => 1000000,
+            'context_window' => 1000000, // 1M tokens input context
             'is_default' => true,
+            'batch_size' => 100, // Number of texts to process in one request
         ],
         
         'gpt-4o-latest' => [
@@ -76,6 +81,7 @@ return [
             'base_url' => 'https://api.openai.com/v1',
             'model' => 'gpt-4o',
             'max_tokens' => 4096,
+            'context_window' => 128000, // 128K tokens input context
             'temperature' => 0.05,  // Lower for propaganda analysis consistency
             'top_p' => 0.95,
             'frequency_penalty' => 0.0,
@@ -84,6 +90,7 @@ return [
             'tier' => 'standard',
             'description' => 'OpenAI\'s multimodal flagship model with audio, vision, and text',
             'is_default' => false,
+            'batch_size' => 50, // Number of texts to process in one request
         ],
 
         // === GOOGLE GEMINI MODELIAI ===
@@ -93,6 +100,7 @@ return [
             'base_url' => 'https://generativelanguage.googleapis.com/',
             'model' => 'gemini-2.5-pro-preview-05-06',
             'max_tokens' => 16384,
+            'context_window' => 2000000, // 2M tokens input context
             'temperature' => 0.05,  // Lower for propaganda analysis consistency
             'top_p' => 0.95,
             'top_k' => 40,
@@ -100,6 +108,7 @@ return [
             'tier' => 'premium',
             'description' => 'Google\'s most advanced model for complex reasoning tasks',
             'is_default' => true,
+            'batch_size' => 200, // Number of texts to process in one request
         ],
         
         'gemini-2.5-flash' => [
@@ -107,6 +116,7 @@ return [
             'base_url' => 'https://generativelanguage.googleapis.com/',
             'model' => 'gemini-2.5-flash-preview-05-20',
             'max_tokens' => 16384,
+            'context_window' => 1000000, // 1M tokens input context
             'temperature' => 0.05,  // Lower for propaganda analysis consistency
             'top_p' => 0.95,
             'top_k' => 40,
@@ -114,6 +124,7 @@ return [
             'tier' => 'standard',
             'description' => 'Google\'s fast and efficient model with latest capabilities',
             'is_default' => false,
+            'batch_size' => 100, // Number of texts to process in one request
         ],
 
     ],

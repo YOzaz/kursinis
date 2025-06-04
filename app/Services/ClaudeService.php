@@ -247,24 +247,191 @@ class ClaudeService implements LLMServiceInterface
      */
     private function extractJsonFromResponse(string $content): array
     {
-        // Bandyti rasti JSON bloką
-        if (preg_match('/```json\s*(.*?)\s*```/s', $content, $matches)) {
-            $jsonString = $matches[1];
-        } else {
-            // Jei nėra json bloko, bandyti rasti JSON objektą
-            if (preg_match('/\{.*\}/s', $content, $matches)) {
-                $jsonString = $matches[0];
-            } else {
-                $jsonString = $content;
+        $originalContent = $content;
+        $content = trim($content);
+        
+        // Log the raw response for debugging
+        Log::debug('Claude raw response', [
+            'content_length' => strlen($content),
+            'first_100_chars' => substr($content, 0, 100),
+            'last_100_chars' => substr($content, -100)
+        ]);
+        
+        $jsonString = null;
+        
+        // Method 1: Try to find JSON block in code fences
+        if (preg_match('/```(?:json)?\s*(.*?)\s*```/s', $content, $matches)) {
+            $jsonString = trim($matches[1]);
+            Log::debug('Found JSON in code fence', ['length' => strlen($jsonString)]);
+        }
+        
+        // Method 2: Try to find JSON object with proper brace matching
+        if (!$jsonString) {
+            $jsonString = $this->extractJsonWithBraceMatching($content);
+            if ($jsonString) {
+                Log::debug('Found JSON with brace matching', ['length' => strlen($jsonString)]);
             }
         }
-
+        
+        // Method 3: Try to find JSON array
+        if (!$jsonString) {
+            if (preg_match('/\[.*\]/s', $content, $matches)) {
+                $jsonString = trim($matches[0]);
+                Log::debug('Found JSON array', ['length' => strlen($jsonString)]);
+            }
+        }
+        
+        // Method 4: Look for JSON starting after a known marker
+        if (!$jsonString) {
+            $markers = ['JSON:', 'json:', 'Response:', 'Output:', '{', '['];
+            foreach ($markers as $marker) {
+                $pos = strpos($content, $marker);
+                if ($pos !== false) {
+                    $substring = substr($content, $pos + strlen($marker));
+                    $extracted = $this->extractJsonWithBraceMatching($substring);
+                    if ($extracted) {
+                        $jsonString = $extracted;
+                        Log::debug('Found JSON after marker', ['marker' => $marker, 'length' => strlen($jsonString)]);
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Method 5: Use entire content as last resort
+        if (!$jsonString) {
+            $jsonString = $content;
+            Log::debug('Using entire content as JSON', ['length' => strlen($jsonString)]);
+        }
+        
+        // Clean and validate JSON string
+        $jsonString = $this->cleanJsonString($jsonString);
+        
+        // Try to decode
         $decoded = json_decode($jsonString, true);
         
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \Exception('Nepavyko išgauti JSON iš Claude atsakymo: ' . json_last_error_msg());
+            $error = json_last_error_msg();
+            
+            Log::error('JSON parsing failed', [
+                'error' => $error,
+                'json_string_length' => strlen($jsonString),
+                'json_string_preview' => substr($jsonString, 0, 200),
+                'original_content_preview' => substr($originalContent, 0, 500)
+            ]);
+            
+            // Try to fix common JSON issues
+            $fixedJson = $this->attemptJsonFix($jsonString);
+            if ($fixedJson) {
+                $decoded = json_decode($fixedJson, true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    Log::info('JSON successfully fixed and parsed');
+                    return $decoded;
+                }
+            }
+            
+            throw new \Exception('Nepavyko išgauti JSON iš Claude atsakymo: ' . $error);
         }
 
         return $decoded;
+    }
+    
+    /**
+     * Extract JSON using proper brace matching.
+     */
+    private function extractJsonWithBraceMatching(string $content): ?string
+    {
+        $startPos = strpos($content, '{');
+        if ($startPos === false) {
+            return null;
+        }
+        
+        $braceCount = 0;
+        $inString = false;
+        $escaped = false;
+        
+        for ($i = $startPos; $i < strlen($content); $i++) {
+            $char = $content[$i];
+            
+            if ($escaped) {
+                $escaped = false;
+                continue;
+            }
+            
+            if ($char === '\\') {
+                $escaped = true;
+                continue;
+            }
+            
+            if ($char === '"' && !$escaped) {
+                $inString = !$inString;
+                continue;
+            }
+            
+            if (!$inString) {
+                if ($char === '{') {
+                    $braceCount++;
+                } elseif ($char === '}') {
+                    $braceCount--;
+                    if ($braceCount === 0) {
+                        return substr($content, $startPos, $i - $startPos + 1);
+                    }
+                }
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Clean JSON string of common issues.
+     */
+    private function cleanJsonString(string $jsonString): string
+    {
+        // Remove BOM if present
+        $jsonString = preg_replace('/^\xEF\xBB\xBF/', '', $jsonString);
+        
+        // Trim whitespace
+        $jsonString = trim($jsonString);
+        
+        // Remove trailing commas before closing braces/brackets
+        $jsonString = preg_replace('/,(\s*[}\]])/', '$1', $jsonString);
+        
+        // Fix single quotes to double quotes (common AI mistake)
+        $jsonString = preg_replace("/(?<!\\\\)'([^']*?)'/", '"$1"', $jsonString);
+        
+        return $jsonString;
+    }
+    
+    /**
+     * Attempt to fix common JSON formatting issues.
+     */
+    private function attemptJsonFix(string $jsonString): ?string
+    {
+        // Try removing everything before first { or [
+        if (preg_match('/[{\[].*[}\]]/s', $jsonString, $matches)) {
+            $cleaned = $matches[0];
+            
+            // Additional cleanup
+            $cleaned = $this->cleanJsonString($cleaned);
+            
+            // Test if this parses
+            json_decode($cleaned, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                return $cleaned;
+            }
+        }
+        
+        // Try to fix incomplete JSON by adding missing closing braces
+        $openBraces = substr_count($jsonString, '{') - substr_count($jsonString, '}');
+        if ($openBraces > 0) {
+            $fixed = $jsonString . str_repeat('}', $openBraces);
+            json_decode($fixed, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                return $fixed;
+            }
+        }
+        
+        return null;
     }
 }
