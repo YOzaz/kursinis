@@ -177,8 +177,8 @@ class BatchAnalysisJobV3 implements ShouldQueue
             throw new \Exception("Model {$modelKey} not found in configuration");
         }
         
-        // Smart chunking: use much smaller batch sizes for reliability
-        $chunkSize = 8; // Reduced from 50 to 8 for better reliability
+        // Smart chunking: use very small batch sizes for maximum reliability
+        $chunkSize = 3; // Reduced to 3 for faster API responses and no timeouts
         $chunks = array_chunk($fileContent, $chunkSize);
         $allResults = [];
         
@@ -202,7 +202,7 @@ class BatchAnalysisJobV3 implements ShouldQueue
                 ]);
                 
                 // Small delay to avoid rate limiting
-                usleep(100000); // 0.1 second delay between chunks
+                usleep(250000); // 0.25 second delay between chunks
                 
             } catch (\Exception $e) {
                 Log::warning("Chunk processing failed, falling back to individual", [
@@ -264,7 +264,7 @@ class BatchAnalysisJobV3 implements ShouldQueue
                 $results[$item['id']] = $result;
                 
                 // Small delay between individual requests
-                usleep(200000); // 0.2 second delay
+                usleep(500000); // 0.5 second delay
                 
             } catch (\Exception $e) {
                 Log::error("Individual text processing failed", [
@@ -299,7 +299,7 @@ class BatchAnalysisJobV3 implements ShouldQueue
             'Content-Type' => 'application/json',
             'anthropic-version' => '2023-06-01',
         ])
-        ->timeout(120) // Shorter timeout for smaller chunks
+        ->timeout(300) // Longer timeout for API reliability
         ->post($config['base_url'] . 'messages', [
             'model' => $config['model'],
             'max_tokens' => $config['max_tokens'],
@@ -337,7 +337,7 @@ class BatchAnalysisJobV3 implements ShouldQueue
             'Authorization' => 'Bearer ' . $config['api_key'],
             'Content-Type' => 'application/json',
         ])
-        ->timeout(120)
+        ->timeout(300)
         ->post($config['base_url'] . '/chat/completions', [
             'model' => $config['model'],
             'max_tokens' => $config['max_tokens'],
@@ -378,7 +378,7 @@ class BatchAnalysisJobV3 implements ShouldQueue
         $response = \Illuminate\Support\Facades\Http::withHeaders([
             'Content-Type' => 'application/json',
         ])
-        ->timeout(120)
+        ->timeout(300)
         ->post($url, [
             'contents' => [
                 [
