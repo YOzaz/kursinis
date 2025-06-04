@@ -124,7 +124,7 @@
                                                     <i class="fas fa-question-circle text-muted ms-1" 
                                                        data-bs-toggle="tooltip" 
                                                        data-bs-placement="top" 
-                                                       title="AI modelių skaičius, analizavęs tekstą"></i>
+                                                       title="AI modelių skaičius, bandęs analizuoti tekstą (žaliai - sėkmingai, geltonai - nepavyko)"></i>
                                                 </th>
                                                 <th style="width: 25%;">
                                                     Bendrieji rezultatai
@@ -147,7 +147,8 @@
                                             @foreach($textAnalyses as $textAnalysis)
                                                 @php
                                                     $models = $textAnalysis->getAllModelAnnotations();
-                                                    $totalModels = count($models);
+                                                    $allAttemptedModels = $textAnalysis->getAllAttemptedModels();
+                                                    $totalModels = count($allAttemptedModels);
                                                     
                                                     // Apskaičiuoti suvestines metrikas
                                                     $textMetrics = $textAnalysis->comparisonMetrics;
@@ -236,8 +237,12 @@
                                                     </td>
                                                     <td>
                                                         <div class="d-flex flex-wrap gap-1 mb-2">
-                                                            @foreach($models as $modelName => $annotations)
-                                                                <span class="badge bg-primary">{{ $modelName }}</span>
+                                                            @foreach($allAttemptedModels as $modelName => $modelData)
+                                                                @if($modelData['status'] === 'success')
+                                                                    <span class="badge bg-success">{{ $modelName }}</span>
+                                                                @else
+                                                                    <span class="badge bg-warning" title="Analizė nepavyko">{{ $modelName }}</span>
+                                                                @endif
                                                             @endforeach
                                                         </div>
                                                         <small class="text-muted">{{ $totalModels }} modeliai</small>

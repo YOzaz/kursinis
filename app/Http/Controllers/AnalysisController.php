@@ -9,6 +9,7 @@ use App\Models\TextAnalysis;
 use App\Models\ComparisonMetric;
 use App\Services\MetricsService;
 use App\Services\ExportService;
+use App\Services\ModelStatusService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Str;
@@ -50,11 +51,13 @@ class AnalysisController extends Controller
 {
     private MetricsService $metricsService;
     private ExportService $exportService;
+    private ModelStatusService $modelStatusService;
 
-    public function __construct(MetricsService $metricsService, ExportService $exportService)
+    public function __construct(MetricsService $metricsService, ExportService $exportService, ModelStatusService $modelStatusService)
     {
         $this->metricsService = $metricsService;
         $this->exportService = $exportService;
+        $this->modelStatusService = $modelStatusService;
     }
 
     /**
@@ -85,7 +88,11 @@ class AnalysisController extends Controller
             
         $statistics = $this->metricsService->calculateJobStatistics($analysis);
         
-        // Get used models from comparison metrics (most accurate way)
+        // Get attempted models from the first text analysis (all texts use same models in a job)
+        $firstTextAnalysis = TextAnalysis::where('job_id', $analysis->job_id)->first();
+        $attemptedModels = $firstTextAnalysis ? array_keys($firstTextAnalysis->getAllAttemptedModels()) : [];
+        
+        // Also get used models from comparison metrics for reference
         $usedModels = ComparisonMetric::where('job_id', $analysis->job_id)
             ->distinct('model_name')
             ->pluck('model_name')
@@ -93,7 +100,7 @@ class AnalysisController extends Controller
         
         // Calculate actual text count and model count for better clarity
         $actualTextCount = TextAnalysis::where('job_id', $analysis->job_id)->distinct('text_id')->count();
-        $modelCount = count($usedModels);
+        $modelCount = count($attemptedModels);
         
         return view('analyses.show', compact('analysis', 'statistics', 'textAnalyses', 'usedModels', 'actualTextCount', 'modelCount'));
     }
@@ -1196,6 +1203,121 @@ class AnalysisController extends Controller
             return response()->json([
                 'error' => 'Serverio klaida gaunant metrikas',
                 'details' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get model status information.
+     */
+    #[OA\Get(
+        path: "/api/models/status",
+        operationId: "getModelStatus",
+        description: "Get connectivity status of all configured AI models",
+        summary: "Get model connectivity status",
+        tags: ["system"],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Model status information",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "status", type: "string"),
+                        new OA\Property(property: "total_models", type: "integer"),
+                        new OA\Property(property: "online_models", type: "integer"),
+                        new OA\Property(property: "offline_models", type: "integer"),
+                        new OA\Property(property: "last_checked", type: "string"),
+                        new OA\Property(
+                            property: "models", 
+                            type: "object",
+                            additionalProperties: new OA\AdditionalProperties(
+                                properties: [
+                                    new OA\Property(property: "status", type: "string"),
+                                    new OA\Property(property: "online", type: "boolean"),
+                                    new OA\Property(property: "message", type: "string"),
+                                    new OA\Property(property: "response_time", type: "number"),
+                                    new OA\Property(property: "configured", type: "boolean"),
+                                    new OA\Property(property: "provider", type: "string"),
+                                    new OA\Property(property: "model_name", type: "string")
+                                ]
+                            )
+                        )
+                    ]
+                )
+            ),
+            new OA\Response(response: 500, description: "Server error")
+        ]
+    )]
+    public function getModelStatus(): JsonResponse
+    {
+        try {
+            $systemHealth = $this->modelStatusService->getSystemHealth();
+            
+            return response()->json([
+                'success' => true,
+                'data' => $systemHealth
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error getting model status', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Server error getting model status',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Refresh model status.
+     */
+    #[OA\Post(
+        path: "/api/models/status/refresh",
+        operationId: "refreshModelStatus",
+        description: "Force refresh connectivity status of all configured AI models",
+        summary: "Refresh model connectivity status",
+        tags: ["system"],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Refreshed model status information",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "success", type: "boolean"),
+                        new OA\Property(property: "message", type: "string"),
+                        new OA\Property(property: "data", type: "object")
+                    ]
+                )
+            ),
+            new OA\Response(response: 500, description: "Server error")
+        ]
+    )]
+    public function refreshModelStatus(): JsonResponse
+    {
+        try {
+            $this->modelStatusService->clearCache();
+            $systemHealth = $this->modelStatusService->getSystemHealth();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Model status refreshed successfully',
+                'data' => $systemHealth
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error refreshing model status', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Server error refreshing model status',
+                'message' => $e->getMessage()
             ], 500);
         }
     }

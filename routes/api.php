@@ -44,6 +44,13 @@ Route::get('/health', [AnalysisController::class, 'health'])
 Route::get('/models', [AnalysisController::class, 'models'])
     ->name('api.models');
 
+// Model status endpoints
+Route::get('/models/status', [AnalysisController::class, 'getModelStatus'])
+    ->name('api.models.status');
+
+Route::post('/models/status/refresh', [AnalysisController::class, 'refreshModelStatus'])
+    ->name('api.models.status.refresh');
+
 // Standartinio prompt'o gavimas
 Route::get('/default-prompt', function() {
     $promptService = app(\App\Services\PromptService::class);

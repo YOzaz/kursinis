@@ -81,6 +81,32 @@
                         </div>
                     </div>
 
+                    <!-- AI modelių statusas -->
+                    <div class="mb-4">
+                        <div class="card border-info">
+                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-heartbeat me-2 text-info"></i>
+                                        AI modelių ryšio statusas
+                                    </h6>
+                                </div>
+                                <div>
+                                    <button type="button" class="btn btn-sm btn-outline-info" id="refreshStatusBtn" onclick="refreshModelStatus()">
+                                        <i class="fas fa-sync-alt me-1"></i>Atnaujinti
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="modelStatusContainer">
+                                    <div class="text-center py-2">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>Tikrinamas ryšys su AI modeliais...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Modelių pasirinkimas -->
                     <div class="mb-4">
                         <label class="form-label fw-bold">
@@ -135,7 +161,7 @@
                                 `;
                                 
                                 providerModels.forEach(model => {
-                                    const isDefault = model.tier === 'premium' ? 'checked' : '';
+                                    const isDefault = '';
                                     const tier = model.tier === 'premium' ? 
                                         '<span class="badge bg-warning text-dark ms-1">Premium</span>' : '';
                                     
@@ -151,6 +177,9 @@
                                                         <strong>${model.model}</strong>
                                                         ${tier}
                                                         <small class="d-block text-muted">${model.description || ''}</small>
+                                                    </div>
+                                                    <div class="model-status-indicator" id="status-${model.key}">
+                                                        <i class="fas fa-circle text-muted" title="Nežinomas statusas"></i>
                                                     </div>
                                                 </div>
                                             </label>
@@ -429,6 +458,31 @@
     </div>
 </div>
 
+<!-- Model Status Details Modal -->
+<div class="modal fade" id="modelStatusModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">AI modelių ryšio statusas - detaliai</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modelStatusDetails">
+                    <div class="text-center py-3">
+                        <i class="fas fa-spinner fa-spin me-2"></i>Kraunama...
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" onclick="refreshModelStatusDetails()">
+                    <i class="fas fa-sync-alt me-1"></i>Atnaujinti
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Uždaryti</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @section('scripts')
@@ -442,6 +496,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const fileSize = document.getElementById('fileSize');
     const analyzeBtn = document.getElementById('analyzeBtn');
     const form = document.getElementById('uploadForm');
+    
+    // Load model status on page load
+    loadModelStatus();
+    
+    // Set up periodic status checking (every 5 minutes)
+    setInterval(loadModelStatus, 5 * 60 * 1000);
 
     // Failų drag & drop funkcionalumas
     uploadArea.addEventListener('click', () => fileInput.click());
@@ -657,6 +717,357 @@ function buildRisenPrompt() {
 
     document.getElementById('custom_prompt').value = risenPrompt;
     bootstrap.Modal.getInstance(document.getElementById('promptBuilderModal')).hide();
+}
+
+// Model status functions
+function loadModelStatus() {
+    fetch('/api/models/status')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayModelStatus(data.data);
+                updateModelIndicators(data.data.models);
+            } else {
+                displayModelStatusError('Nepavyko įkelti modelių statuso');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading model status:', error);
+            displayModelStatusError('Serverio klaida kraunant modelių statusą');
+        });
+}
+
+function refreshModelStatus() {
+    const refreshBtn = document.getElementById('refreshStatusBtn');
+    const originalHtml = refreshBtn.innerHTML;
+    
+    refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Atnaujinama...';
+    refreshBtn.disabled = true;
+    
+    // Show loading in status container
+    document.getElementById('modelStatusContainer').innerHTML = `
+        <div class="text-center py-2">
+            <i class="fas fa-spinner fa-spin me-2"></i>Atnaujinamas modelių statusas...
+        </div>
+    `;
+    
+    fetch('/api/models/status/refresh', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayModelStatus(data.data);
+            updateModelIndicators(data.data.models);
+        } else {
+            displayModelStatusError('Nepavyko atnaujinti modelių statuso');
+        }
+    })
+    .catch(error => {
+        console.error('Error refreshing model status:', error);
+        displayModelStatusError('Serverio klaida atnaujinant modelių statusą');
+    })
+    .finally(() => {
+        refreshBtn.innerHTML = originalHtml;
+        refreshBtn.disabled = false;
+    });
+}
+
+function displayModelStatus(systemHealth) {
+    const container = document.getElementById('modelStatusContainer');
+    const { status, total_models, online_models, offline_models, models } = systemHealth;
+    
+    let statusClass = 'success';
+    let statusIcon = 'check-circle';
+    let statusText = 'Visi modeliai veikia';
+    
+    if (status === 'critical') {
+        statusClass = 'danger';
+        statusIcon = 'times-circle';
+        statusText = 'Nė vienas modelis nedostupas';
+    } else if (status === 'degraded') {
+        statusClass = 'warning';
+        statusIcon = 'exclamation-triangle';
+        statusText = 'Kai kurie modeliai nedostupani';
+    }
+    
+    let html = `
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-${statusIcon} text-${statusClass} me-2 fa-lg"></i>
+                    <div>
+                        <strong class="text-${statusClass}">${statusText}</strong>
+                        <div class="small text-muted">
+                            ${online_models}/${total_models} modelių prisijungę
+                            <button type="button" class="btn btn-link btn-sm p-0 ms-2" onclick="showModelStatusDetails()">
+                                <i class="fas fa-info-circle"></i> Detaliau
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="small text-muted">
+                    Paskutinį kartą tikrinta: ${new Date().toLocaleTimeString('lt-LT')}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    if (offline_models > 0) {
+        html += `
+            <div class="mt-3">
+                <div class="small">
+                    <strong>Problemos su modeliais:</strong>
+                </div>
+                <div class="mt-1">
+        `;
+        
+        Object.entries(models).forEach(([modelKey, modelStatus]) => {
+            if (!modelStatus.online) {
+                html += `
+                    <span class="badge bg-danger me-1" title="${modelStatus.message}">
+                        ${modelStatus.model_name}
+                    </span>
+                `;
+            }
+        });
+        
+        html += `
+                </div>
+                <div class="small text-muted mt-1">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Pelės užvedimu pamatysite detalesnę informaciją
+                </div>
+            </div>
+        `;
+    }
+    
+    container.innerHTML = html;
+}
+
+function updateModelIndicators(models) {
+    Object.entries(models).forEach(([modelKey, modelStatus]) => {
+        const indicator = document.getElementById(`status-${modelKey}`);
+        if (indicator) {
+            let iconClass = 'fas fa-circle';
+            let textClass = 'text-muted';
+            let title = 'Nežinomas statusas';
+            
+            if (modelStatus.online) {
+                iconClass = 'fas fa-circle';
+                textClass = 'text-success';
+                title = `Online (${modelStatus.response_time}ms)`;
+            } else if (modelStatus.status === 'not_configured') {
+                iconClass = 'fas fa-exclamation-circle';
+                textClass = 'text-warning';
+                title = 'Nesukonfigūruotas API raktas';
+            } else {
+                iconClass = 'fas fa-times-circle';
+                textClass = 'text-danger';
+                title = `Offline: ${modelStatus.message}`;
+            }
+            
+            indicator.innerHTML = `<i class="${iconClass} ${textClass}" title="${title}"></i>`;
+        }
+    });
+}
+
+function displayModelStatusError(errorMessage) {
+    const container = document.getElementById('modelStatusContainer');
+    container.innerHTML = `
+        <div class="text-center py-2 text-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>${errorMessage}
+        </div>
+    `;
+}
+
+function showModelStatusDetails() {
+    const modal = new bootstrap.Modal(document.getElementById('modelStatusModal'));
+    modal.show();
+    loadModelStatusDetails();
+}
+
+function loadModelStatusDetails() {
+    const container = document.getElementById('modelStatusDetails');
+    container.innerHTML = `
+        <div class="text-center py-3">
+            <i class="fas fa-spinner fa-spin me-2"></i>Kraunama...
+        </div>
+    `;
+    
+    fetch('/api/models/status')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayModelStatusDetails(data.data);
+            } else {
+                container.innerHTML = `
+                    <div class="text-center py-3 text-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Nepavyko įkelti detalaus statuso
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading detailed model status:', error);
+            container.innerHTML = `
+                <div class="text-center py-3 text-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Serverio klaida kraunant duomenis
+                </div>
+            `;
+        });
+}
+
+function refreshModelStatusDetails() {
+    // Clear cache and reload
+    fetch('/api/models/status/refresh', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayModelStatusDetails(data.data);
+            // Also update the main status display
+            displayModelStatus(data.data);
+            updateModelIndicators(data.data.models);
+        } else {
+            const container = document.getElementById('modelStatusDetails');
+            container.innerHTML = `
+                <div class="text-center py-3 text-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Nepavyko atnaujinti statuso
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Error refreshing detailed model status:', error);
+        const container = document.getElementById('modelStatusDetails');
+        container.innerHTML = `
+            <div class="text-center py-3 text-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>Serverio klaida atnaujinant duomenis
+            </div>
+        `;
+    });
+}
+
+function displayModelStatusDetails(systemHealth) {
+    const container = document.getElementById('modelStatusDetails');
+    const { status, total_models, online_models, offline_models, models, last_checked } = systemHealth;
+    
+    let html = `
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card border-primary">
+                    <div class="card-body text-center">
+                        <h5 class="text-primary">${total_models}</h5>
+                        <small>Konfigūruoti modeliai</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-success">
+                    <div class="card-body text-center">
+                        <h5 class="text-success">${online_models}</h5>
+                        <small>Online modeliai</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-danger">
+                    <div class="card-body text-center">
+                        <h5 class="text-danger">${offline_models}</h5>
+                        <small>Offline modeliai</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Modelis</th>
+                        <th>Tiekėjas</th>
+                        <th>Statusas</th>
+                        <th>Atsakymo laikas</th>
+                        <th>Konfigūracija</th>
+                        <th>Pranešimas</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    Object.entries(models).forEach(([modelKey, modelStatus]) => {
+        const statusBadge = getStatusBadge(modelStatus);
+        const responseTime = modelStatus.response_time ? `${modelStatus.response_time}ms` : '-';
+        const configStatus = modelStatus.configured ? 
+            '<i class="fas fa-check text-success" title="Sukonfigūruotas"></i>' : 
+            '<i class="fas fa-times text-danger" title="Nesukonfigūruotas"></i>';
+        
+        html += `
+            <tr>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <i class="${modelStatus.provider_icon} text-${modelStatus.provider_color} me-2"></i>
+                        <div>
+                            <strong>${modelStatus.model_name}</strong>
+                            ${modelStatus.tier === 'premium' ? '<span class="badge bg-warning text-dark ms-1">Premium</span>' : ''}
+                            <div class="small text-muted">${modelStatus.description}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>${modelStatus.provider_name}</td>
+                <td>${statusBadge}</td>
+                <td>${responseTime}</td>
+                <td>${configStatus}</td>
+                <td>
+                    <span class="small text-muted" title="${modelStatus.message}">
+                        ${truncateMessage(modelStatus.message, 30)}
+                    </span>
+                </td>
+            </tr>
+        `;
+    });
+    
+    html += `
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="mt-3 text-muted small">
+            <i class="fas fa-clock me-1"></i>
+            Paskutinį kartą tikrinta: ${new Date(last_checked).toLocaleString('lt-LT')}
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+
+function getStatusBadge(modelStatus) {
+    if (modelStatus.online) {
+        return '<span class="badge bg-success">Online</span>';
+    } else if (modelStatus.status === 'not_configured') {
+        return '<span class="badge bg-warning">Nesukonfigūruotas</span>';
+    } else if (modelStatus.status === 'auth_error') {
+        return '<span class="badge bg-danger">Autentifikacijos klaida</span>';
+    } else {
+        return '<span class="badge bg-danger">Offline</span>';
+    }
+}
+
+function truncateMessage(message, length) {
+    if (!message) return '-';
+    return message.length > length ? message.substring(0, length) + '...' : message;
 }
 </script>
 @endsection
