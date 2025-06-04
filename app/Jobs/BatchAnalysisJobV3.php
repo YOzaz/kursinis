@@ -580,10 +580,11 @@ class BatchAnalysisJobV3 implements ShouldQueue
             $modelConfig = config("llm.models.{$modelKey}");
             $modelName = $modelConfig['model'] ?? $modelKey;
 
-            $metrics = $metricsService->calculateComparisonMetrics(
+            $metrics = $metricsService->calculateMetricsForText(
                 $textAnalysis->expert_annotations,
                 $result,
-                $textAnalysis->content
+                $textAnalysis->content,
+                $modelName
             );
 
             ComparisonMetric::create([
