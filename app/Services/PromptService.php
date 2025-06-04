@@ -234,4 +234,13 @@ class PromptService
 
         return $this->generateDetailedAnalysisPrompt($text, 'General');
     }
+
+    /**
+     * Gauti analizės prompt šabloną be teksto (batch analizei).
+     */
+    public function getAnalysisPromptTemplate(): string
+    {
+        $standard = $this->getStandardRisenPrompt();
+        return $this->buildRisenPrompt($standard);
+    }
 }

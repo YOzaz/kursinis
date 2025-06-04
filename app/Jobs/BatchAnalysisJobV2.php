@@ -30,13 +30,15 @@ class BatchAnalysisJobV2 implements ShouldQueue
 
     public int $tries = 3;
     public int $timeout = 3600; // 1 hour for large batches
-    public string $queue = 'batch'; // Use the batch queue
 
     public function __construct(string $jobId, array $fileContent, array $models)
     {
         $this->jobId = $jobId;
         $this->fileContent = $fileContent;
         $this->models = $models;
+        
+        // Set the queue to 'batch' for this job
+        $this->onQueue('batch');
     }
 
     public function handle(): void

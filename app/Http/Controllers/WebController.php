@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Jobs\BatchAnalysisJob;
 use App\Jobs\BatchAnalysisJobV2;
+use App\Jobs\BatchAnalysisJobV3;
 use App\Models\AnalysisJob;
 use App\Services\PromptService;
 use Illuminate\Http\Request;
@@ -95,19 +96,19 @@ class WebController extends Controller
                 'custom_prompt' => $customPrompt,
             ]);
 
-            // Use optimized batch processing for large datasets
-            $useOptimizedBatch = count($jsonData) > 100; // Use batch processing for 100+ texts
+            // Use smart chunking batch processing for improved performance and reliability
+            $useSmartChunking = count($jsonData) > 10; // Use smart chunking for 10+ texts
             
-            if ($useOptimizedBatch) {
-                BatchAnalysisJobV2::dispatch($jobId, $jsonData, $models);
-                Log::info('Using optimized batch processing', [
+            if ($useSmartChunking) {
+                BatchAnalysisJobV3::dispatch($jobId, $jsonData, $models);
+                Log::info('Using smart chunking batch processing', [
                     'job_id' => $jobId,
                     'text_count' => count($jsonData),
-                    'optimization' => 'batch_requests'
+                    'strategy' => 'smart_chunking_v3'
                 ]);
             } else {
                 BatchAnalysisJob::dispatch($jobId, $jsonData, $models);
-                Log::info('Using standard individual processing', [
+                Log::info('Using individual processing for small datasets', [
                     'job_id' => $jobId,
                     'text_count' => count($jsonData)
                 ]);
