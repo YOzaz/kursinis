@@ -34,6 +34,18 @@
                     </div>
                 </div>
 
+                <!-- Mission Control Link -->
+                <div class="text-center mb-4">
+                    <a href="{{ route('status.view', $job->job_id) }}" class="btn btn-outline-primary" target="_blank">
+                        <i class="fas fa-satellite-dish me-2"></i>
+                        🤖 Mission Control View
+                        <i class="fas fa-external-link-alt ms-2"></i>
+                    </a>
+                    <div class="text-muted mt-2">
+                        <small>Advanced real-time monitoring with technical details</small>
+                    </div>
+                </div>
+
                 <!-- Statuso indikatorius -->
                 <div class="text-center mb-4">
                     <div id="statusIndicator">

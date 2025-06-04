@@ -32,12 +32,18 @@ class TextAnalysis extends Model
         'claude_annotations',
         'claude_actual_model',
         'claude_execution_time_ms',
+        'claude_error',
+        'claude_model_name',
         'gemini_annotations',
         'gemini_actual_model',
         'gemini_execution_time_ms',
+        'gemini_error',
+        'gemini_model_name',
         'gpt_annotations',
         'gpt_actual_model',
         'gpt_execution_time_ms',
+        'gpt_error',
+        'gpt_model_name',
     ];
 
     /**
