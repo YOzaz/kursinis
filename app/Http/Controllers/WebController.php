@@ -37,10 +37,14 @@ class WebController extends Controller
         $availableModels = collect(config('llm.models', []))->keys()->implode(',');
         
         $validator = Validator::make($request->all(), [
-            'json_file' => 'required|file|mimes:json|max:10240', // 10MB
+            'json_file' => 'required|file|mimetypes:application/json,text/plain|max:102400', // 100MB
             'models' => 'required|array|min:1',
             'models.*' => "required|string|in:{$availableModels}"
         ], [
+            'json_file.required' => 'Prašome pasirinkti JSON failą.',
+            'json_file.file' => 'Įkeltas failas nėra tinkamas.',
+            'json_file.mimetypes' => 'Failas turi būti JSON formato.',
+            'json_file.max' => 'Failo dydis negali viršyti 100MB.',
             'models.min' => 'Pasirinkite bent vieną modelį.',
             'models.required' => 'Pasirinkite bent vieną modelį.',
         ]);

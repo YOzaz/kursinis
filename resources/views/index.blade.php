@@ -67,11 +67,11 @@
                                title="Įkelkite JSON failą su tekstais. Jei turite ekspertų anotacijas (iš Label Studio), sistema apskaičiuos palyginimo metrikas. Jei ne - tik AI analizė."></i>
                         </label>
                         <div class="upload-area" id="uploadArea">
-                            <input type="file" class="form-control d-none" id="json_file" name="json_file" accept=".json" required>
+                            <input type="file" class="form-control d-none" id="json_file" name="json_file" accept=".json,application/json,text/plain" required>
                             <div id="uploadContent">
                                 <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
                                 <h5>Nuvilkite failą čia arba <span class="text-primary">spustelėkite pasirinkti</span></h5>
-                                <p class="text-muted">Palaikomi formatai: .json (iki 10MB)</p>
+                                <p class="text-muted">Palaikomi formatai: .json (iki 100MB)</p>
                             </div>
                             <div id="fileInfo" class="d-none">
                                 <i class="fas fa-file-check fa-2x text-success mb-2"></i>
@@ -79,6 +79,11 @@
                                 <small class="text-muted" id="fileSize"></small>
                             </div>
                         </div>
+                        @error('json_file')
+                            <div class="text-danger mt-2">
+                                <small><i class="fas fa-exclamation-circle me-1"></i>{{ $message }}</small>
+                            </div>
+                        @enderror
                     </div>
 
                     <!-- AI modelių statusas -->
@@ -122,6 +127,11 @@
                         <div id="model-selection">
                             <!-- Models will be loaded dynamically -->
                         </div>
+                        @error('models')
+                            <div class="text-danger mt-2">
+                                <small><i class="fas fa-exclamation-circle me-1"></i>{{ $message }}</small>
+                            </div>
+                        @enderror
                         
                         <script>
                         document.addEventListener('DOMContentLoaded', function() {
@@ -521,8 +531,24 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const files = e.dataTransfer.files;
         if (files.length > 0) {
+            const file = files[0];
+            
+            // Validate dropped file before setting it
+            const allowedTypes = ['application/json', 'text/plain'];
+            const isJsonFile = file.name.toLowerCase().endsWith('.json') || allowedTypes.includes(file.type);
+            
+            if (!isJsonFile) {
+                alert('Prašome pasirinkti JSON formato failą (.json)');
+                return;
+            }
+            
+            if (file.size > 104857600) { // 100MB
+                alert('Failo dydis negali viršyti 100MB');
+                return;
+            }
+            
             fileInput.files = files;
-            displayFileInfo(files[0]);
+            displayFileInfo(file);
         }
     });
 
@@ -533,6 +559,23 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function displayFileInfo(file) {
+        // Validate file type
+        const allowedTypes = ['application/json', 'text/plain'];
+        const isJsonFile = file.name.toLowerCase().endsWith('.json') || allowedTypes.includes(file.type);
+        
+        if (!isJsonFile) {
+            alert('Prašome pasirinkti JSON formato failą (.json)');
+            fileInput.value = '';
+            return;
+        }
+        
+        // Validate file size (100MB = 104857600 bytes)
+        if (file.size > 104857600) {
+            alert('Failo dydis negali viršyti 100MB');
+            fileInput.value = '';
+            return;
+        }
+        
         fileName.textContent = file.name;
         fileSize.textContent = formatFileSize(file.size);
         
@@ -553,7 +596,30 @@ document.addEventListener('DOMContentLoaded', function() {
     // Formos validacija
     form.addEventListener('submit', function(e) {
         const selectedModels = document.querySelectorAll('input[name="models[]"]:checked');
+        const fileInput = document.getElementById('json_file');
         
+        // Check if file is selected
+        if (!fileInput.files || fileInput.files.length === 0) {
+            e.preventDefault();
+            alert('Prašome pasirinkti JSON failą analizei.');
+            return;
+        }
+        
+        // Check file type and size again before submit
+        const file = fileInput.files[0];
+        if (!file.name.toLowerCase().endsWith('.json')) {
+            e.preventDefault();
+            alert('Prašome pasirinkti JSON formato failą (.json)');
+            return;
+        }
+        
+        if (file.size > 104857600) { // 100MB
+            e.preventDefault();
+            alert('Failo dydis negali viršyti 100MB');
+            return;
+        }
+        
+        // Check if models are selected
         if (selectedModels.length === 0) {
             e.preventDefault();
             alert('Prašome pasirinkti bent vieną LLM modelį analizei.');
