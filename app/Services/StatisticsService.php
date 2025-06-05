@@ -67,9 +67,9 @@ class StatisticsService
             $performance[$model] = [
                 'total_analyses' => $modelMetrics->count(),
                 'total_propaganda_texts' => $propagandaMetrics->count(),
-                'avg_precision' => round($precision, 2),
-                'avg_recall' => round($recall, 2),
-                'avg_f1_score' => round($f1Score, 2),
+                'avg_precision' => round($precision, 4),
+                'avg_recall' => round($recall, 4),
+                'avg_f1_score' => round($f1Score, 4),
                 'overall_score' => round($overallScore, 2),
                 'propaganda_detection_accuracy' => round($accuracy, 2),
             ];
