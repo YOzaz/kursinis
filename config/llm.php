@@ -99,7 +99,7 @@ return [
             'api_key' => env('GEMINI_API_KEY'),
             'base_url' => 'https://generativelanguage.googleapis.com/',
             'model' => 'gemini-2.5-pro-preview-05-06',
-            'max_tokens' => 16384,
+            'max_tokens' => 32768, // Increased to handle large responses
             'context_window' => 2000000, // 2M tokens input context
             'temperature' => 0.05,  // Lower for propaganda analysis consistency
             'top_p' => 0.95,
@@ -115,7 +115,7 @@ return [
             'api_key' => env('GEMINI_API_KEY'),
             'base_url' => 'https://generativelanguage.googleapis.com/',
             'model' => 'gemini-2.5-flash-preview-05-20',
-            'max_tokens' => 16384,
+            'max_tokens' => 32768, // Increased to handle large responses
             'context_window' => 1000000, // 1M tokens input context
             'temperature' => 0.05,  // Lower for propaganda analysis consistency
             'top_p' => 0.95,

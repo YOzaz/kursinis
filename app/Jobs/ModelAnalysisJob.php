@@ -28,7 +28,7 @@ class ModelAnalysisJob implements ShouldQueue
     public array $fileContent;
     public ?string $customPrompt;
 
-    public int $tries = 3;
+    public int $tries = 1; // Reduced to prevent retry loops with API issues
     public int $timeout = 1800; // 30 minutes for model processing
 
     public function __construct(string $jobId, string $modelKey, string $tempFile, array $fileContent, ?string $customPrompt = null)
@@ -322,8 +322,38 @@ class ModelAnalysisJob implements ShouldQueue
         
         $responseData = $response->json();
         
-        if (!isset($responseData['candidates'][0]['content']['parts'][0]['text'])) {
-            throw new \Exception('Invalid Gemini API response format');
+        // Check for various Gemini API response issues
+        if (!isset($responseData['candidates'][0])) {
+            throw new \Exception('Gemini API error: No candidates in response. Response: ' . json_encode($responseData));
+        }
+        
+        $candidate = $responseData['candidates'][0];
+        
+        // Check for specific finish reasons that indicate issues
+        if (isset($candidate['finishReason'])) {
+            switch ($candidate['finishReason']) {
+                case 'MAX_TOKENS':
+                    throw new \Exception('Gemini API error: Response truncated due to max tokens limit. Try reducing input size or increasing max_tokens.');
+                case 'SAFETY':
+                    throw new \Exception('Gemini API error: Response blocked by safety filters.');
+                case 'RECITATION':
+                    throw new \Exception('Gemini API error: Response blocked due to recitation.');
+                case 'OTHER':
+                    throw new \Exception('Gemini API error: Response blocked for other reasons.');
+            }
+        }
+        
+        if (!isset($candidate['content']['parts'][0]['text'])) {
+            // Log the actual response for debugging
+            $this->logProgress("Gemini API response debugging", [
+                'model' => $modelKey,
+                'status_code' => $response->status(),
+                'finish_reason' => $candidate['finishReason'] ?? 'unknown',
+                'response_data' => $responseData,
+                'status' => 'debug'
+            ], 'error');
+            
+            throw new \Exception('Invalid Gemini API response format: missing content.parts[0].text. Finish reason: ' . ($candidate['finishReason'] ?? 'unknown'));
         }
         
         return $this->parseFileResponse($responseData['candidates'][0]['content']['parts'][0]['text'], $this->fileContent);
@@ -546,13 +576,13 @@ class ModelAnalysisJob implements ShouldQueue
             }
         }
         
-        // Update job progress
-        $job->processed_texts = $completedModels * $totalTexts;
+        // Update job progress based on model completion (since we upload whole JSON to each model)
+        $job->processed_texts = $completedModels;
+        $job->total_texts = $totalModels;
         
         // Check if all models are completed
         if ($completedModels >= $totalModels) {
             $job->status = AnalysisJob::STATUS_COMPLETED;
-            $job->total_texts = $totalModels * $totalTexts;
         }
         
         $job->save();
