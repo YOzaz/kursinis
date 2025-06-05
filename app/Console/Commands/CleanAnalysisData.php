@@ -139,20 +139,20 @@ class CleanAnalysisData extends Command
     private function cleanAllAnalysisData()
     {
         $this->info('Cleaning Model Results...');
-        $deleted = ModelResult::truncate();
-        $this->line("✓ Model Results cleaned");
+        $deleted = ModelResult::query()->delete();
+        $this->line("✓ Model Results cleaned ({$deleted} records)");
 
         $this->info('Cleaning Comparison Metrics...');
-        $deleted = ComparisonMetric::truncate();
-        $this->line("✓ Comparison Metrics cleaned");
+        $deleted = ComparisonMetric::query()->delete();
+        $this->line("✓ Comparison Metrics cleaned ({$deleted} records)");
 
         $this->info('Cleaning Text Analyses...');
-        $deleted = TextAnalysis::truncate();
-        $this->line("✓ Text Analyses cleaned");
+        $deleted = TextAnalysis::query()->delete();
+        $this->line("✓ Text Analyses cleaned ({$deleted} records)");
 
         $this->info('Cleaning Analysis Jobs...');
-        $deleted = AnalysisJob::truncate();
-        $this->line("✓ Analysis Jobs cleaned");
+        $deleted = AnalysisJob::query()->delete();
+        $this->line("✓ Analysis Jobs cleaned ({$deleted} records)");
     }
 
     /**
@@ -161,12 +161,12 @@ class CleanAnalysisData extends Command
     private function cleanAllLLMResults()
     {
         $this->info('Cleaning Model Results...');
-        ModelResult::truncate();
-        $this->line("✓ Model Results cleaned");
+        $deletedResults = ModelResult::query()->delete();
+        $this->line("✓ Model Results cleaned ({$deletedResults} records)");
 
         $this->info('Cleaning Comparison Metrics...');
-        ComparisonMetric::truncate();
-        $this->line("✓ Comparison Metrics cleaned");
+        $deletedMetrics = ComparisonMetric::query()->delete();
+        $this->line("✓ Comparison Metrics cleaned ({$deletedMetrics} records)");
 
         $this->info('Resetting LLM annotations in Text Analyses...');
         TextAnalysis::query()->update([
@@ -180,11 +180,11 @@ class CleanAnalysisData extends Command
             'gemini_execution_time_ms' => null,
             'gemini_error' => null,
             'gemini_model_name' => null,
-            'openai_annotations' => null,
-            'openai_actual_model' => null,
-            'openai_execution_time_ms' => null,
-            'openai_error' => null,
-            'openai_model_name' => null,
+            'gpt_annotations' => null,
+            'gpt_actual_model' => null,
+            'gpt_execution_time_ms' => null,
+            'gpt_error' => null,
+            'gpt_model_name' => null,
         ]);
         $this->line("✓ LLM annotations reset, expert annotations preserved");
 
@@ -246,11 +246,11 @@ class CleanAnalysisData extends Command
             'gemini_execution_time_ms' => null,
             'gemini_error' => null,
             'gemini_model_name' => null,
-            'openai_annotations' => null,
-            'openai_actual_model' => null,
-            'openai_execution_time_ms' => null,
-            'openai_error' => null,
-            'openai_model_name' => null,
+            'gpt_annotations' => null,
+            'gpt_actual_model' => null,
+            'gpt_execution_time_ms' => null,
+            'gpt_error' => null,
+            'gpt_model_name' => null,
         ]);
         $this->line("✓ Reset LLM annotations for {$updated} old text analyses");
     }
