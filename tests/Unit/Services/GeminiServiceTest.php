@@ -227,7 +227,7 @@ class GeminiServiceTest extends TestCase
 
     public function test_get_actual_model_name_returns_config_value(): void
     {
-        $this->assertEquals('gemini-2.5-pro-experimental', $this->service->getActualModelName());
+        $this->assertEquals('gemini-2.5-pro-preview-05-06', $this->service->getActualModelName());
     }
 
     public function test_analyze_text_handles_api_errors_with_retries(): void

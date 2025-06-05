@@ -77,37 +77,79 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="{{ route('home') }}">
-                <i class="fas fa-search-plus me-2"></i>
+                <i class="fas fa-shield-alt me-2"></i>
                 Propagandos analizės sistema
             </a>
             
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="{{ route('home') }}" title="Įkelti tekstus analizei">
-                    <i class="fas fa-file-upload me-1"></i>Nauja analizė
-                </a>
-                <a class="nav-link" href="{{ route('analyses.index') }}" title="Visų analizių sąrašas">
-                    <i class="fas fa-list me-1"></i>Analizės
-                </a>
-                <a class="nav-link" href="{{ route('dashboard') }}" title="Rezultatų peržiūra ir statistikos">
-                    <i class="fas fa-chart-bar me-1"></i>Dashboard
-                </a>
-                <a class="nav-link" href="{{ route('settings.index') }}" title="Sistemos nustatymai">
-                    <i class="fas fa-cogs me-1"></i>Nustatymai
-                </a>
-                <a class="nav-link" href="{{ route('help.index') }}" title="Pagalba ir dokumentacija">
-                    <i class="fas fa-question-circle me-1"></i>Pagalba
-                </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}" title="Sistemos pagrindinis puslapis ir statistikos">
+                            <i class="fas fa-home me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('create') ? 'active' : '' }}" href="{{ route('create') }}" title="Sukurti naują analizę">
+                            <i class="fas fa-plus-circle me-1"></i>Nauja analizė
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('analyses.*') ? 'active' : '' }}" href="{{ route('analyses.index') }}" title="Visų analizių sąrašas ir rezultatai">
+                            <i class="fas fa-list me-1"></i>Analizės
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('mission-control') ? 'active' : '' }}" href="{{ route('mission-control') }}" title="Sistemos monitoringas ir log'ai">
+                            <i class="fas fa-satellite-dish me-1"></i>Mission Control
+                        </a>
+                    </li>
+                </ul>
                 
-                <!-- User info and logout -->
-                <div class="navbar-text text-light me-3">
-                    <i class="fas fa-user me-1"></i>{{ session('username', 'Vartotojas') }}
-                </div>
-                <form method="POST" action="{{ route('logout') }}" class="d-inline">
-                    @csrf
-                    <button type="submit" class="btn btn-outline-light btn-sm" title="Atsijungti">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </button>
-                </form>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="settingsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-cog me-1"></i>Sistema
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="settingsDropdown">
+                            <li><a class="dropdown-item" href="{{ route('settings.index') }}">
+                                <i class="fas fa-sliders-h me-2"></i>Nustatymai
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ route('help.index') }}">
+                                <i class="fas fa-question-circle me-2"></i>Pagalba
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ route('help.faq') }}">
+                                <i class="fas fa-info-circle me-2"></i>FAQ
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ route('contact') }}">
+                                <i class="fas fa-envelope me-2"></i>Kontaktai
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ route('legal') }}">
+                                <i class="fas fa-balance-scale me-2"></i>Teisinė info
+                            </a></li>
+                        </ul>
+                    </li>
+                    
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user me-1"></i>{{ session('username', 'Vartotojas') }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li>
+                                <form method="POST" action="{{ route('logout') }}" class="d-inline w-100">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item text-danger" title="Atsijungti iš sistemos">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Atsijungti
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
             </div>
         </div>
     </nav>

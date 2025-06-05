@@ -260,49 +260,23 @@ class ModelAnalysisJob implements ShouldQueue
     }
 
     /**
-     * Process using Gemini File API.
+     * Process using Gemini with inline JSON (File API has complex upload requirements).
      */
     private function processGeminiWithFileAPI(string $modelKey, string $tempFile, ?string $customPrompt = null): array
     {
         $allModels = config('llm.models');
         $modelConfig = $allModels[$modelKey] ?? null;
         
-        $this->logProgress("Uploading file to Gemini File API", [
+        // Read file content and include inline in prompt
+        $fileContent = file_get_contents($tempFile);
+        
+        $this->logProgress("Sending inline JSON data to Gemini API", [
             'model' => $modelKey,
-            'status' => 'uploading'
-        ]);
-
-        // Step 1: Upload file to Gemini File API
-        $uploadResponse = Http::withHeaders([
-            'X-Goog-Upload-Protocol' => 'multipart'
-        ])
-        ->timeout(300)
-        ->attach('file', file_get_contents($tempFile), 'analysis_data.json')
-        ->post('https://generativelanguage.googleapis.com/upload/v1beta/files?key=' . $modelConfig['api_key'], [
-            'file' => [
-                'display_name' => 'Analysis Data JSON'
-            ]
-        ]);
-        
-        if (!$uploadResponse->successful()) {
-            throw new \Exception('Gemini File Upload error: ' . $uploadResponse->status() . ' - ' . $uploadResponse->body());
-        }
-        
-        $uploadData = $uploadResponse->json();
-        $fileUri = $uploadData['file']['uri'] ?? null;
-        
-        if (!$fileUri) {
-            throw new \Exception('Failed to get file URI from Gemini upload');
-        }
-
-        $this->logProgress("File uploaded to Gemini, processing", [
-            'model' => $modelKey,
-            'file_uri' => $fileUri,
+            'file_size' => strlen($fileContent),
             'status' => 'processing'
         ]);
 
-        // Step 2: Generate content using the uploaded file
-        $prompt = $this->createFileAnalysisPrompt($customPrompt);
+        $prompt = $this->createFileAnalysisPrompt($customPrompt) . "\n\nJSON DATA:\n" . $fileContent;
         
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
@@ -312,16 +286,33 @@ class ModelAnalysisJob implements ShouldQueue
             'contents' => [
                 [
                     'parts' => [
-                        ['text' => $prompt],
-                        ['file_data' => ['file_uri' => $fileUri]]
+                        ['text' => $prompt]
                     ]
                 ]
             ],
             'generationConfig' => [
                 'maxOutputTokens' => $modelConfig['max_tokens'],
                 'temperature' => $modelConfig['temperature'],
-                'topP' => $modelConfig['top_p'],
-                'topK' => $modelConfig['top_k'],
+                'topP' => $modelConfig['top_p'] ?? 0.95,
+                'topK' => $modelConfig['top_k'] ?? 40,
+            ],
+            'safetySettings' => [
+                [
+                    'category' => 'HARM_CATEGORY_HARASSMENT',
+                    'threshold' => 'BLOCK_NONE'
+                ],
+                [
+                    'category' => 'HARM_CATEGORY_HATE_SPEECH',
+                    'threshold' => 'BLOCK_NONE'
+                ],
+                [
+                    'category' => 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+                    'threshold' => 'BLOCK_NONE'
+                ],
+                [
+                    'category' => 'HARM_CATEGORY_DANGEROUS_CONTENT',
+                    'threshold' => 'BLOCK_NONE'
+                ]
             ]
         ]);
         

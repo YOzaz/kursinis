@@ -49,12 +49,39 @@ class MetricsService
             return $this->createEmptyMetric($jobId, $textAnalysis->text_id, $modelName);
         }
 
-        // Išgauti anotacijas iš struktūros
+        // Išgauti anotacijas iš struktūros (reikia pozicijos tikslumui)
         $expertLabels = $this->extractLabelsFromAnnotations($expertAnnotations);
         $modelLabels = $this->extractLabelsFromAnnotations($modelAnnotations['annotations'] ?? []);
-
-        // Apskaičiuoti sutapimo statistiką
-        $stats = $this->calculateOverlapStatistics($expertLabels, $modelLabels);
+        
+        // Pirmiausiai bandyti dokumento lygio metrikas
+        $documentMetrics = $this->calculateDocumentLevelMetrics($expertAnnotations, $modelAnnotations);
+        
+        if ($documentMetrics !== null) {
+            // Naudoti dokumento lygio klasifikacijos metrikas
+            $stats = [
+                'true_positives' => $documentMetrics['document_tp'] + $documentMetrics['document_tn'],
+                'false_positives' => $documentMetrics['document_fp'],
+                'false_negatives' => $documentMetrics['document_fn'],
+            ];
+            
+            Log::info('Naudojamos dokumento lygio metrikos', [
+                'text_id' => $textAnalysis->text_id,
+                'model' => $modelName,
+                'expert_decision' => $this->extractPrimaryChoice($expertAnnotations),
+                'model_decision' => $this->extractPrimaryChoice($modelAnnotations),
+                'document_metrics' => $documentMetrics
+            ]);
+        } else {
+            // Grąžti prie fragmentų lygio metrikų
+            $stats = $this->calculateOverlapStatistics($expertLabels, $modelLabels);
+            
+            Log::info('Naudojamos fragmentų lygio metrikos', [
+                'text_id' => $textAnalysis->text_id,
+                'model' => $modelName,
+                'expert_fragments' => count($expertLabels),
+                'model_fragments' => count($modelLabels)
+            ]);
+        }
 
         // Apskaičiuoti pozicijos tikslumą
         $positionAccuracy = $this->calculatePositionAccuracy($expertLabels, $modelLabels);
@@ -88,6 +115,60 @@ class MetricsService
         ]);
 
         return $metric;
+    }
+    
+    /**
+     * Perskaičiuoti metrikas konkrečiam analizės darbui naudojant naują logiką.
+     */
+    public function recalculateJobMetrics(string $jobId): int
+    {
+        // Gauti visas tekstų analizes šiam darbui
+        $textAnalyses = TextAnalysis::where('job_id', $jobId)
+            ->whereNotNull('expert_annotations')
+            ->get();
+        
+        $recalculatedCount = 0;
+        
+        foreach ($textAnalyses as $textAnalysis) {
+            // Gauti visus model results šiam tekstui
+            $models = [];
+            
+            // Surinkti visus modelius iš comparison_metrics
+            $existingMetrics = ComparisonMetric::where('job_id', $jobId)
+                ->where('text_id', $textAnalysis->text_id)
+                ->get();
+            
+            foreach ($existingMetrics as $metric) {
+                $modelName = $metric->model_name;
+                $actualModelName = $metric->actual_model_name;
+                
+                // Gauti modelio anotacijas
+                $modelAnnotations = $textAnalysis->getModelAnnotations($modelName);
+                
+                if (!empty($modelAnnotations)) {
+                    // Ištrinti senąjį įrašą
+                    $metric->delete();
+                    
+                    // Perskaičiuoti su nauja logika
+                    $this->calculateMetricsForText(
+                        $textAnalysis,
+                        $modelName,
+                        $jobId,
+                        $actualModelName
+                    );
+                    
+                    $recalculatedCount++;
+                    
+                    Log::info('Perskaičiuotos metrikos', [
+                        'job_id' => $jobId,
+                        'text_id' => $textAnalysis->text_id,
+                        'model' => $modelName
+                    ]);
+                }
+            }
+        }
+        
+        return $recalculatedCount;
     }
 
     /**
@@ -530,6 +611,7 @@ class MetricsService
 
     /**
      * Apskaičiuoti sutapimo statistiką tarp ekspertų ir modelio anotacijų.
+     * Įtraukia ir dokumento lygio klasifikacijos tikslumą.
      */
     private function calculateOverlapStatistics(array $expertLabels, array $modelLabels): array
     {
@@ -538,7 +620,7 @@ class MetricsService
         $falseNegatives = 0;
         $matchedExpertIndices = [];
 
-        // Ieškoti true positives ir false positives
+        // Ieškoti true positives ir false positives pagal fragmentus
         foreach ($modelLabels as $modelLabel) {
             $matched = false;
             
@@ -568,6 +650,70 @@ class MetricsService
             'false_positives' => $falsePositives,
             'false_negatives' => $falseNegatives,
         ];
+    }
+    
+    /**
+     * Apskaičiuoti dokumento lygio klasifikacijos metrikas.
+     */
+    private function calculateDocumentLevelMetrics(array $expertAnnotations, array $modelAnnotations): array
+    {
+        // Išgauti primarius sprendimus
+        $expertDecision = $this->extractPrimaryChoice($expertAnnotations);
+        $modelDecision = $this->extractPrimaryChoice($modelAnnotations);
+        
+        // Jei bet kuris sprendimas nėra aiškus, grąžinti fragmentų metrikas
+        if ($expertDecision === null || $modelDecision === null) {
+            return null;
+        }
+        
+        // Dokumento lygio klasifikacijos metrikos
+        if ($expertDecision === 'yes' && $modelDecision === 'yes') {
+            // Teisingai nustatyta propaganda
+            return ['document_tp' => 1, 'document_fp' => 0, 'document_fn' => 0, 'document_tn' => 0];
+        } elseif ($expertDecision === 'no' && $modelDecision === 'no') {
+            // Teisingai nustatyta ne propaganda
+            return ['document_tp' => 0, 'document_fp' => 0, 'document_fn' => 0, 'document_tn' => 1];
+        } elseif ($expertDecision === 'no' && $modelDecision === 'yes') {
+            // Klaidingai nustatyta propaganda (false positive)
+            return ['document_tp' => 0, 'document_fp' => 1, 'document_fn' => 0, 'document_tn' => 0];
+        } elseif ($expertDecision === 'yes' && $modelDecision === 'no') {
+            // Praleista propaganda (false negative)
+            return ['document_tp' => 0, 'document_fp' => 0, 'document_fn' => 1, 'document_tn' => 0];
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Išgauti primaryChoice iš anotacijų.
+     */
+    private function extractPrimaryChoice(array $annotations): ?string
+    {
+        // Pirma patikrinti ar tai LLM anotacijų formatas (tiesiogiai primaryChoice)
+        if (isset($annotations['primaryChoice']['choices'])) {
+            $choices = $annotations['primaryChoice']['choices'];
+            return is_array($choices) && !empty($choices) ? $choices[0] : null;
+        }
+        
+        // Ekspertų anotacijų formatas - array su [0] indeksu
+        if (isset($annotations[0]['result'])) {
+            foreach ($annotations[0]['result'] as $result) {
+                if (isset($result['value']['choices']) && $result['type'] === 'choices') {
+                    $choices = $result['value']['choices'];
+                    return is_array($choices) && !empty($choices) ? $choices[0] : null;
+                }
+            }
+        }
+        
+        // Atsarginis LLM formatas - iteruoti per masyvą
+        foreach ($annotations as $annotation) {
+            if (isset($annotation['primaryChoice']['choices'])) {
+                $choices = $annotation['primaryChoice']['choices'];
+                return is_array($choices) && !empty($choices) ? $choices[0] : null;
+            }
+        }
+        
+        return null;
     }
 
     /**

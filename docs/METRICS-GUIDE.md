@@ -8,22 +8,37 @@
 
 This guide explains all metrics used in the Lithuanian Propaganda Detection System. The system compares AI model results against expert annotations using statistical methods to measure performance accuracy. This implementation is based on research methodologies from Zaranka's Master's thesis (2025) and follows ATSPARA project standards for Lithuanian propaganda detection.
 
-**Recent Improvements (2025-05-29)**: Enhanced prompt engineering for more realistic metrics generation, improved model display accuracy, and better quality control measures to align with academic research standards.
+**Recent Improvements (2025-06-06)**: 
+- **Document-Level Classification Metrics**: Prioritizes document-level classification accuracy (yes/no propaganda) over fragment-level matching
+- **Improved Accuracy Calculation**: Correctly handles cases where both expert and AI agree on "no propaganda" as 100% accurate
+- **Hybrid Approach**: Falls back to fragment-level metrics when document classification data is unavailable
 
 ## 🎯 Core Metrics
 
+### Calculation Approach
+
+The system uses a **hybrid metrics approach**:
+
+1. **Document-Level Classification** (Primary): Compares expert vs AI decision on whether document contains propaganda (`primaryChoice: yes/no`)
+2. **Fragment-Level Analysis** (Fallback): Compares specific propaganda technique annotations when document-level data unavailable
+
 ### 1. Precision (Tikslumas)
 
-**Definition**: The ratio of correctly identified propaganda techniques to all techniques identified by the AI model.
+**Document-Level Definition**: Ratio of correctly classified documents to all documents classified as propaganda by AI.
+
+**Fragment-Level Definition**: Ratio of correctly identified propaganda techniques to all techniques identified by the AI model.
 
 **Formula**: `Precision = TP / (TP + FP)`
 
 **Interpretation**:
-- **High Precision (>0.8)**: AI rarely identifies non-propaganda as propaganda (few false alarms)
-- **Medium Precision (0.6-0.8)**: Acceptable performance with some false positives
-- **Low Precision (<0.6)**: AI frequently misidentifies text as propaganda
+- **High Precision (>0.8)**: AI rarely misclassifies documents/fragments as propaganda
+- **Medium Precision (0.6-0.8)**: Acceptable performance with some false positives  
+- **Low Precision (<0.6)**: AI frequently misidentifies non-propaganda content
 
-**Example**: If AI identifies 100 propaganda instances and 85 are correct, Precision = 0.85
+**Document-Level Example**: 
+- Expert: "no", AI: "no" → Correct classification (True Negative)
+- Expert: "yes", AI: "yes" → Correct classification (True Positive)  
+- Expert: "no", AI: "yes" → Misclassification (False Positive)
 
 ### 2. Recall (Atpažinimas)
 

@@ -116,6 +116,22 @@ class StatisticsService
             $executionTimes[$model] = round($avgTime, 0);
         }
         
+        // If no execution time data, provide estimated times for configured models
+        if (empty($executionTimes)) {
+            $configuredModels = config('llm.models', []);
+            foreach ($configuredModels as $modelKey => $config) {
+                $modelName = $config['model'] ?? $modelKey;
+                // Provide estimated execution times based on model type
+                if (str_contains($modelKey, 'claude')) {
+                    $executionTimes[$modelName] = 0; // Will show "Nėra duomenų"
+                } elseif (str_contains($modelKey, 'gpt')) {
+                    $executionTimes[$modelName] = 0;
+                } elseif (str_contains($modelKey, 'gemini')) {
+                    $executionTimes[$modelName] = 0;
+                }
+            }
+        }
+        
         return $executionTimes;
     }
 

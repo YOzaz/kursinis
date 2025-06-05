@@ -39,10 +39,60 @@
         }
 
         .header {
-            text-align: center;
             margin-bottom: 30px;
             border-bottom: 2px solid #00ff41;
             padding-bottom: 20px;
+        }
+        
+        .header-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .header-content {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .header-nav {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            background: rgba(0, 255, 65, 0.1);
+            border: 1px solid #00ff41;
+            border-radius: 5px;
+            color: #00ff41;
+            text-decoration: none;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(0, 255, 65, 0.2);
+            color: #00ff41;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 255, 65, 0.3);
+        }
+        
+        .nav-icon {
+            font-size: 1.1em;
+        }
+        
+        .nav-text {
+            font-weight: bold;
+            letter-spacing: 1px;
         }
 
         .header h1 {
@@ -330,12 +380,13 @@
         .refresh-indicator {
             position: fixed;
             top: 20px;
-            right: 20px;
+            left: 20px;
             background: rgba(0, 0, 0, 0.8);
             border: 1px solid #00ff41;
             border-radius: 20px;
             padding: 10px 20px;
             color: #00ff41;
+            z-index: 1000;
         }
 
         .refresh-dot {
@@ -418,6 +469,21 @@
             .stats-row {
                 flex-direction: column;
             }
+            .header-main {
+                flex-direction: column;
+                text-align: center;
+            }
+            .header-content {
+                order: 1;
+            }
+            .header-nav {
+                order: 2;
+                justify-content: center;
+            }
+            .nav-btn {
+                padding: 8px 12px;
+                font-size: 0.8em;
+            }
         }
         
         @media (max-width: 1024px) and (min-width: 769px) {
@@ -437,8 +503,26 @@
 
     <div class="container">
         <div class="header">
-            <h1>🤖 AI ANALYSIS MISSION CONTROL</h1>
-            <div class="subtitle">System-Wide Intelligence Processing Status</div>
+            <div class="header-main">
+                <div class="header-content">
+                    <h1>🤖 AI ANALYSIS MISSION CONTROL</h1>
+                    <div class="subtitle">System-Wide Intelligence Processing Status</div>
+                </div>
+                <div class="header-nav">
+                    <a href="{{ route('home') }}" class="nav-btn" title="Grįžti į Dashboard">
+                        <span class="nav-icon">🏠</span>
+                        <span class="nav-text">DASHBOARD</span>
+                    </a>
+                    <a href="{{ route('analyses.index') }}" class="nav-btn" title="Peržiūrėti analizių sąrašą">
+                        <span class="nav-icon">📊</span>
+                        <span class="nav-text">ANALIZĖS</span>
+                    </a>
+                    <a href="{{ route('create') }}" class="nav-btn" title="Sukurti naują analizę">
+                        <span class="nav-icon">➕</span>
+                        <span class="nav-text">NAUJA</span>
+                    </a>
+                </div>
+            </div>
         </div>
 
         <div class="controls">

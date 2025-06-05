@@ -8,10 +8,26 @@
         <h1 class="mb-0">
             <i class="fas fa-tachometer-alt me-2"></i>Dashboard
         </h1>
-        <div>
-            <button class="btn btn-outline-primary" id="exportStatsBtn">
-                <i class="fas fa-download me-1"></i>Eksportuoti statistikas
+        <div class="dropdown">
+            <button class="btn btn-outline-primary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-download me-1"></i>Eksportuoti duomenis
             </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
+                <li><h6 class="dropdown-header">Dashboard statistikos</h6></li>
+                <li><a class="dropdown-item" href="/api/dashboard/export?format=json" target="_blank">
+                    <i class="fas fa-file-code me-2"></i>JSON formatas
+                    <small class="d-block text-muted">Struktūrizuoti duomenys programoms</small>
+                </a></li>
+                <li><a class="dropdown-item" href="/api/dashboard/export?format=csv" target="_blank">
+                    <i class="fas fa-file-csv me-2"></i>CSV formatas
+                    <small class="d-block text-muted">Excel, skaičiuoklės</small>
+                </a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><span class="dropdown-item-text text-muted small">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Eksportuojama: globalios statistikos, modelių našumas, propagandos technikos, chronologiniai duomenys
+                </span></li>
+            </ul>
         </div>
     </div>
 
@@ -47,11 +63,21 @@
                     </a>
                 </div>
                 <div class="col-lg-3 col-md-6">
-                    <button class="btn btn-outline-success btn-lg w-100 quick-action-btn" id="exportDashboardBtn">
-                        <i class="fas fa-download fa-2x mb-2 d-block"></i>
-                        <div class="fw-bold">Eksportuoti</div>
-                        <small class="opacity-75">Atsisiųsti duomenis</small>
-                    </button>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-success btn-lg w-100 quick-action-btn dropdown-toggle" type="button" id="exportQuickBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-download fa-2x mb-2 d-block"></i>
+                            <div class="fw-bold">Eksportuoti</div>
+                            <small class="opacity-75">Dashboard duomenis</small>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="exportQuickBtn">
+                            <li><a class="dropdown-item" href="/api/dashboard/export?format=json" target="_blank">
+                                <i class="fas fa-file-code me-2"></i>JSON
+                            </a></li>
+                            <li><a class="dropdown-item" href="/api/dashboard/export?format=csv" target="_blank">
+                                <i class="fas fa-file-csv me-2"></i>CSV
+                            </a></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -502,10 +528,7 @@ $(document).ready(function() {
     });
     @endif
 
-    // Export functionality
-    $('#exportStatsBtn, #exportDashboardBtn').on('click', function() {
-        window.location.href = '/api/dashboard/export';
-    });
+    // Export functionality is now handled by direct dropdown links
 });
 </script>
 

@@ -26,7 +26,7 @@ Sistema naudoja ATSPARA projekto sukurtą **anotavimo ir klasifikavimo metodolog
 
 **Metodologijos indėlis:**
 - Objektyvūs propagandos technikų identifikavimo kriterijai
-- 21 propagandos technika + 2 dezinformacijos naratyvai
+- 10 pagrindinių propagandos technikų + 6 dezinformacijos naratyvai
 - Ekspertų anotavimo principai ir instrukcijos
 - Statistinių metrikų skaičiavimo metodai
 
@@ -44,89 +44,15 @@ Universali propagandos analizės platforma, kuri veikia dviem pagrindiniais rež
 - Identifikuoja ATSPARA propagandos technikas ir disinformacijos naratyvus
 - Generuoja struktūrizuotus analizės rezultatus praktiniam naudojimui
 
-
-## ✨ Naujos funkcijos (2025-06-05) - Architektūrinis sistemos pertvarkymas
-
-### 🚀 File Attachment API architektūra (BatchAnalysisJobV4)
-- **Maksimalus efektyvumas**: Vietoj teksto fragmentavimo naudojami file attachment API metodai
-- **True parallel processing**: Modeliai apdoroja lygiagretiškai per atskirus ModelAnalysisJob darbus
-- **Provider-specific optimization**:
-  - **Claude**: JSON duomenys siųsčiami tiesiogiai message content
-  - **Gemini**: Naudojamas File API su failo įkėlimu ir reference
-  - **OpenAI**: Struktūrizuoti JSON duomenys message content
-- **Retry mechanizmai**: Modelių lygmenyje su atskirais error handling mechanizmais
-
-### 🎯 Enhanced Mission Control sistemų monitoringas
-- **Real-time log parsing**: Tiesioginis Laravel log failų skaitymas ir analizė
-- **Emoji status indicators**: Akivaizdi darbo progreso ir būklės vizualizacija
-- **Technical job details**: Job ID, modelių statusai, laiko žymos, klaidos diagnostika
-- **Auto-refresh every 5s**: Automatinis realaus laiko atnaujinimas be puslapio perkrovimo
-
-### 🔍 Raw Query/Response debug sistema
-- **API call reconstruction**: Tikslus užklausų atkūrimas su headers, body ir endpoint informacija
-- **Model-specific debugging**: Kiekvieno modelio atskiras debug view su detalėmis
-- **Copy-to-clipboard functionality**: Greitam užklausų kopijavimui ir reprodukavimui
-- **Error analysis**: Detalūs failure scenarijai su execution time ir specifinėmis klaidomis
-
-### 🏥 Enhanced model liveness checks
-- **Meaningful test queries**: Tikrų JSON atsakymų validavimas vietoj simple ping
-- **Retry logic**: 2 bandymai su 0.5s delay tarp jų
-- **Response capability validation**: Tikrina ar modeliai gali grąžinti struktūrizuotus atsakymus
-- **Performance metrics**: Response time, JSON capability, provider-specific health metrics
-
-### 📊 Intelligent progress tracking
-- **Model completion tracking**: Progresas atsispindi pagal užbaigtų modelių skaičių
-- **File-based processing explanation**: Aiškus skirtumas tarp chunk ir file attachment metodų
-- **Accurate text × model calculations**: Tikslūs skaičiavimai (tekstai × modeliai = total jobs)
-
-### 🔧 Architektūriniai pagerinmai
-- **JSON format documentation**: Išsami dokumentacija su pavyzdžiais Label Studio formatui
-- **Enhanced error handling**: Provider-specific error handlers su retry strategijomis
-- **Performance optimizations**: 30-minute timeouts file processing, optimizuoti queue routings
-- **Comprehensive logging**: Detali informacija apie file attachment strategijas ir model coordination
-
-## ✨ Anksčiau pridėtos funkcijos (2025-05-29)
-
-### 🎨 Teksto žymėjimo vizualizacija
-- **Interaktyvus teksto žymėjimas** su propagandos technikų spalvų kodavimu
-- **AI vs Ekspertų peržiūra** - perjungimas tarp automatinio aptikimo ir žmogaus anotacijų
-- **Dinaminė legenda** su technikų aprašymais ir spalvų žemėlapiu
-- **Real-time anotacijų įkėlimas** per AJAX API iškvietimus
-
-### 📊 Pagerinti dashboard grafikiai
-- **Interaktyvūs grafikai** su Chart.js modelių našumo palyginimui
-- **Technikų pasiskirstymas** su doughnut grafikais
-- **Modelių našumo metrikos** su stulpelių grafikais
-- **Eksporto funkcionalumas** statistikoms įvairiuose formatuose
-
-### 🔍 Paieškos ir filtravimo sistema
-- **Real-time paieška** per analizių pavadinimus ir ID
-- **Statusų filtravimas** (baigta, vykdoma, nepavyko, laukia)
-- **Tipų filtravimas** (standartinė, custom prompt, pakartotinė)
-- **Kliento pusės filtravimas** greitai vartotojo patirčiai
-- **Metrikų stebėjimas**: Automatinis skirtingų prompt'ų efektyvumo palyginimas
-
-**Visais atvejais:**
-- Naudoja tris LLM modelius (Claude, Gemini, ChatGPT) lyginimui
-- Eksportuoja rezultatus CSV/JSON formatais
-- Palaiko batch analizę dideliems duomenų kiekiams
-
 ## ⭐ Pagrindinės funkcijos
 
 ### 🤖 LLM modelių integracija
 - **Claude Opus 4** (Anthropic) - claude-opus-4-20250514
-- **Claude Sonnet 4** (Anthropic) - claude-sonnet-4-20250514
-- **GPT-4.1** (OpenAI) - Latest flagship model with improved coding
+- **Claude Sonnet 4** (Anthropic) - claude-sonnet-4-20250514  
+- **GPT-4.1** (OpenAI) - Latest flagship model
 - **GPT-4o Latest** (OpenAI) - Multimodal flagship model
-- **Gemini 2.5 Pro** (Google) - gemini-2.5-pro-experimental
-- **Gemini 2.5 Flash** (Google) - gemini-2.5-flash-preview-04-17
-
-### 🧪 Prompt eksperimentų sistema
-- **RISEN metodologija**: Role, Instructions, Situation, Execution, Needle
-- **Real-time preview**: Matyti sugeneruotą prompt'ą iš karto
-- **A/B testavimas**: Palyginti skirtingų prompt'ų efektyvumą
-- **Metrikų automatinis skaičiavimas**: Precision, Recall, F1 Score kiekvienam eksperimentui
-- **Eksportavimo galimybės**: CSV ir JSON formatuose
+- **Gemini 2.5 Pro** (Google) - gemini-2.5-pro-preview-05-06
+- **Gemini 2.5 Flash** (Google) - gemini-2.5-flash-preview-05-20
 
 ### 🏷️ Propagandos technikos (ATSPARA klasifikacija)
 1. **Emocinė raiška** - Stiprių jausmų kėlimas, emocinė leksika
@@ -140,69 +66,18 @@ Universali propagandos analizės platforma, kuri veikia dviem pagrindiniais rež
 9. **Reductio ad hitlerum** - Lyginimai su nekenčiamomis grupėmis
 10. **Pakartojimas** - Tos pačios žinutės kartojimas
 
-*Čia pateiktos pagrindinės kategorijos. Pilna sistema apima 21 detalų technikos kriterijų ir 2 dezinformacijos naratyvus.*  
-*Detalūs kriterijai: [ATSPARA Anotavimo metodologija](docs/ATSPARA-ANNOTATION-METHODOLOGY.md)*
+### 📊 Sistemos funkcionalumas
+- **Dashboard**: Centralizuotas sistemos vaizdas su statistikomis ir greitais veiksmais
+- **Analizių valdymas**: Galimybė paleisti, stebėti ir eksportuoti analizių rezultatus
+- **Mission Control**: Real-time sistemos monitoringas su log'ų stebėjimu
+- **Eksportavimas**: JSON/CSV formatuose su detaliais metrikų duomenimis
+- **Metrikų skaičiavimas**: Precision, Recall, F1 Score, Cohen's Kappa
 
-### 🎨 Interaktyvi teksto analizės vizualizacija
-- **Teksto žymėjimas**: Propagandos technikos pažymėtos tiesiogiai analizuojamame tekste spalvotais fragmentais
-- **AI vs Ekspertų perjungimas**: Galimybė persijungti tarp AI modelių anotacijų ir ekspertų vertinimų
-- **Spalvų kodavimas**: Kiekviena propaganda technika turi unikalią spalvą ir numerį
-- **Legendos sistema**: Aiškus visų rastų technikų sąrašas su spalvomis ir aprašymais
-- **Pozicijos tikslumas**: Žymimi tikslūs teksto fragmentai, kaip juos identifikavo modeliai
-- **Responsive dizainas**: Optimizuota peržiūra kompiuteriuose ir mobiliuosiuose įrenginiuose
-
-### 📊 Metrikų skaičiavimas
-- **Precision** - LLM teisingų anotacijų dalis iš visų LLM identifikuotų
-- **Recall** - Rastos ekspertų anotacijų dalis iš visų ekspertų anotacijų  
-- **F1 Score** - Harmoninis precision ir recall vidurkis
-- **Cohen's Kappa** - Sutarimo tarp LLM ir ekspertų koeficientas (atsižvelgiant į atsitiktinį sutarimą)
-- **Pozicijos tikslumas** - Teksto pozicijų atitikimas su ±10 simbolių tolerancija
-
-**Detali metrikų analizė**: [Metrikų vadovas](docs/METRICS-GUIDE.md)
-
-## 🏗️ Sistemos architektūra
-
-### Aukšto lygio architektūra
-```
-Web Browser ──► Nginx ──► Laravel App
-                              │
-                              ├─► Redis (Cache/Queue/Sessions)
-                              ├─► MySQL (Database)
-                              └─► Queue Workers
-                                    │
-                                    ├─► BatchAnalysisJobV4 (Orchestrator)
-                                    └─► ModelAnalysisJob (×3 parallel)
-                                          │
-                                          ├─► Claude API (JSON in message)
-                                          ├─► Gemini API (File upload + reference)
-                                          └─► OpenAI API (Structured JSON)
-```
-
-### File Attachment Processing Flow
-```
-1. User uploads JSON ──► BatchAnalysisJobV4
-                           │
-                           ├─► Creates temp JSON file
-                           ├─► Creates TextAnalysis records
-                           └─► Dispatches ModelAnalysisJob×N
-                                 │
-                                 ├─► ModelAnalysisJob (Claude)
-                                 │   └─► Sends full JSON in message
-                                 │
-                                 ├─► ModelAnalysisJob (Gemini)  
-                                 │   ├─► Upload file to File API
-                                 │   └─► Reference file in generation
-                                 │
-                                 └─► ModelAnalysisJob (OpenAI)
-                                     └─► Sends structured JSON chunks
-```
-
-### Key Architectural Benefits
-- **True Parallel Processing**: Each model processes independently
-- **Provider Optimization**: Best strategy for each LLM provider
-- **Fault Isolation**: Model failures don't affect other models
-- **Scalable**: Easy to add new models or providers
-- **Efficient**: Minimal API calls, maximum throughput
+### 🎨 Vartotojo sąsaja
+- **Responsive dizainas**: Optimizuota peržiūra visuose įrenginiuose
+- **Statistikos dashboard**: Modelių našumo palyginimas ir sistemos metrikos
+- **Mission Control**: Sistemos monitoringas su log'ų kopijavimo funkcionalumu
+- **Rezultatų vizualizacija**: Interaktyvūs grafikai ir lentelės
 
 ## 🚀 Greitas startas
 
@@ -228,8 +103,6 @@ php artisan key:generate
 
 # 4. Konfigūruoti duomenų bazę ir Redis
 # Redaguoti .env failą su DB ir Redis nustatymais
-# SQLite: DB_CONNECTION=sqlite, DB_DATABASE=/absolute/path/to/database.sqlite
-# MySQL: DB_CONNECTION=mysql, DB_DATABASE=database_name
 
 # 5. Paleisti migracijas
 php artisan migrate
@@ -246,10 +119,6 @@ DB_CONNECTION=mysql
 DB_DATABASE=propaganda_analysis
 DB_USERNAME=your_username
 DB_PASSWORD=your_password
-
-# Arba SQLite (paprasčiau vystymo tikslams)
-# DB_CONNECTION=sqlite
-# DB_DATABASE=/absolute/path/to/database.sqlite
 
 # Redis (BŪTINA)
 REDIS_HOST=127.0.0.1
@@ -268,25 +137,19 @@ OPENAI_API_KEY=your_openai_api_key
 
 ### Web sąsaja
 
-#### 📊 Standartinė analizė
-1. Atidaryti http://propaganda.local
-2. Įkelti JSON failą su ekspertų anotacijomis arba be jų
-3. Pasirinkti LLM modelius analizei  
-4. Stebėti progresą queue sistemoje
-5. Eksportuoti rezultatus CSV formatu
+#### 📊 Sistemos naudojimas
+1. Atidaryti http://propaganda.local (Dashboard kaip pradinis puslapis)
+2. Spausti **"Nauja analizė"** greito veiksmo mygtuką
+3. Įkelti JSON failą su tekstais (su arba be ekspertų anotacijų)
+4. Pasirinkti LLM modelius analizei  
+5. Stebėti progresą **Mission Control** puslapyje
+6. Peržiūrėti rezultatus ir eksportuoti duomenis
 
-#### 🧪 Prompt eksperimentai
-1. Eiti į **Eksperimentai** skiltį
-2. Spausti **"Naujas eksperimentas"**
-3. **Redaguoti RISEN prompt'ą:**
-   - **Role**: Nustatyti AI vaidmenį (ekspertas, analitikas)
-   - **Instructions**: Detaliai aprašyti užduotį
-   - **Situation**: Paaiškinti kontekstą (Lietuvos medijos)
-   - **Execution**: Nurodyti vykdymo žingsnius
-   - **Needle**: Apibrėžti pagrindinį tikslą
-4. **Peržiūrėti prompt'ą** real-time
-5. **Išsaugoti** ir **testuoti** su teksto duomenimis
-6. **Palyginti** rezultatus su standartiniais prompt'ais
+#### 🎛️ Mission Control
+- Real-time sistemos monitoringas
+- Log'ų stebėjimas ir filtravimas
+- Kopijuoti log pranešimus į clipboard
+- Sistemos našumo metrikos
 
 ### API naudojimas
 
@@ -297,7 +160,7 @@ curl -X POST http://propaganda.local/api/analyze \
   -d '{
     "text_id": "1",
     "content": "Analizuojamas tekstas",
-    "models": ["claude-4", "gpt-4.1"]
+    "models": ["claude-opus-4", "gpt-4.1"]
   }'
 ```
 
@@ -305,28 +168,18 @@ curl -X POST http://propaganda.local/api/analyze \
 ```bash
 curl -X POST http://propaganda.local/api/batch-analyze \
   -H "Content-Type: application/json" \
-  -d @expert_annotations.json
-```
-
-#### Rezultatų gavimas
-```bash
-# Statuso tikrinimas
-curl http://propaganda.local/api/status/{job_id}
-
-# JSON rezultatai
-curl http://propaganda.local/api/results/{job_id}
-
-# CSV eksportas
-curl http://propaganda.local/api/results/{job_id}/export
+  -d @lithuanian-neutral-text.json
 ```
 
 ## 📄 Duomenų formatai
 
 ### Įvesties JSON formatas
+Sistema palaiko ATSPARA anotavimo formatą:
+
 ```json
 [
   {
-    "id": 1,
+    "id": 12345,
     "annotations": [{
       "result": [{
         "type": "labels",
@@ -334,12 +187,9 @@ curl http://propaganda.local/api/results/{job_id}/export
           "start": 0,
           "end": 100,
           "text": "tekstas",
-          "labels": ["doubt", "emotionalExpression"]
+          "labels": ["emotionalExpression"]
         }
-      }],
-      "desinformationTechnique": {
-        "choices": ["distrustOfLithuanianInstitutions"]
-      }
+      }]
     }],
     "data": {
       "content": "Pilnas analizuojamas tekstas..."
@@ -348,45 +198,9 @@ curl http://propaganda.local/api/results/{job_id}/export
 ]
 ```
 
-### CSV eksporto formatas
-```csv
-text_id,technique,expert_start,expert_end,model,model_start,model_end,match,position_accuracy,precision,recall,f1_score
-1,doubt,0,100,claude-4,0,95,true,0.95,0.82,0.75,0.78
-```
-
-## 🔧 Plėtojimas
-
-### Projekto struktūra
-```
-app/
-├── Http/Controllers/    # API ir Web kontroleriai
-├── Services/           # LLM integracijos
-├── Jobs/              # Queue darbai
-└── Models/            # Eloquent modeliai
-
-database/
-└── migrations/        # DB schemos
-
-resources/views/       # Blade šablonai
-routes/               # API ir web maršrutai
-config/llm.php        # LLM konfigūracija
-```
-
-### Queue sistema
-Sistema naudoja Redis queue asinchroniniam tekstų apdorojimui:
-
-```bash
-# Development
-php artisan queue:work redis --verbose
-
-# Production (su Supervisor)
-php artisan queue:work redis --sleep=3 --tries=3 --memory=512
-```
-
 ### Testiniai duomenys
-Projekte yra paruošti testiniai failai:
-- `test_data.json` - 3 tekstai su anotacijomis
-- `test_without_llm.json` - 1 tekstas testui
+- **docs/atspara-excerpt.json** - Pavyzdys su propaganda anotacijomis
+- **docs/lithuanian-neutral-text.json** - Lietuviškas tekstas be propagandos
 
 ## 📊 Metrikų interpretacija
 
@@ -396,97 +210,6 @@ Projekte yra paruošti testiniai failai:
 | **Recall** | Kiek ekspertų anotacijų LLM atpažino | > 0.7 |
 | **F1 Score** | Bendras tikslumo įvertis | > 0.75 |
 | **Cohen's Kappa** | Sutarimo lygis tarp LLM ir ekspertų | > 0.6 |
-
-## 🚀 API naudojimas
-
-### Praktinio naudojimo režimas
-```bash
-# Vieno teksto analizė (be ekspertų anotacijų)
-curl -X POST /api/analyze \
-  -H "Content-Type: application/json" \
-  -d '{
-    "text_id": "new-text-1",
-    "content": "Lietuvių kalbos tekstas analizei...",
-    "models": ["claude-4", "gemini-2.5-pro", "gpt-4.1"]
-  }'
-```
-
-### Tyrimų režimas
-```bash
-# Su ekspertų anotacijomis palyginimui
-curl -X POST /api/analyze \
-  -H "Content-Type: application/json" \
-  -d '{
-    "text_id": "research-text-1", 
-    "content": "Tekstas su ekspertų anotacijomis...",
-    "models": ["claude-4"],
-    "expert_annotations": [
-      {
-        "type": "labels",
-        "value": {
-          "start": 10,
-          "end": 25,
-          "text": "propaganda tekstas",
-          "labels": ["emotionalAppeal"]
-        }
-      }
-    ]
-  }'
-```
-
-### Batch analizė (ATSPARA formatas su file attachment)
-```bash
-curl -X POST /api/batch-analyze \
-  -H "Content-Type: application/json" \
-  -d '{
-    "file_content": [
-      {
-        "id": 1,
-        "data": {"content": "Tekstas..."},
-        "annotations": [...] 
-      }
-    ],
-    "models": ["claude-4", "gemini-2.5-pro"]
-  }'
-```
-
-**Nauja file attachment architektūra (BatchAnalysisJobV4):**
-- Visi tekstai siunčiami kiekvienam modeliui vienu kartu (ne fragmentais)
-- Parallel processing: kiekvienas modelis apdoroja savo ModelAnalysisJob darbe
-- Provider-optimized: Claude (JSON in message), Gemini (File API), OpenAI (structured)
-
-### Debug informacijos gavimas
-```bash
-# Gauti raw query/response debug informaciją
-curl /api/debug/{textAnalysisId}
-
-# Konkretaus modelio debug info
-curl /api/debug/{textAnalysisId}?model=claude-opus-4
-```
-
-### Modelių statusas ir monitoringas
-```bash
-# Gauti visų modelių status
-curl /api/models/status
-
-# Refresh modelių status (force check)
-curl -X POST /api/models/status/refresh
-
-# Mission Control view (Web UI)
-# GET /status/{jobId} - Real-time technical monitoring
-```
-
-### Rezultatų gavimas
-```bash
-# Patikrinti progresą
-curl /api/status/{job_id}
-
-# Gauti rezultatus
-curl /api/results/{job_id}
-
-# Eksportuoti CSV
-curl /api/results/{job_id}/export
-```
 
 ## 🐛 Klaidų sprendimas
 
@@ -504,37 +227,23 @@ php artisan queue:restart
 php artisan queue:work redis --verbose
 ```
 
-**API 404 klaidos**
+**Model configuration issues**
 - Patikrinti API raktus .env faile
 - Patikrinti interneto ryšį
+- Naudoti Mission Control sistemų monitoringui
 
 ### Log stebėjimas
 ```bash
 tail -f storage/logs/laravel.log
-tail -f storage/logs/worker.log
 ```
 
 ## 📚 Dokumentacija
 
-- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Išsami diegimo instrukcija
-- **[REQUIREMENTS.md](REQUIREMENTS.md)** - Detalūs sistemos reikalavimai  
-- **[NEW_FEATURES_2025.md](NEW_FEATURES_2025.md)** - Naujos funkcijos ir architektūriniai sprendimai
-- **[JSON Format Documentation](docs/JSON-FORMAT.md)** - Išsami JSON failo formato dokumentacija
-- **[ATSPARA Anotavimo metodologija](docs/ATSPARA-ANNOTATION-METHODOLOGY.md)** - Propagandos technikų klasifikavimo kriterijai
-- **[Metrikų vadovas](docs/METRICS-GUIDE.md)** - Išsami metrikų analizė ir interpretacija
-- **[Batch Processing Guide](docs/BATCH-PROCESSING.md)** - File attachment architektūros vadovas
-- **[Status Monitoring Guide](docs/STATUS-MONITORING.md)** - Mission Control ir sistemos monitoringo vadovas
 - **[API dokumentacija](docs/API.md)** - API endpointų aprašymas
 - **[Architektūros dokumentacija](docs/ARCHITECTURE.md)** - Sistemos architektūros aprašymas
+- **[ATSPARA Anotavimo metodologija](docs/ATSPARA-ANNOTATION-METHODOLOGY.md)** - Propagandos technikų klasifikavimo kriterijai
+- **[Metrikų vadovas](docs/METRICS-GUIDE.md)** - Išsami metrikų analizė ir interpretacija
 - **[Problemų sprendimas](docs/TROUBLESHOOTING.md)** - Dažniausių problemų sprendimo vadovas
-
-## 🤝 Prisidėjimas
-
-1. Fork projekto
-2. Sukurti feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit pakeitimai (`git commit -m 'Add AmazingFeature'`)
-4. Push į branch (`git push origin feature/AmazingFeature`)
-5. Atidaryti Pull Request
 
 ## 📄 Autorių teisės ir licencija
 
@@ -551,29 +260,13 @@ tail -f storage/logs/worker.log
 ### Licencija
 Šis projektas yra licencijuotas MIT licencija mokslo tyrimų tikslams - žiūrėti [LICENSE](LICENSE) failą.
 
-### Naudojimo sąlygos
-- Sistema skirta **mokslo tyrimų ir studijų tikslams**
-- ATSPARA duomenų komerciniam naudojimui reikalingas atskiras sutikimas
-- Cituojant prašome nurodyti:
-  - Marijų Plančiūną kaip sistemos autorių
-  - ATSPARA projektą kaip duomenų šaltinį ir metodologijos autorių
-
-### Duomenų apsauga
-- Visi duomenys apdorojami pagal BDAR reikalavimus
-- API raktai ir slapti duomenys saugomi užšifruoti
-- Analizės rezultatai saugomi tik mokslo tyrimų tikslais
-
 ## 🙏 Padėkos
 
 - **Prof. Dr. Dariui Plykynui** už vadovavimą ir konsultacijas
 - **ATSPARA projekto komandai** už korpuso duomenis ir anotavimo metodologiją
 - **Vilniaus universiteto MIF** už studijų galimybes
-- **[Claude Code](https://claude.ai/code)** už neįkainojamą pagalbą sistemų plėtojime ir kodo optimizavime
-- **Anthropic** už Claude API ir Claude Code įrankį
-- **Google** už Gemini API  
-- **OpenAI** už GPT API
-- **Laravel community** už framework'ą ir ekosistemą
-- **Darkaonline/L5-Swagger** už API dokumentacijos sprendimą
+- **[Claude Code](https://claude.ai/code)** už neįkainojamą pagalbą sistemų plėtojime
+- **Anthropic, Google, OpenAI** už LLM API prieigą
 
 ## 📞 Kontaktai
 
@@ -589,7 +282,5 @@ tail -f storage/logs/worker.log
 ---
 
 ⭐ **Svarbu**: Redis yra būtinas sistemos komponentas. Be Redis cache, sessions ir queue neveiks!
-
-🚀 **Rekomenduojama**: Naudoti Supervisor production aplinkoje queue worker'iams valdyti.
 
 📚 **Moksliniai tyrimai**: Sistema skirta mokslo tyrimų tikslams naudojant ATSPARA korpuso duomenis.
