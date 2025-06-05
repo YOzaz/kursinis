@@ -30,11 +30,17 @@ class StatisticsServiceTest extends TestCase
         $this->assertArrayHasKey('total_texts', $statistics);
         $this->assertArrayHasKey('total_metrics', $statistics);
         $this->assertArrayHasKey('model_performance', $statistics);
+        $this->assertArrayHasKey('avg_execution_times', $statistics);
+        $this->assertArrayHasKey('top_techniques', $statistics);
+        $this->assertArrayHasKey('time_series_data', $statistics);
         
         $this->assertIsInt($statistics['total_analyses']);
         $this->assertIsInt($statistics['total_texts']);
         $this->assertIsInt($statistics['total_metrics']);
         $this->assertIsArray($statistics['model_performance']);
+        $this->assertIsArray($statistics['avg_execution_times']);
+        $this->assertIsArray($statistics['top_techniques']);
+        $this->assertIsArray($statistics['time_series_data']);
     }
 
     public function test_calculates_job_statistics(): void

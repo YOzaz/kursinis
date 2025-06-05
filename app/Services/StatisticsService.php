@@ -20,12 +20,20 @@ class StatisticsService
         // Get execution time statistics
         $avgExecutionTimes = $this->getAverageExecutionTimes();
         
+        // Get propaganda techniques statistics
+        $topTechniques = $this->getTopTechniques();
+        
+        // Get time series data
+        $timeSeriesData = $this->getTimeSeriesData();
+        
         return [
             'total_analyses' => $totalAnalyses,
             'total_texts' => $totalTexts,
             'total_metrics' => $totalMetrics,
             'model_performance' => $modelPerformance,
             'avg_execution_times' => $avgExecutionTimes,
+            'top_techniques' => $topTechniques,
+            'time_series_data' => $timeSeriesData,
         ];
     }
     
@@ -109,6 +117,96 @@ class StatisticsService
         }
         
         return $executionTimes;
+    }
+
+    /**
+     * Get top propaganda techniques from all analyses.
+     */
+    private function getTopTechniques(): array
+    {
+        $techniques = [];
+        
+        // Get all text analyses with annotations
+        $textAnalyses = TextAnalysis::whereNotNull('expert_annotations')
+            ->orWhereNotNull('claude_annotations')
+            ->orWhereNotNull('gemini_annotations')
+            ->orWhereNotNull('gpt_annotations')
+            ->get();
+            
+        foreach ($textAnalyses as $analysis) {
+            // Extract techniques from expert annotations (ground truth)
+            if (!empty($analysis->expert_annotations)) {
+                $this->extractTechniquesFromAnnotations($analysis->expert_annotations, $techniques);
+            }
+            
+            // Extract techniques from AI model annotations
+            foreach (['claude_annotations', 'gemini_annotations', 'gpt_annotations'] as $field) {
+                if (!empty($analysis->$field)) {
+                    $this->extractTechniquesFromAnnotations($analysis->$field, $techniques);
+                }
+            }
+        }
+        
+        // Sort by frequency and return top 10
+        arsort($techniques);
+        return array_slice($techniques, 0, 10, true);
+    }
+    
+    /**
+     * Extract propaganda techniques from annotation array.
+     */
+    private function extractTechniquesFromAnnotations(array $annotations, array &$techniques): void
+    {
+        foreach ($annotations as $annotation) {
+            if (is_array($annotation)) {
+                // Handle different annotation formats
+                if (isset($annotation['technique'])) {
+                    $technique = $annotation['technique'];
+                    $techniques[$technique] = ($techniques[$technique] ?? 0) + 1;
+                } elseif (isset($annotation['type'])) {
+                    $technique = $annotation['type'];
+                    $techniques[$technique] = ($techniques[$technique] ?? 0) + 1;
+                } elseif (isset($annotation['label'])) {
+                    $technique = $annotation['label'];
+                    $techniques[$technique] = ($techniques[$technique] ?? 0) + 1;
+                }
+            } elseif (is_string($annotation)) {
+                // Simple string technique
+                $techniques[$annotation] = ($techniques[$annotation] ?? 0) + 1;
+            }
+        }
+    }
+    
+    /**
+     * Get time series data for analyses creation over time.
+     */
+    private function getTimeSeriesData(): array
+    {
+        $timeSeriesData = [];
+        
+        // Get analyses from the last 30 days
+        $analyses = AnalysisJob::where('created_at', '>=', now()->subDays(30))
+            ->orderBy('created_at')
+            ->get();
+            
+        // Group by date
+        $dailyData = $analyses->groupBy(function ($analysis) {
+            return $analysis->created_at->format('Y-m-d');
+        });
+        
+        // Fill in missing dates and format for chart
+        for ($i = 29; $i >= 0; $i--) {
+            $date = now()->subDays($i)->format('Y-m-d');
+            $count = isset($dailyData[$date]) ? $dailyData[$date]->count() : 0;
+            
+            $timeSeriesData[] = [
+                'date' => $date,
+                'count' => $count,
+                'label' => now()->subDays($i)->format('M j')
+            ];
+        }
+        
+        return $timeSeriesData;
     }
 
     /**

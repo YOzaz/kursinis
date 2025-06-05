@@ -517,114 +517,117 @@ class WebController extends Controller
             foreach ($textAnalyses as $analysis) {
                 $hasResult = false;
                 $hasFailed = false;
-                
-                // Check if this specific model was used for this analysis
-                // We need to determine which specific model was used, not just the provider
                 $modelWasUsed = false;
                 
-                switch ($provider) {
-                    case 'anthropic':
-                        if ($analysis->claude_annotations || $analysis->claude_error) {
-                            // Determine which Claude model was actually used
-                            $actualModel = $this->determineActualClaudeModel($analysis, $modelKey);
-                            if ($actualModel === $modelKey) {
-                                $modelWasUsed = true;
-                                if ($analysis->claude_annotations) {
-                                    $modelStats['successful']++;
-                                    $hasResult = true;
-                                } else {
-                                    $modelStats['failed']++;
-                                    $hasFailed = true;
-                                }
-                            }
-                        } else {
-                            // Check if this model was actually requested for this job
-                            if ($analysis->analysisJob && 
-                                in_array($analysis->analysisJob->status, ['pending', 'processing'])) {
-                                
-                                // First check if we have model results (new architecture)
-                                $hasModelResult = $analysis->analysisJob->modelResults()
-                                    ->where('model_key', $modelKey)->exists();
-                                
-                                // Then check if model was in requested models
-                                $wasRequested = $analysis->analysisJob->requested_models &&
-                                    in_array($modelKey, $analysis->analysisJob->requested_models);
-                                
-                                if ($hasModelResult || $wasRequested) {
+                // FIRST: Check new architecture model results
+                $modelResult = \App\Models\ModelResult::where('job_id', $analysis->job_id)
+                    ->where('text_id', $analysis->text_id)
+                    ->where('model_key', $modelKey)
+                    ->first();
+                
+                if ($modelResult) {
+                    $modelWasUsed = true;
+                    if ($modelResult->isSuccessful()) {
+                        $modelStats['successful']++;
+                        $hasResult = true;
+                    } else {
+                        $modelStats['failed']++;
+                        $hasFailed = true;
+                    }
+                } else {
+                    // FALLBACK: Check legacy architecture only if no new results exist
+                    switch ($provider) {
+                        case 'anthropic':
+                            if ($analysis->claude_annotations || $analysis->claude_error) {
+                                // Determine which Claude model was actually used
+                                $actualModel = $this->determineActualClaudeModel($analysis, $modelKey);
+                                if ($actualModel === $modelKey) {
                                     $modelWasUsed = true;
-                                    // This is pending
+                                    if ($analysis->claude_annotations) {
+                                        $modelStats['successful']++;
+                                        $hasResult = true;
+                                    } else {
+                                        $modelStats['failed']++;
+                                        $hasFailed = true;
+                                    }
+                                }
+                            } else {
+                                // Check if this model was actually requested for this job
+                                if ($analysis->analysisJob && 
+                                    in_array($analysis->analysisJob->status, ['pending', 'processing'])) {
+                                    
+                                    // Check if model was in requested models
+                                    $wasRequested = $analysis->analysisJob->requested_models &&
+                                        in_array($modelKey, $analysis->analysisJob->requested_models);
+                                    
+                                    if ($wasRequested) {
+                                        $modelWasUsed = true;
+                                        // This is pending
+                                    }
                                 }
                             }
-                        }
-                        break;
-                    case 'openai':
-                        if ($analysis->gpt_annotations || $analysis->gpt_error) {
-                            // Determine which GPT model was actually used
-                            $actualModel = $this->determineActualGptModel($analysis, $modelKey);
-                            if ($actualModel === $modelKey) {
-                                $modelWasUsed = true;
-                                if ($analysis->gpt_annotations) {
-                                    $modelStats['successful']++;
-                                    $hasResult = true;
-                                } else {
-                                    $modelStats['failed']++;
-                                    $hasFailed = true;
-                                }
-                            }
-                        } else {
-                            // Check if this model was actually requested for this job
-                            if ($analysis->analysisJob && 
-                                in_array($analysis->analysisJob->status, ['pending', 'processing'])) {
-                                
-                                // First check if we have model results (new architecture)
-                                $hasModelResult = $analysis->analysisJob->modelResults()
-                                    ->where('model_key', $modelKey)->exists();
-                                
-                                // Then check if model was in requested models
-                                $wasRequested = $analysis->analysisJob->requested_models &&
-                                    in_array($modelKey, $analysis->analysisJob->requested_models);
-                                
-                                if ($hasModelResult || $wasRequested) {
+                            break;
+                        case 'openai':
+                            if ($analysis->gpt_annotations || $analysis->gpt_error) {
+                                // Determine which GPT model was actually used
+                                $actualModel = $this->determineActualGptModel($analysis, $modelKey);
+                                if ($actualModel === $modelKey) {
                                     $modelWasUsed = true;
-                                    // This is pending
+                                    if ($analysis->gpt_annotations) {
+                                        $modelStats['successful']++;
+                                        $hasResult = true;
+                                    } else {
+                                        $modelStats['failed']++;
+                                        $hasFailed = true;
+                                    }
+                                }
+                            } else {
+                                // Check if this model was actually requested for this job
+                                if ($analysis->analysisJob && 
+                                    in_array($analysis->analysisJob->status, ['pending', 'processing'])) {
+                                    
+                                    // Check if model was in requested models
+                                    $wasRequested = $analysis->analysisJob->requested_models &&
+                                        in_array($modelKey, $analysis->analysisJob->requested_models);
+                                    
+                                    if ($wasRequested) {
+                                        $modelWasUsed = true;
+                                        // This is pending
+                                    }
                                 }
                             }
-                        }
-                        break;
-                    case 'google':
-                        if ($analysis->gemini_annotations || $analysis->gemini_error) {
-                            // Determine which Gemini model was actually used
-                            $actualModel = $this->determineActualGeminiModel($analysis, $modelKey);
-                            if ($actualModel === $modelKey) {
-                                $modelWasUsed = true;
-                                if ($analysis->gemini_annotations) {
-                                    $modelStats['successful']++;
-                                    $hasResult = true;
-                                } else {
-                                    $modelStats['failed']++;
-                                    $hasFailed = true;
-                                }
-                            }
-                        } else {
-                            // Check if this model was actually requested for this job
-                            if ($analysis->analysisJob && 
-                                in_array($analysis->analysisJob->status, ['pending', 'processing'])) {
-                                
-                                // First check if we have model results (new architecture)
-                                $hasModelResult = $analysis->analysisJob->modelResults()
-                                    ->where('model_key', $modelKey)->exists();
-                                
-                                // Then check if model was in requested models
-                                $wasRequested = $analysis->analysisJob->requested_models &&
-                                    in_array($modelKey, $analysis->analysisJob->requested_models);
-                                
-                                if ($hasModelResult || $wasRequested) {
+                            break;
+                        case 'google':
+                            if ($analysis->gemini_annotations || $analysis->gemini_error) {
+                                // Determine which Gemini model was actually used
+                                $actualModel = $this->determineActualGeminiModel($analysis, $modelKey);
+                                if ($actualModel === $modelKey) {
                                     $modelWasUsed = true;
-                                    // This is pending
+                                    if ($analysis->gemini_annotations) {
+                                        $modelStats['successful']++;
+                                        $hasResult = true;
+                                    } else {
+                                        $modelStats['failed']++;
+                                        $hasFailed = true;
+                                    }
+                                }
+                            } else {
+                                // Check if this model was actually requested for this job
+                                if ($analysis->analysisJob && 
+                                    in_array($analysis->analysisJob->status, ['pending', 'processing'])) {
+                                    
+                                    // Check if model was in requested models
+                                    $wasRequested = $analysis->analysisJob->requested_models &&
+                                        in_array($modelKey, $analysis->analysisJob->requested_models);
+                                    
+                                    if ($wasRequested) {
+                                        $modelWasUsed = true;
+                                        // This is pending
+                                    }
                                 }
                             }
-                        }
-                        break;
+                            break;
+                    }
                 }
                 
                 if ($modelWasUsed) {

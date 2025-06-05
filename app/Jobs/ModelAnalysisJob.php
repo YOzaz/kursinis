@@ -534,29 +534,16 @@ class ModelAnalysisJob implements ShouldQueue
         
         $completedModels = 0;
         
-        // Check completion for each model
+        // Check completion for each model using new architecture
         $models = $job->requested_models ?? [];
         foreach ($models as $modelKey) {
-            $modelConfig = config("llm.models.{$modelKey}");
-            $provider = $modelConfig['provider'] ?? 'unknown';
+            // Check if this model has completed processing for all texts
+            $modelResults = \App\Models\ModelResult::where('job_id', $this->jobId)
+                ->where('model_key', $modelKey)
+                ->whereIn('status', ['completed', 'failed'])
+                ->count();
             
-            $hasResults = false;
-            switch ($provider) {
-                case 'anthropic':
-                    $hasResults = $textAnalyses->whereNotNull('claude_annotations')->isNotEmpty() ||
-                                 $textAnalyses->whereNotNull('claude_error')->isNotEmpty();
-                    break;
-                case 'openai':
-                    $hasResults = $textAnalyses->whereNotNull('gpt_annotations')->isNotEmpty() ||
-                                 $textAnalyses->whereNotNull('gpt_error')->isNotEmpty();
-                    break;
-                case 'google':
-                    $hasResults = $textAnalyses->whereNotNull('gemini_annotations')->isNotEmpty() ||
-                                 $textAnalyses->whereNotNull('gemini_error')->isNotEmpty();
-                    break;
-            }
-            
-            if ($hasResults) {
+            if ($modelResults >= $totalTexts) {
                 $completedModels++;
             }
         }

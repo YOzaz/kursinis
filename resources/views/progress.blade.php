@@ -72,7 +72,7 @@
                 <!-- Progreso juosta -->
                 <div class="mb-4">
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="fw-bold">Progresas:</span>
+                        <span class="fw-bold">Modelių progresas:</span>
                         <span id="progressText">{{ $job->processed_texts }} / {{ $job->total_texts }}</span>
                     </div>
                     <div class="progress" style="height: 20px;">
@@ -90,12 +90,13 @@
                         <small class="text-muted" id="progressExplanation">
                             @php
                                 $textCount = \App\Models\TextAnalysis::where('job_id', $job->job_id)->distinct('text_id')->count();
-                                $modelCount = $job->models ? count(json_decode($job->models, true)) : 0;
+                                $modelCount = $job->requested_models ? count($job->requested_models) : 0;
+                                $totalProcesses = $textCount * $modelCount;
                             @endphp
                             @if($textCount > 0 && $modelCount > 0)
-                                {{ $textCount }} tekstų analizė su {{ $modelCount }} modeliais (failo apdorojimas)
+                                {{ $textCount }} tekstai × {{ $modelCount }} modeliai = {{ $totalProcesses }} analizės procesai
                             @else
-                                Analizės darbų progreso sekimas
+                                Analizės procesų progreso sekimas
                             @endif
                         </small>
                     </div>
@@ -159,11 +160,11 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <h6 class="fw-bold">Apdoroti analizės darbai:</h6>
+                            <h6 class="fw-bold">Apdoroti modelių procesai:</h6>
                             <p>{{ $job->processed_texts }}</p>
                         </div>
                         <div class="col-md-6">
-                            <h6 class="fw-bold">Viso analizės darbų:</h6>
+                            <h6 class="fw-bold">Viso modelių procesų:</h6>
                             <p>{{ $job->total_texts }}</p>
                         </div>
                     </div>
@@ -174,10 +175,10 @@
                         Progresas atsispindi pagal užbaigtus modelius.
                         @php
                             $textCount = \App\Models\TextAnalysis::where('job_id', $job->job_id)->distinct('text_id')->count();
-                            $modelCount = $job->models ? count(json_decode($job->models, true)) : 0;
+                            $modelCount = $job->requested_models ? count($job->requested_models) : 0;
                         @endphp
                         @if($textCount > 0 && $modelCount > 0)
-                            <br><small><strong>Šis darbas:</strong> {{ $textCount }} tekstai × {{ $modelCount }} modeliai = {{ $job->total_texts }} analizės</small>
+                            <br><small><strong>Šis darbas:</strong> {{ $textCount }} tekstai × {{ $modelCount }} modeliai = {{ $job->total_texts }} modelių procesai</small>
                         @endif
                     </div>
                     

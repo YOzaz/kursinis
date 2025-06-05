@@ -141,17 +141,24 @@
 
         .models-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
             margin-bottom: 30px;
+        }
+        
+        @media (max-width: 1400px) {
+            .models-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
 
         .model-card {
             background: rgba(0, 30, 60, 0.9);
             border: 1px solid #00ccff;
             border-radius: 8px;
-            padding: 15px;
+            padding: 12px;
             position: relative;
+            min-height: 180px;
         }
 
         .model-header {
@@ -164,7 +171,7 @@
         .model-name {
             color: #00ccff;
             font-weight: bold;
-            font-size: 1.1em;
+            font-size: 1em;
         }
 
         .status-indicator {
@@ -347,6 +354,12 @@
                 flex-direction: column;
             }
         }
+        
+        @media (max-width: 1024px) and (min-width: 769px) {
+            .models-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
     </style>
 </head>
 <body>
@@ -447,6 +460,13 @@
             const jobDetails = data.job_details;
             const logs = data.logs;
             const isFiltered = data.filtered_by_job;
+
+            // Preserve scroll position of logs panel
+            let logsScrollTop = 0;
+            const existingLogsPanel = document.querySelector('.logs-panel');
+            if (existingLogsPanel) {
+                logsScrollTop = existingLogsPanel.scrollTop;
+            }
 
             let html = '';
 
@@ -594,6 +614,14 @@
             html += `</div>`;
 
             document.getElementById('status-content').innerHTML = html;
+            
+            // Restore scroll position of logs panel
+            if (logsScrollTop > 0) {
+                const newLogsPanel = document.querySelector('.logs-panel');
+                if (newLogsPanel) {
+                    newLogsPanel.scrollTop = logsScrollTop;
+                }
+            }
         }
 
         function applyFilter() {

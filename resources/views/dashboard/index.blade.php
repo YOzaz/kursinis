@@ -12,9 +12,48 @@
             <button class="btn btn-outline-primary" id="exportStatsBtn">
                 <i class="fas fa-download me-1"></i>Eksportuoti statistikas
             </button>
-            <a href="{{ route('home') }}" class="btn btn-primary">
-                <i class="fas fa-plus me-1"></i>Nauja analizė
-            </a>
+        </div>
+    </div>
+
+    <!-- Enhanced Quick Actions Bar -->
+    <div class="card mb-4 border-primary quick-actions-card">
+        <div class="card-header bg-primary text-white d-flex align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-bolt me-2"></i>Greiti veiksmai
+            </h5>
+            <span class="badge bg-light text-primary ms-2">Dažniausiai naudojamos funkcijos</span>
+        </div>
+        <div class="card-body py-3">
+            <div class="row g-3">
+                <div class="col-lg-3 col-md-6">
+                    <a href="{{ route('home') }}" class="btn btn-primary btn-lg w-100 quick-action-btn">
+                        <i class="fas fa-plus fa-2x mb-2 d-block"></i>
+                        <div class="fw-bold">Nauja analizė</div>
+                        <small class="opacity-75">Sukurti naują teksto analizę</small>
+                    </a>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <a href="{{ route('analyses.index') }}" class="btn btn-outline-primary btn-lg w-100 quick-action-btn">
+                        <i class="fas fa-list fa-2x mb-2 d-block"></i>
+                        <div class="fw-bold">Visos analizės</div>
+                        <small class="opacity-75">Peržiūrėti visas analizės</small>
+                    </a>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <a href="/mission-control" class="btn btn-outline-info btn-lg w-100 quick-action-btn">
+                        <i class="fas fa-satellite-dish fa-2x mb-2 d-block"></i>
+                        <div class="fw-bold">Mission Control</div>
+                        <small class="opacity-75">Sistemos būklės monitoringas</small>
+                    </a>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <button class="btn btn-outline-success btn-lg w-100 quick-action-btn" id="exportDashboardBtn">
+                        <i class="fas fa-download fa-2x mb-2 d-block"></i>
+                        <div class="fw-bold">Eksportuoti</div>
+                        <small class="opacity-75">Atsisiųsti duomenis</small>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -371,27 +410,6 @@
                 </div>
             </div>
 
-            <!-- Quick Actions -->
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="mb-0">
-                        <i class="fas fa-bolt me-2"></i>Greiti veiksmai
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{{ route('home') }}" class="btn btn-primary">
-                            <i class="fas fa-plus me-2"></i>Nauja analizė
-                        </a>
-                        <a href="{{ route('analyses.index') }}" class="btn btn-outline-primary">
-                            <i class="fas fa-list me-2"></i>Peržiūrėti analizės
-                        </a>
-                        <button class="btn btn-outline-success" id="exportDashboardBtn">
-                            <i class="fas fa-download me-2"></i>Eksportuoti duomenis
-                        </button>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -533,6 +551,54 @@ $(document).ready(function() {
 
 .progress {
     background-color: #e9ecef;
+}
+
+/* Enhanced Quick Actions Styling */
+.quick-actions-card {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    border-width: 2px;
+}
+
+.quick-action-btn {
+    height: 120px;
+    border-width: 2px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.quick-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.quick-action-btn i {
+    transition: transform 0.3s ease;
+}
+
+.quick-action-btn:hover i {
+    transform: scale(1.1);
+}
+
+.quick-action-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+    );
+    transition: left 0.5s ease;
+}
+
+.quick-action-btn:hover::after {
+    left: 100%;
 }
 </style>
 

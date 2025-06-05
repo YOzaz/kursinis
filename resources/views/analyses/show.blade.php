@@ -497,42 +497,42 @@
                                                     <i class="fas fa-question-circle text-muted ms-1" 
                                                        data-bs-toggle="tooltip" 
                                                        data-bs-placement="top" 
-                                                       title="Kiek AI rastų propagandos fragmentų yra teisingi"></i>
+                                                       title="Precision - kiek AI rastų propagandos fragmentų yra tikrai teisingi. Pvz., jei AI rado 10 fragmentų, bet tik 8 iš jų tikrai yra propaganda, tikslumas = 80%"></i>
                                                 </th>
                                                 <th>
                                                     Atsaukimas 
                                                     <i class="fas fa-question-circle text-muted ms-1" 
                                                        data-bs-toggle="tooltip" 
                                                        data-bs-placement="top" 
-                                                       title="Kokią dalį visų propagandos fragmentų AI surado"></i>
+                                                       title="Recall - kokią dalį visų propagandos fragmentų AI surado. Pvz., jei tekste yra 12 propagandos fragmentų, bet AI surado tik 8, atsaukimas = 67%"></i>
                                                 </th>
                                                 <th>
                                                     F1 balas 
                                                     <i class="fas fa-question-circle text-muted ms-1" 
                                                        data-bs-toggle="tooltip" 
                                                        data-bs-placement="top" 
-                                                       title="Bendras tikslumo ir atsaukimo įvertis"></i>
+                                                       title="F1-score - bendras tikslumo ir atsaukimo įvertis (harmoninis vidurkis). 100% reiškia tobulą rezultatą - AI rado visus propagandos fragmentus ir nepadarė klaidų"></i>
                                                 </th>
                                                 <th>
                                                     Pozicijos tikslumas 
                                                     <i class="fas fa-question-circle text-muted ms-1" 
                                                        data-bs-toggle="tooltip" 
                                                        data-bs-placement="top" 
-                                                       title="Kiek tiksliai AI nustatė propagandos fragmentų pozicijas tekste"></i>
+                                                       title="Position accuracy - kiek tiksliai AI nustatė propagandos fragmentų pozicijas tekste. Pvz., jei ekspertas pažymėjo žodžius 10-20, o AI rado 12-18, pozicijos tikslumas bus maždaug 60%"></i>
                                                 </th>
                                                 <th>
                                                     TP/FP/FN 
                                                     <i class="fas fa-question-circle text-muted ms-1" 
                                                        data-bs-toggle="tooltip" 
                                                        data-bs-placement="top" 
-                                                       title="Teisingi teigiami / Klaidingi teigiami / Klaidingi neigiami rezultatai"></i>
+                                                       title="True Positives (žalia) / False Positives (geltona) / False Negatives (raudona). Pvz., 8/2/4 reiškia: AI teisingai rado 8 fragmentus, klaidingai pažymėjo 2 kaip propagandą, o 4 propagandos fragmentus praleido"></i>
                                                 </th>
                                                 <th>
                                                     Vykdymo laikas
                                                     <i class="fas fa-question-circle text-muted ms-1" 
                                                        data-bs-toggle="tooltip" 
                                                        data-bs-placement="top" 
-                                                       title="Kiek laiko užtruko šio modelio analizė"></i>
+                                                       title="Analizės trukmė - kiek laiko užtruko šio modelio analizė. Greitesni modeliai gali būti efektyvesni dideliems duomenų kiekiams"></i>
                                                 </th>
                                             </tr>
                                         </thead>
