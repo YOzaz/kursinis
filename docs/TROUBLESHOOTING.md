@@ -385,7 +385,101 @@ $statistics = $this->metricsService->calculateJobStatistics($analysis);
 {{ $statistics['overall_metrics']['accuracy'] ?? 0 }}
 ```
 
-### 6. Performance Issues
+### 6. Large Dataset Processing Issues
+
+#### Problem: API Size Limit Errors
+```
+Claude API error: too many total text bytes: 18688637 > 9000000
+OpenAI API error: string too long. Expected a string with maximum length 10485760
+```
+
+#### Solutions:
+
+**Automatic Chunking (Default Behavior):**
+The system automatically handles these errors through intelligent chunking:
+
+- **Claude**: Files >8MB automatically split into 50-text chunks
+- **OpenAI**: Files >9MB automatically split into 50-text chunks  
+- **Gemini**: Uses individual text processing for long content
+
+**Monitor Chunking Logs:**
+```bash
+# Check if chunking is active
+tail -f storage/logs/laravel.log | grep -E "(chunking|chunk)"
+
+# Look for chunking indicators
+grep -E "File too large|Processing in chunks|Chunk [0-9]+ completed" storage/logs/laravel.log
+```
+
+**Expected Chunking Log Output:**
+```
+[INFO] File too large for single Claude API call, using chunking
+[INFO] Processing in chunks: 1000 texts → 20 chunks (50 texts each)
+[INFO] Processing chunk 1/20: 50 texts, 180KB
+[INFO] Chunk 1 completed: 45 successful, 5 failed
+[INFO] All chunks completed: 950 successful, 50 failed
+```
+
+#### Problem: Chunking Performance Issues
+```
+Chunked processing slower than expected
+Memory issues with large files
+```
+
+#### Solutions:
+
+**Optimize Chunk Size:**
+```php
+// In ModelAnalysisJob.php, adjust chunk size if needed
+$chunkSize = 25; // Reduce from 50 for very large texts
+$chunks = array_chunk($jsonData, $chunkSize);
+```
+
+**Monitor Memory Usage:**
+```bash
+# Check memory during chunking
+ps aux | grep "queue:work" | awk '{print $6/1024 " MB"}'
+
+# Increase memory limit if needed
+php artisan queue:work redis --memory=1024
+```
+
+**Verify Partial Results:**
+```bash
+# Check if partial results are being stored
+php artisan tinker
+>>> $job = \App\Models\AnalysisJob::where('job_id', 'your-job-id')->first()
+>>> $results = \App\Models\ModelResult::where('job_id', $job->job_id)->count()
+>>> echo "Results stored: $results"
+```
+
+#### Problem: Failed Chunks Stopping Analysis
+```
+Some chunks fail and entire analysis stops
+Partial results not saved
+```
+
+#### Solutions:
+
+**Verify Error Isolation:**
+```bash
+# Check if failed chunks are isolated
+grep -E "Chunk [0-9]+ failed.*continuing" storage/logs/laravel.log
+
+# Verify failed results are marked appropriately
+php artisan tinker
+>>> $failedResults = \App\Models\ModelResult::where('status', 'failed')->count()
+>>> $successfulResults = \App\Models\ModelResult::where('status', 'completed')->count()
+>>> echo "Failed: $failedResults, Successful: $successfulResults"
+```
+
+**Check Error Handling:**
+```bash
+# Look for proper error handling in logs
+grep -E "Chunk processing failed|error_isolation|graceful_degradation" storage/logs/laravel.log
+```
+
+### 7. Performance Issues
 
 #### Problem: Slow Analysis Processing
 ```

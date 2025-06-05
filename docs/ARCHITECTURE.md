@@ -66,7 +66,9 @@ app/
 │   │   └── ExportService.php          # Dynamic CSV/JSON export with model detection
 ├── Jobs/
 │   ├── AnalyzeTextJob.php             # Single text analysis with custom prompts
-│   └── BatchAnalysisJob.php           # Multiple text processing
+│   ├── BatchAnalysisJob.php           # Multiple text processing (legacy)
+│   ├── BatchAnalysisJobV4.php         # File attachment batch processing with chunking
+│   └── ModelAnalysisJob.php           # Individual model processing with automatic chunking
 ├── Models/
 │   ├── AnalysisJob.php                # Main job tracking with custom prompts and references
 │   ├── TextAnalysis.php               # Individual text results
@@ -225,6 +227,86 @@ Reference Analysis ID
   - `cohen_kappa`: Inter-annotator agreement coefficient
 
 **Recent Enhancement**: Supports category mapping between expert annotations (simplified names like 'simplification', 'emotionalExpression') and AI annotations (ATSPARA methodology names like 'causalOversimplification', 'loadedLanguage')
+
+## 🚀 Large Dataset Processing Architecture
+
+### Intelligent Chunking System
+
+The system implements automatic chunking for large datasets to handle API limits and improve reliability:
+
+#### Architecture Overview
+
+```
+Large Dataset (>8MB)
+    ↓
+┌─────────────────┐
+│ Size Detection  │
+│ - Check file size │
+│ - Determine strategy │
+└─────────┬───────┘
+          ↓
+┌─────────────────┐
+│ Chunking Logic  │
+│ - Split into 50-text chunks │
+│ - Preserve JSON structure │
+└─────────┬───────┘
+          ↓
+┌─────────────────┐
+│ Sequential Processing │
+│ - Process each chunk │
+│ - Merge results │
+│ - Handle failures │
+└─────────┬───────┘
+          ↓
+┌─────────────────┐
+│ Result Assembly │
+│ - Combine successful chunks │
+│ - Mark failed texts │
+│ - Create ModelResults │
+└─────────────────┘
+```
+
+#### Provider-Specific Chunking
+
+| Provider | Trigger Size | Chunk Size | Strategy |
+|----------|-------------|------------|----------|
+| **Claude** | >8MB | 50 texts | Direct API chunking |
+| **OpenAI** | >9MB | 50 texts | Message content chunking |
+| **Gemini** | Long content | Individual | GeminiService fallback |
+
+#### Chunking Implementation
+
+**ModelAnalysisJob** automatically detects large files and applies chunking:
+
+```php
+// Claude chunking
+if ($fileSize > $claudeLimit) {
+    return $this->processClaudeWithChunking($modelKey, $tempFile, $customPrompt);
+}
+
+// Split into optimal chunks
+$chunkSize = 50;
+$chunks = array_chunk($jsonData, $chunkSize);
+
+// Process each chunk sequentially
+foreach ($chunks as $chunkIndex => $chunk) {
+    // Individual chunk processing with error isolation
+}
+```
+
+#### Error Isolation
+
+- **Failed chunks don't stop processing**: Other chunks continue normally
+- **Graceful degradation**: Partial results when some chunks fail
+- **Detailed logging**: Per-chunk progress and error tracking
+- **Retry logic**: Individual chunks can be retried without affecting others
+
+#### Performance Benefits
+
+- **Memory efficiency**: Processes large files without memory exhaustion
+- **API compliance**: Automatically respects provider limits
+- **Improved reliability**: Isolated failures don't affect entire analysis
+- **Better progress tracking**: Granular progress updates per chunk
 
 ## 🆕 Recent System Enhancements (2025)
 
@@ -592,6 +674,37 @@ tests/
 - **Fixtures**: Static test cases with known outcomes
 - **Mocking**: LLM API responses for consistent testing
 - **Seeding**: Development database with sample data
+
+### Enhanced Testing for Chunking
+
+#### Chunking Test Coverage
+
+- **Large File Processing**: Tests for files >8MB (Claude) and >9MB (OpenAI)
+- **Chunk Failure Isolation**: Verifies failed chunks don't stop processing
+- **Progress Tracking**: Tests new model-based progress calculation
+- **Error Handling**: Comprehensive error scenarios and recovery
+
+#### Test Examples
+
+```php
+// Test chunking for large datasets
+public function test_claude_chunking_for_large_files()
+{
+    // Creates 100 texts with large content to exceed 8MB limit
+    $largeContent = str_repeat('Large test content...', 200000);
+    
+    // Verifies automatic chunking is triggered
+    // Confirms ModelResult records are created
+}
+
+// Test graceful failure handling
+public function test_chunk_failure_handling()
+{
+    // Mocks one successful chunk and one failed chunk
+    // Verifies partial results are stored
+    // Confirms processing continues despite failures
+}
+```
 
 ## 🚀 Deployment Architecture
 

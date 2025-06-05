@@ -59,7 +59,7 @@ class GeminiService implements LLMServiceInterface
             try {
                 $url = rtrim($this->config['base_url'], '/') . "/v1beta/models/{$this->config['model']}:generateContent";
                 
-                $response = Http::timeout(config('llm.error_handling.timeout_seconds', 120))
+                $response = Http::timeout(config('llm.error_handling.timeout_seconds', 600))
                     ->withHeaders(['Content-Type' => 'application/json'])
                     ->post($url . '?key=' . $this->config['api_key'], [
                         'contents' => [

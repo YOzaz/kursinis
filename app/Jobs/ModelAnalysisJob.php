@@ -28,7 +28,7 @@ class ModelAnalysisJob implements ShouldQueue
     public array $fileContent;
     public ?string $customPrompt;
 
-    public int $tries = 1; // Reduced to prevent retry loops with API issues
+    public int $tries = 3; // Allow retries for timeout issues
     public int $timeout = 1800; // 30 minutes for model processing
 
     public function __construct(string $jobId, string $modelKey, string $tempFile, array $fileContent, ?string $customPrompt = null)
@@ -113,6 +113,15 @@ class ModelAnalysisJob implements ShouldQueue
                 'status' => 'failed'
             ], 'error');
             
+            // Enhanced logging for system visibility
+            Log::error("❌ {$this->modelKey} model processing completely failed", [
+                'job_id' => $this->jobId,
+                'model' => $this->modelKey,
+                'error' => $e->getMessage(),
+                'error_type' => get_class($e),
+                'stack_trace' => $e->getTraceAsString()
+            ]);
+            
             // Mark text analyses as failed for this model
             $textAnalyses = TextAnalysis::where('job_id', $this->jobId)->get();
             foreach ($textAnalyses as $textAnalysis) {
@@ -157,6 +166,7 @@ class ModelAnalysisJob implements ShouldQueue
 
     /**
      * Process using Claude API with structured JSON in message.
+     * Automatically chunks large files to respect API limits.
      */
     private function processClaudeWithAttachment(string $modelKey, string $tempFile, ?string $customPrompt = null): array
     {
@@ -164,12 +174,27 @@ class ModelAnalysisJob implements ShouldQueue
         $modelConfig = $allModels[$modelKey] ?? null;
         $systemMessage = app(\App\Services\PromptService::class)->getSystemMessage();
         
-        // Read file content and include in prompt
+        // Read file content and check size
         $fileContent = file_get_contents($tempFile);
+        $fileSize = strlen($fileContent);
+        
+        // Claude API limit is ~9MB total text
+        $claudeLimit = 8000000; // 8MB to be safe
+        
+        if ($fileSize > $claudeLimit) {
+            $this->logProgress("File too large for single Claude API call, using chunking", [
+                'model' => $modelKey,
+                'file_size' => $fileSize,
+                'limit' => $claudeLimit,
+                'status' => 'chunking'
+            ]);
+            
+            return $this->processClaudeWithChunking($modelKey, $tempFile, $customPrompt);
+        }
         
         $this->logProgress("Sending structured data to Claude API", [
             'model' => $modelKey,
-            'file_size' => strlen($fileContent),
+            'file_size' => $fileSize,
             'status' => 'processing'
         ]);
 
@@ -216,10 +241,25 @@ class ModelAnalysisJob implements ShouldQueue
         $modelConfig = $allModels[$modelKey] ?? null;
         
         $fileContent = file_get_contents($tempFile);
+        $fileSize = strlen($fileContent);
+        
+        // OpenAI API limit is ~10MB message content
+        $openaiLimit = 9000000; // 9MB to be safe
+        
+        if ($fileSize > $openaiLimit) {
+            $this->logProgress("File too large for single OpenAI API call, using chunking", [
+                'model' => $modelKey,
+                'file_size' => $fileSize,
+                'limit' => $openaiLimit,
+                'status' => 'chunking'
+            ]);
+            
+            return $this->processOpenAIWithChunking($modelKey, $tempFile, $customPrompt);
+        }
         
         $this->logProgress("Sending structured data to OpenAI API", [
             'model' => $modelKey,
-            'file_size' => strlen($fileContent),
+            'file_size' => $fileSize,
             'status' => 'processing'
         ]);
 
@@ -296,7 +336,22 @@ class ModelAnalysisJob implements ShouldQueue
                     foreach ($jsonData as $item) {
                         if (isset($item['data']['content'])) {
                             try {
+                                $this->logProgress("Analyzing individual text with GeminiService", [
+                                    'model' => $modelKey,
+                                    'text_id' => $item['id'],
+                                    'text_length' => strlen($item['data']['content']),
+                                    'status' => 'analyzing_individual'
+                                ]);
+                                
                                 $textResult = $geminiService->analyzeText($item['data']['content'], $customPrompt);
+                                
+                                $this->logProgress("Individual text analysis completed", [
+                                    'model' => $modelKey,
+                                    'text_id' => $item['id'],
+                                    'annotations_count' => count($textResult['annotations'] ?? []),
+                                    'status' => 'individual_completed'
+                                ]);
+                                
                                 $results[] = [
                                     'text_id' => $item['id'],
                                     'primaryChoice' => $textResult['primaryChoice'] ?? ['choices' => ['no']],
@@ -304,10 +359,22 @@ class ModelAnalysisJob implements ShouldQueue
                                     'desinformationTechnique' => $textResult['desinformationTechnique'] ?? ['choices' => []]
                                 ];
                             } catch (\Exception $e) {
-                                $this->logProgress("GeminiService failed for text " . $item['id'], [
+                                $this->logProgress("GeminiService failed for individual text", [
+                                    'model' => $modelKey,
+                                    'text_id' => $item['id'],
                                     'error' => $e->getMessage(),
-                                    'status' => 'error'
+                                    'error_type' => get_class($e),
+                                    'status' => 'individual_failed'
                                 ], 'error');
+                                
+                                // Also log to Laravel's main log for visibility
+                                Log::error("❌ {$modelKey} analysis failed for text {$item['id']}", [
+                                    'job_id' => $this->jobId,
+                                    'model' => $modelKey,
+                                    'text_id' => $item['id'],
+                                    'error' => $e->getMessage(),
+                                    'error_type' => get_class($e)
+                                ]);
                                 
                                 // Add failed result
                                 $results[] = [
@@ -321,7 +388,12 @@ class ModelAnalysisJob implements ShouldQueue
                         }
                     }
                     
-                    return $results;
+                    // Convert to the expected format for main processing logic
+                    $formattedResults = [];
+                    foreach ($results as $result) {
+                        $formattedResults[$result['text_id']] = $result;
+                    }
+                    return $formattedResults;
                 }
             } catch (\Exception $e) {
                 $this->logProgress("GeminiService fallback failed, using direct API", [
@@ -334,7 +406,7 @@ class ModelAnalysisJob implements ShouldQueue
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
         ])
-        ->timeout(1500)
+        ->timeout(600) // 10 minutes for Gemini API calls
         ->post('https://generativelanguage.googleapis.com/v1beta/models/' . $modelConfig['model'] . ':generateContent?key=' . $modelConfig['api_key'], [
             'contents' => [
                 [
@@ -456,20 +528,25 @@ class ModelAnalysisJob implements ShouldQueue
      */
     private function parseFileResponse(string $responseContent, array $texts): array
     {
-        // Try to extract JSON from response
-        if (preg_match('/```json\s*(.*?)\s*```/s', $responseContent, $matches)) {
-            $jsonString = $matches[1];
-        } elseif (preg_match('/\[.*\]/s', $responseContent, $matches)) {
-            $jsonString = $matches[0];
-        } else {
-            $jsonString = $responseContent;
-        }
+        // First try to decode directly (for already valid JSON)
+        $decoded = json_decode($responseContent, true);
         
-        $jsonString = trim($jsonString);
-        $decoded = json_decode($jsonString, true);
-        
+        // If direct decode fails, try to extract JSON from response
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \Exception('Failed to parse file response JSON: ' . json_last_error_msg());
+            if (preg_match('/```json\s*(.*?)\s*```/s', $responseContent, $matches)) {
+                $jsonString = $matches[1];
+            } elseif (preg_match('/\[.*\]/s', $responseContent, $matches)) {
+                $jsonString = $matches[0];
+            } else {
+                $jsonString = $responseContent;
+            }
+            
+            $jsonString = trim($jsonString);
+            $decoded = json_decode($jsonString, true);
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \Exception('Failed to parse file response JSON: ' . json_last_error_msg());
+            }
         }
         
         if (!is_array($decoded)) {
@@ -507,6 +584,14 @@ class ModelAnalysisJob implements ShouldQueue
      */
     private function saveModelResults(TextAnalysis $textAnalysis, string $modelKey, array $result): void
     {
+        $this->logProgress("Saving model results", [
+            'model' => $modelKey,
+            'text_id' => $textAnalysis->text_id,
+            'has_annotations' => !empty($result['annotations'] ?? []),
+            'has_error' => !empty($result['error'] ?? ''),
+            'status' => 'saving'
+        ]);
+        
         $allModels = config('llm.models');
         $modelConfig = $allModels[$modelKey] ?? null;
         $provider = $modelConfig['provider'] ?? 'unknown';
@@ -518,14 +603,31 @@ class ModelAnalysisJob implements ShouldQueue
         $modelName = $modelConfig['model'] ?? $modelKey;
         $errorMessage = $result['error'] ?? null;
         
-        // Store in new ModelResult table for progress tracking
-        $textAnalysis->storeModelResult(
-            $modelKey, 
-            $cleanResult, 
-            $modelName, 
-            null, // execution time - could be added later
-            $errorMessage
-        );
+        try {
+            // Store in new ModelResult table for progress tracking
+            $modelResult = $textAnalysis->storeModelResult(
+                $modelKey, 
+                $cleanResult, 
+                $modelName, 
+                null, // execution time - could be added later
+                $errorMessage
+            );
+            
+            $this->logProgress("ModelResult created successfully", [
+                'model' => $modelKey,
+                'text_id' => $textAnalysis->text_id,
+                'model_result_id' => $modelResult->id,
+                'status' => 'model_result_saved'
+            ]);
+        } catch (\Exception $e) {
+            $this->logProgress("Failed to create ModelResult", [
+                'model' => $modelKey,
+                'text_id' => $textAnalysis->text_id,
+                'error' => $e->getMessage(),
+                'status' => 'error'
+            ], 'error');
+            throw $e;
+        }
         
         // Also store in legacy TextAnalysis columns for backward compatibility
         switch ($provider) {
@@ -629,28 +731,29 @@ class ModelAnalysisJob implements ShouldQueue
      */
     private function updateJobProgress(AnalysisJob $job): void
     {
-        // Count how many models have completed for this job
-        $textAnalyses = TextAnalysis::where('job_id', $this->jobId)->get();
         $totalModels = count($job->requested_models ?? []);
-        $totalTexts = $textAnalyses->groupBy('text_id')->count();
+        
+        // Use a more reliable method to count completed models
+        // Query with a small delay to ensure transaction consistency
+        usleep(100000); // 100ms delay to ensure database consistency
         
         $completedModels = 0;
-        
-        // Check completion for each model using new architecture
         $models = $job->requested_models ?? [];
+        
         foreach ($models as $modelKey) {
-            // Check if this model has completed processing for all texts
-            $modelResults = \App\Models\ModelResult::where('job_id', $this->jobId)
+            // Only rely on ModelResult records for accurate per-model tracking
+            // Legacy fields can't distinguish between different models of the same provider
+            $modelResultsCount = \App\Models\ModelResult::where('job_id', $this->jobId)
                 ->where('model_key', $modelKey)
                 ->whereIn('status', ['completed', 'failed'])
                 ->count();
-            
-            if ($modelResults >= $totalTexts) {
+                
+            if ($modelResultsCount > 0) {
                 $completedModels++;
             }
         }
         
-        // Update job progress based on model completion (since we upload whole JSON to each model)
+        // Update job progress based on model completion
         $job->processed_texts = $completedModels;
         $job->total_texts = $totalModels;
         
@@ -694,5 +797,208 @@ class ModelAnalysisJob implements ShouldQueue
         if ($job) {
             $this->updateJobProgress($job);
         }
+    }
+
+    /**
+     * Process Claude API with chunking for large files.
+     */
+    private function processClaudeWithChunking(string $modelKey, string $tempFile, ?string $customPrompt = null): array
+    {
+        $allModels = config('llm.models');
+        $modelConfig = $allModels[$modelKey] ?? null;
+        $systemMessage = app(\App\Services\PromptService::class)->getSystemMessage();
+        
+        $jsonData = json_decode(file_get_contents($tempFile), true);
+        $results = [];
+        
+        // Split into chunks of ~50 texts each to stay under API limits
+        $chunkSize = 50;
+        $chunks = array_chunk($jsonData, $chunkSize);
+        
+        $this->logProgress("Processing in chunks", [
+            'model' => $modelKey,
+            'total_texts' => count($jsonData),
+            'chunks' => count($chunks),
+            'chunk_size' => $chunkSize,
+            'status' => 'chunking'
+        ]);
+        
+        foreach ($chunks as $chunkIndex => $chunk) {
+            $chunkJson = json_encode($chunk, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            $prompt = $this->createFileAnalysisPrompt($customPrompt) . "\n\nJSON DATA:\n" . $chunkJson;
+            
+            $this->logProgress("Processing chunk", [
+                'model' => $modelKey,
+                'chunk' => $chunkIndex + 1,
+                'total_chunks' => count($chunks),
+                'texts_in_chunk' => count($chunk),
+                'chunk_size' => strlen($chunkJson),
+                'status' => 'processing_chunk'
+            ]);
+            
+            try {
+                $response = Http::withHeaders([
+                    'x-api-key' => $modelConfig['api_key'],
+                    'Content-Type' => 'application/json',
+                    'anthropic-version' => '2023-06-01',
+                ])
+                ->timeout(1500)
+                ->post($modelConfig['base_url'] . 'messages', [
+                    'model' => $modelConfig['model'],
+                    'max_tokens' => $modelConfig['max_tokens'],
+                    'temperature' => $modelConfig['temperature'],
+                    'system' => $systemMessage,
+                    'messages' => [
+                        [
+                            'role' => 'user',
+                            'content' => $prompt
+                        ]
+                    ]
+                ]);
+                
+                if (!$response->successful()) {
+                    throw new \Exception('Claude API error: ' . $response->status() . ' - ' . $response->body());
+                }
+                
+                $responseData = $response->json();
+                
+                if (!isset($responseData['content'][0]['text'])) {
+                    throw new \Exception('Invalid Claude API response format');
+                }
+                
+                $chunkResults = $this->parseFileResponse($responseData['content'][0]['text'], $chunk);
+                $results = array_merge($results, $chunkResults);
+                
+                $this->logProgress("Chunk completed", [
+                    'model' => $modelKey,
+                    'chunk' => $chunkIndex + 1,
+                    'results_count' => count($chunkResults),
+                    'status' => 'chunk_completed'
+                ]);
+                
+            } catch (\Exception $e) {
+                $this->logProgress("Chunk failed", [
+                    'model' => $modelKey,
+                    'chunk' => $chunkIndex + 1,
+                    'error' => $e->getMessage(),
+                    'status' => 'chunk_failed'
+                ], 'error');
+                
+                // Add failed results for this chunk
+                foreach ($chunk as $item) {
+                    $results[$item['id']] = [
+                        'text_id' => $item['id'],
+                        'error' => 'Chunk processing failed: ' . $e->getMessage(),
+                        'primaryChoice' => ['choices' => ['no']],
+                        'annotations' => [],
+                        'desinformationTechnique' => ['choices' => []]
+                    ];
+                }
+            }
+        }
+        
+        return $results;
+    }
+
+    /**
+     * Process OpenAI API with chunking for large files.
+     */
+    private function processOpenAIWithChunking(string $modelKey, string $tempFile, ?string $customPrompt = null): array
+    {
+        $allModels = config('llm.models');
+        $modelConfig = $allModels[$modelKey] ?? null;
+        
+        $jsonData = json_decode(file_get_contents($tempFile), true);
+        $results = [];
+        
+        // Split into chunks of ~50 texts each to stay under API limits
+        $chunkSize = 50;
+        $chunks = array_chunk($jsonData, $chunkSize);
+        
+        $this->logProgress("Processing in chunks", [
+            'model' => $modelKey,
+            'total_texts' => count($jsonData),
+            'chunks' => count($chunks),
+            'chunk_size' => $chunkSize,
+            'status' => 'chunking'
+        ]);
+        
+        foreach ($chunks as $chunkIndex => $chunk) {
+            $chunkJson = json_encode($chunk, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            $prompt = $this->createFileAnalysisPrompt($customPrompt) . "\n\nJSON DATA:\n" . $chunkJson;
+            
+            $this->logProgress("Processing chunk", [
+                'model' => $modelKey,
+                'chunk' => $chunkIndex + 1,
+                'total_chunks' => count($chunks),
+                'texts_in_chunk' => count($chunk),
+                'chunk_size' => strlen($chunkJson),
+                'status' => 'processing_chunk'
+            ]);
+            
+            try {
+                $response = Http::withHeaders([
+                    'Authorization' => 'Bearer ' . $modelConfig['api_key'],
+                    'Content-Type' => 'application/json',
+                ])
+                ->timeout(1500)
+                ->post($modelConfig['base_url'] . '/chat/completions', [
+                    'model' => $modelConfig['model'],
+                    'max_tokens' => $modelConfig['max_tokens'],
+                    'temperature' => $modelConfig['temperature'],
+                    'messages' => [
+                        [
+                            'role' => 'system',
+                            'content' => app(\App\Services\PromptService::class)->getSystemMessage()
+                        ],
+                        [
+                            'role' => 'user',
+                            'content' => $prompt
+                        ]
+                    ]
+                ]);
+                
+                if (!$response->successful()) {
+                    throw new \Exception('OpenAI API error: ' . $response->status() . ' - ' . $response->body());
+                }
+                
+                $responseData = $response->json();
+                
+                if (!isset($responseData['choices'][0]['message']['content'])) {
+                    throw new \Exception('Invalid OpenAI API response format');
+                }
+                
+                $chunkResults = $this->parseFileResponse($responseData['choices'][0]['message']['content'], $chunk);
+                $results = array_merge($results, $chunkResults);
+                
+                $this->logProgress("Chunk completed", [
+                    'model' => $modelKey,
+                    'chunk' => $chunkIndex + 1,
+                    'results_count' => count($chunkResults),
+                    'status' => 'chunk_completed'
+                ]);
+                
+            } catch (\Exception $e) {
+                $this->logProgress("Chunk failed", [
+                    'model' => $modelKey,
+                    'chunk' => $chunkIndex + 1,
+                    'error' => $e->getMessage(),
+                    'status' => 'chunk_failed'
+                ], 'error');
+                
+                // Add failed results for this chunk
+                foreach ($chunk as $item) {
+                    $results[$item['id']] = [
+                        'text_id' => $item['id'],
+                        'error' => 'Chunk processing failed: ' . $e->getMessage(),
+                        'primaryChoice' => ['choices' => ['no']],
+                        'annotations' => [],
+                        'desinformationTechnique' => ['choices' => []]
+                    ];
+                }
+            }
+        }
+        
+        return $results;
     }
 }
