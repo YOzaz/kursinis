@@ -66,6 +66,15 @@
                                data-bs-placement="top" 
                                title="Įkelkite JSON failą su tekstais. Jei turite ekspertų anotacijas (iš Label Studio), sistema apskaičiuos palyginimo metrikas. Jei ne - tik AI analizė."></i>
                         </label>
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Reikalingas specifinis JSON formatas. 
+                                <a href="/docs/json-format" target="_blank" class="text-decoration-none">
+                                    <i class="fas fa-external-link-alt me-1"></i>Žiūrėti formato specifikaciją
+                                </a>
+                            </small>
+                        </div>
                         <div class="upload-area" id="uploadArea">
                             <input type="file" class="form-control d-none" id="json_file" name="json_file" accept=".json,application/json,text/plain" required>
                             <div id="uploadContent">

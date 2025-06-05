@@ -23,7 +23,7 @@ class ClaudeErrorHandler implements LLMErrorHandlerInterface
             statusCode: $statusCode,
             errorType: $errorType,
             provider: $this->getProviderName(),
-            isRetryable: $this->isRetryableError($statusCode),
+            isRetryable: $this->isRetryableError($statusCode, $errorType),
             isQuotaRelated: $this->isQuotaError($statusCode),
             previous: $exception
         );
@@ -44,7 +44,7 @@ class ClaudeErrorHandler implements LLMErrorHandlerInterface
         };
     }
 
-    public function isRetryableError(int $statusCode): bool
+    public function isRetryableError(int $statusCode, string $errorType = ''): bool
     {
         return match ($statusCode) {
             429, // Rate limit error - retryable with backoff

@@ -52,3 +52,12 @@ Route::post('/logout', function() {
 Route::get('/api/documentation', function() {
     return view('vendor.l5-swagger.index');
 })->name('api.documentation');
+
+// JSON Format Documentation
+Route::get('/docs/json-format', function() {
+    $content = file_get_contents(base_path('docs/JSON-FORMAT.md'));
+    return response($content, 200, [
+        'Content-Type' => 'text/markdown; charset=UTF-8',
+        'Content-Disposition' => 'inline'
+    ]);
+})->name('docs.json-format');

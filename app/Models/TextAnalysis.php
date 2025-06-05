@@ -67,12 +67,11 @@ class TextAnalysis extends Model
     }
 
     /**
-     * Ryšys su palyginimo metrikomis (filtruojama pagal job_id ir text_id).
+     * Ryšys su palyginimo metrikomis (filtruojama pagal job_id ir text_analysis_id).
      */
     public function comparisonMetrics(): HasMany
     {
-        return $this->hasMany(ComparisonMetric::class, 'text_id', 'text_id')
-                    ->where('job_id', $this->job_id);
+        return $this->hasMany(ComparisonMetric::class, 'text_analysis_id', 'id');
     }
 
     /**
@@ -132,52 +131,88 @@ class TextAnalysis extends Model
     {
         $models = [];
         
-        // Get successful models
-        $successfulModels = $this->getAllModelAnnotations();
-        foreach ($successfulModels as $modelName => $annotations) {
-            $models[$modelName] = [
-                'status' => 'success',
-                'annotations' => $annotations,
-                'actual_model' => $modelName
+        // Check each provider's fields for annotations and errors
+        
+        // Claude models
+        if (!empty($this->claude_annotations) || !empty($this->claude_error) || !empty($this->claude_model_name)) {
+            $configKey = 'claude-opus-4'; // default
+            if ($this->claude_actual_model) {
+                if (str_contains($this->claude_actual_model, 'sonnet')) {
+                    $configKey = 'claude-sonnet-4';
+                } elseif (str_contains($this->claude_actual_model, 'opus')) {
+                    $configKey = 'claude-opus-4';
+                }
+            } elseif ($this->claude_model_name) {
+                if (str_contains($this->claude_model_name, 'sonnet')) {
+                    $configKey = 'claude-sonnet-4';
+                } elseif (str_contains($this->claude_model_name, 'opus')) {
+                    $configKey = 'claude-opus-4';
+                }
+            }
+            
+            $models[$configKey] = [
+                'status' => !empty($this->claude_annotations) && !$this->claude_error ? 'success' : 'failed',
+                'annotations' => $this->claude_annotations,
+                'error' => $this->claude_error,
+                'actual_model' => $this->claude_actual_model ?: $this->claude_model_name ?: $configKey
             ];
         }
         
-        // Get failed models from stored annotations with errors
-        if (!empty($this->claude_annotations) && isset($this->claude_annotations['error'])) {
-            $modelName = $this->claude_annotations['model'] ?? 'claude-unknown';
-            $models[$modelName] = [
-                'status' => 'failed',
-                'annotations' => null,
-                'error' => $this->claude_annotations['error'],
-                'actual_model' => $modelName
+        // GPT models
+        if (!empty($this->gpt_annotations) || !empty($this->gpt_error) || !empty($this->gpt_model_name)) {
+            $configKey = 'gpt-4.1'; // default
+            if ($this->gpt_actual_model) {
+                if (str_contains($this->gpt_actual_model, 'gpt-4o')) {
+                    $configKey = 'gpt-4o-latest';
+                } elseif (str_contains($this->gpt_actual_model, 'gpt-4.1')) {
+                    $configKey = 'gpt-4.1';
+                }
+            } elseif ($this->gpt_model_name) {
+                if (str_contains($this->gpt_model_name, 'gpt-4o')) {
+                    $configKey = 'gpt-4o-latest';
+                } elseif (str_contains($this->gpt_model_name, 'gpt-4.1')) {
+                    $configKey = 'gpt-4.1';
+                }
+            }
+            
+            $models[$configKey] = [
+                'status' => !empty($this->gpt_annotations) && !$this->gpt_error ? 'success' : 'failed',
+                'annotations' => $this->gpt_annotations,
+                'error' => $this->gpt_error,
+                'actual_model' => $this->gpt_actual_model ?: $this->gpt_model_name ?: $configKey
             ];
         }
         
-        if (!empty($this->gpt_annotations) && isset($this->gpt_annotations['error'])) {
-            $modelName = $this->gpt_annotations['model'] ?? 'gpt-unknown';
-            $models[$modelName] = [
-                'status' => 'failed',
-                'annotations' => null,
-                'error' => $this->gpt_annotations['error'],
-                'actual_model' => $modelName
+        // Gemini models
+        if (!empty($this->gemini_annotations) || !empty($this->gemini_error) || !empty($this->gemini_model_name)) {
+            $configKey = 'gemini-2.5-pro'; // default
+            if ($this->gemini_actual_model) {
+                if (str_contains($this->gemini_actual_model, 'flash')) {
+                    $configKey = 'gemini-2.5-flash';
+                } elseif (str_contains($this->gemini_actual_model, 'pro')) {
+                    $configKey = 'gemini-2.5-pro';
+                }
+            } elseif ($this->gemini_model_name) {
+                if (str_contains($this->gemini_model_name, 'flash')) {
+                    $configKey = 'gemini-2.5-flash';
+                } elseif (str_contains($this->gemini_model_name, 'pro')) {
+                    $configKey = 'gemini-2.5-pro';
+                }
+            }
+            
+            $models[$configKey] = [
+                'status' => !empty($this->gemini_annotations) && !$this->gemini_error ? 'success' : 'failed',
+                'annotations' => $this->gemini_annotations,
+                'error' => $this->gemini_error,
+                'actual_model' => $this->gemini_actual_model ?: $this->gemini_model_name ?: $configKey
             ];
         }
         
-        if (!empty($this->gemini_annotations) && isset($this->gemini_annotations['error'])) {
-            $modelName = $this->gemini_annotations['model'] ?? 'gemini-unknown';
-            $models[$modelName] = [
-                'status' => 'failed',
-                'annotations' => null,
-                'error' => $this->gemini_annotations['error'],
-                'actual_model' => $modelName
-            ];
-        }
-        
-        // Add models from comparison metrics that aren't already listed
+        // Add models from comparison metrics that might not be in the annotation fields
         foreach ($this->comparisonMetrics as $metric) {
             if (!isset($models[$metric->model_name])) {
                 $models[$metric->model_name] = [
-                    'status' => 'failed',
+                    'status' => 'success', // If it has metrics, it was processed successfully
                     'annotations' => null,
                     'actual_model' => $metric->actual_model_name ?? $metric->model_name,
                     'has_metrics' => true

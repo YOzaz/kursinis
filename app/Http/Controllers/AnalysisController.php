@@ -336,8 +336,8 @@ class AnalysisController extends Controller
                 'description' => $request->description,
             ]);
 
-            // Paleisti batch analizės darbą
-            BatchAnalysisJob::dispatch($jobId, $fileContent, $models);
+            // Paleisti batch analizės darbą (naujausi versija su file attachments)
+            \App\Jobs\BatchAnalysisJobV4::dispatch($jobId, $fileContent, $models);
 
             Log::info('Paleista batch analizė', [
                 'job_id' => $jobId,
@@ -1069,11 +1069,28 @@ class AnalysisController extends Controller
                 $techniquePositions = [];
                 
                 // Filter by specific model if requested
-                if ($selectedModel !== 'all' && isset($modelAnnotations[$selectedModel])) {
-                    $modelAnnotations = [$selectedModel => $modelAnnotations[$selectedModel]];
-                } elseif ($selectedModel !== 'all') {
-                    // Model not found, return empty annotations
-                    $modelAnnotations = [];
+                if ($selectedModel !== 'all') {
+                    if (isset($modelAnnotations[$selectedModel])) {
+                        $modelAnnotations = [$selectedModel => $modelAnnotations[$selectedModel]];
+                    } else {
+                        // Model not found or has no successful annotations, check if model exists with error
+                        $allAttemptedModels = $textAnalysis->getAllAttemptedModels();
+                        if (isset($allAttemptedModels[$selectedModel])) {
+                            // Model exists but failed, return empty annotations with success message
+                            return response()->json([
+                                'success' => true,
+                                'content' => $originalText,
+                                'text' => $originalText,
+                                'annotations' => [],
+                                'legend' => [],
+                                'view_type' => $viewType,
+                                'message' => "Modelis {$selectedModel} analizės metu susidūrė su klaida arba nepateikė anotacijų"
+                            ]);
+                        } else {
+                            // Model not found at all
+                            $modelAnnotations = [];
+                        }
+                    }
                 }
                 
                 foreach ($modelAnnotations as $modelName => $modelData) {
@@ -1319,6 +1336,260 @@ class AnalysisController extends Controller
                 'error' => 'Server error refreshing model status',
                 'message' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Get debug information for a specific text analysis.
+     */
+    #[OA\Get(
+        path: "/api/debug/{textAnalysisId}",
+        operationId: "getDebugInfo",
+        description: "Get raw query and response debug information for a text analysis",
+        summary: "Get debug information",
+        tags: ["analysis"],
+        parameters: [
+            new OA\Parameter(
+                name: "textAnalysisId",
+                in: "path",
+                required: true,
+                schema: new OA\Schema(type: "integer"),
+                example: 123
+            ),
+            new OA\Parameter(
+                name: "model",
+                in: "query",
+                required: false,
+                schema: new OA\Schema(type: "string"),
+                example: "claude-opus-4"
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Debug information",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "success", type: "boolean"),
+                        new OA\Property(property: "text_analysis", type: "object"),
+                        new OA\Property(property: "debug_info", type: "object")
+                    ]
+                )
+            ),
+            new OA\Response(response: 404, description: "Text analysis not found")
+        ]
+    )]
+    public function getDebugInfo(int $textAnalysisId, Request $request): JsonResponse
+    {
+        try {
+            $textAnalysis = TextAnalysis::find($textAnalysisId);
+            
+            if (!$textAnalysis) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Text analysis not found'
+                ], 404);
+            }
+
+            $selectedModel = $request->get('model');
+            $allModels = $textAnalysis->getAllAttemptedModels();
+            
+            // If no specific model requested, show all models
+            if (!$selectedModel) {
+                $debugInfo = [];
+                foreach ($allModels as $modelKey => $modelData) {
+                    $debugInfo[$modelKey] = $this->buildModelDebugInfo($textAnalysis, $modelKey, $modelData);
+                }
+            } else {
+                // Show specific model
+                if (!isset($allModels[$selectedModel])) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Model {$selectedModel} not found in this analysis"
+                    ], 404);
+                }
+                
+                $debugInfo = [
+                    $selectedModel => $this->buildModelDebugInfo($textAnalysis, $selectedModel, $allModels[$selectedModel])
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'text_analysis' => [
+                    'id' => $textAnalysis->id,
+                    'text_id' => $textAnalysis->text_id,
+                    'content_preview' => substr($textAnalysis->content, 0, 200) . (strlen($textAnalysis->content) > 200 ? '...' : ''),
+                    'content_length' => strlen($textAnalysis->content),
+                    'job_id' => $textAnalysis->job_id,
+                    'created_at' => $textAnalysis->created_at,
+                ],
+                'debug_info' => $debugInfo
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error getting debug info', [
+                'text_analysis_id' => $textAnalysisId,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error retrieving debug information',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Build debug information for a specific model.
+     */
+    private function buildModelDebugInfo(TextAnalysis $textAnalysis, string $modelKey, array $modelData): array
+    {
+        $modelConfig = config("llm.models.{$modelKey}");
+        $provider = $modelConfig['provider'] ?? 'unknown';
+        
+        // Get the analysis job to check for custom prompt
+        $analysisJob = AnalysisJob::where('job_id', $textAnalysis->job_id)->first();
+        $customPrompt = $analysisJob ? $analysisJob->custom_prompt : null;
+        
+        // Reconstruct the query that was sent
+        $reconstructedQuery = $this->reconstructQuery($textAnalysis, $modelKey, $customPrompt);
+        
+        // Get the response and any errors
+        $response = null;
+        $error = null;
+        $executionTime = null;
+        
+        switch ($provider) {
+            case 'anthropic':
+                $response = $textAnalysis->claude_annotations;
+                $error = $textAnalysis->claude_error;
+                $executionTime = $textAnalysis->claude_execution_time;
+                break;
+            case 'openai':
+                $response = $textAnalysis->gpt_annotations;
+                $error = $textAnalysis->gpt_error;
+                $executionTime = $textAnalysis->gpt_execution_time;
+                break;
+            case 'google':
+                $response = $textAnalysis->gemini_annotations;
+                $error = $textAnalysis->gemini_error;
+                $executionTime = $textAnalysis->gemini_execution_time;
+                break;
+        }
+        
+        return [
+            'model_key' => $modelKey,
+            'model_name' => $modelConfig['model'] ?? $modelKey,
+            'provider' => $provider,
+            'status' => $error ? 'failed' : ($response ? 'completed' : 'pending'),
+            'execution_time_ms' => $executionTime,
+            'query' => $reconstructedQuery,
+            'response' => $response,
+            'error' => $error,
+            'api_config' => [
+                'base_url' => $modelConfig['base_url'] ?? null,
+                'model' => $modelConfig['model'] ?? null,
+                'max_tokens' => $modelConfig['max_tokens'] ?? null,
+                'temperature' => $modelConfig['temperature'] ?? null,
+            ]
+        ];
+    }
+
+    /**
+     * Reconstruct the query that was sent to the model.
+     */
+    private function reconstructQuery(TextAnalysis $textAnalysis, string $modelKey, ?string $customPrompt): array
+    {
+        $modelConfig = config("llm.models.{$modelKey}");
+        $provider = $modelConfig['provider'] ?? 'unknown';
+        
+        // Get the prompt that was used
+        $promptService = app(\App\Services\PromptService::class);
+        $systemMessage = $promptService->getSystemMessage();
+        $analysisPrompt = $customPrompt ?: $promptService->getAnalysisPromptTemplate();
+        
+        $fullPrompt = $analysisPrompt . "\n\nTEKSTAS ANALIZEI:\n" . $textAnalysis->content;
+        
+        // Reconstruct based on provider
+        switch ($provider) {
+            case 'anthropic':
+                return [
+                    'url' => $modelConfig['base_url'] . 'messages',
+                    'method' => 'POST',
+                    'headers' => [
+                        'x-api-key' => '[HIDDEN]',
+                        'Content-Type' => 'application/json',
+                        'anthropic-version' => '2023-06-01',
+                    ],
+                    'body' => [
+                        'model' => $modelConfig['model'],
+                        'max_tokens' => $modelConfig['max_tokens'],
+                        'temperature' => $modelConfig['temperature'],
+                        'system' => $systemMessage,
+                        'messages' => [
+                            [
+                                'role' => 'user',
+                                'content' => $fullPrompt
+                            ]
+                        ]
+                    ]
+                ];
+                
+            case 'openai':
+                return [
+                    'url' => $modelConfig['base_url'] . '/chat/completions',
+                    'method' => 'POST',
+                    'headers' => [
+                        'Authorization' => 'Bearer [HIDDEN]',
+                        'Content-Type' => 'application/json',
+                    ],
+                    'body' => [
+                        'model' => $modelConfig['model'],
+                        'max_tokens' => $modelConfig['max_tokens'],
+                        'temperature' => $modelConfig['temperature'],
+                        'messages' => [
+                            [
+                                'role' => 'system',
+                                'content' => $systemMessage
+                            ],
+                            [
+                                'role' => 'user',
+                                'content' => $fullPrompt
+                            ]
+                        ]
+                    ]
+                ];
+                
+            case 'google':
+                return [
+                    'url' => 'https://generativelanguage.googleapis.com/v1beta/models/' . $modelConfig['model'] . ':generateContent?key=[HIDDEN]',
+                    'method' => 'POST',
+                    'headers' => [
+                        'Content-Type' => 'application/json',
+                    ],
+                    'body' => [
+                        'contents' => [
+                            [
+                                'parts' => [
+                                    ['text' => $systemMessage . "\n\n" . $fullPrompt]
+                                ]
+                            ]
+                        ],
+                        'generationConfig' => [
+                            'maxOutputTokens' => $modelConfig['max_tokens'],
+                            'temperature' => $modelConfig['temperature'],
+                            'topP' => $modelConfig['top_p'],
+                            'topK' => $modelConfig['top_k'],
+                        ]
+                    ]
+                ];
+                
+            default:
+                return [
+                    'error' => 'Unsupported provider for query reconstruction'
+                ];
         }
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Jobs\BatchAnalysisJob;
 use App\Jobs\BatchAnalysisJobV2;
 use App\Jobs\BatchAnalysisJobV3;
+use App\Jobs\BatchAnalysisJobV4;
 use App\Models\AnalysisJob;
 use App\Services\PromptService;
 use Illuminate\Http\Request;
@@ -96,23 +97,14 @@ class WebController extends Controller
                 'custom_prompt' => $customPrompt,
             ]);
 
-            // Use smart chunking batch processing for improved performance and reliability
-            $useSmartChunking = count($jsonData) > 10; // Use smart chunking for 10+ texts
-            
-            if ($useSmartChunking) {
-                BatchAnalysisJobV3::dispatch($jobId, $jsonData, $models);
-                Log::info('Using smart chunking batch processing', [
-                    'job_id' => $jobId,
-                    'text_count' => count($jsonData),
-                    'strategy' => 'smart_chunking_v3'
-                ]);
-            } else {
-                BatchAnalysisJob::dispatch($jobId, $jsonData, $models);
-                Log::info('Using individual processing for small datasets', [
-                    'job_id' => $jobId,
-                    'text_count' => count($jsonData)
-                ]);
-            }
+            // Use file attachment processing for optimal performance and reliability
+            BatchAnalysisJobV4::dispatch($jobId, $jsonData, $models);
+            Log::info('Using file attachment batch processing', [
+                'job_id' => $jobId,
+                'text_count' => count($jsonData),
+                'strategy' => 'file_attachment_v4',
+                'models' => $models
+            ]);
 
             Log::info('Analizė paleista per web sąsają', [
                 'job_id' => $jobId,
@@ -281,28 +273,140 @@ class WebController extends Controller
      */
     private function getRecentLogs(string $jobId): array
     {
-        // In a real implementation, you might parse log files
-        // For now, return simulated recent activity
-        return [
-            [
-                'timestamp' => now()->subSeconds(30),
-                'level' => 'INFO',
-                'message' => 'Processing model claude-opus-4 with smart chunking',
-                'context' => ['model' => 'claude-opus-4', 'chunk' => '15/125']
-            ],
-            [
-                'timestamp' => now()->subSeconds(45),
-                'level' => 'INFO', 
-                'message' => 'Chunk processed successfully',
-                'context' => ['chunk_size' => 3, 'results_count' => 3]
-            ],
-            [
-                'timestamp' => now()->subMinutes(1),
-                'level' => 'WARNING',
-                'message' => 'Chunk processing timeout, falling back to individual',
-                'context' => ['timeout' => '300s', 'fallback' => 'individual']
-            ]
-        ];
+        try {
+            // Read actual Laravel log file and filter for this job
+            $logFile = storage_path('logs/laravel.log');
+            if (!file_exists($logFile)) {
+                return [];
+            }
+            
+            $logs = [];
+            $file = new \SplFileObject($logFile);
+            $file->seek(PHP_INT_MAX);
+            $totalLines = $file->key() + 1;
+            
+            // Read last 1000 lines to find relevant entries
+            $startLine = max(0, $totalLines - 1000);
+            $file->seek($startLine);
+            
+            while (!$file->eof()) {
+                $line = trim($file->current());
+                $file->next();
+                
+                // Skip empty lines
+                if (empty($line)) continue;
+                
+                // Parse Laravel log format: [timestamp] level.channel: message context
+                if (preg_match('/^\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\] \w+\.(\w+): (.+?)( \{.*\})?$/', $line, $matches)) {
+                    $timestamp = $matches[1];
+                    $level = strtoupper($matches[2]);
+                    $message = $matches[3];
+                    $contextJson = $matches[4] ?? '{}';
+                    
+                    // Try to parse context
+                    $context = [];
+                    if (!empty($contextJson)) {
+                        $decoded = json_decode($contextJson, true);
+                        if (is_array($decoded)) {
+                            $context = $decoded;
+                        }
+                    }
+                    
+                    // Check if this log entry is relevant to our job
+                    $isRelevant = false;
+                    if (stripos($line, $jobId) !== false) {
+                        $isRelevant = true;
+                    } elseif (isset($context['job_id']) && 
+                              (is_string($context['job_id']) && $context['job_id'] === $jobId) ||
+                              (is_object($context['job_id']) && property_exists($context['job_id'], 'Ramsey\\Uuid\\Lazy\\LazyUuidFromString') && $context['job_id']->{'Ramsey\\Uuid\\Lazy\\LazyUuidFromString'} === $jobId)) {
+                        $isRelevant = true;
+                    }
+                    
+                    if ($isRelevant) {
+                        // Enhance message with file processing context
+                        $enhancedMessage = $this->enhanceLogMessage($message, $context);
+                        
+                        $logs[] = [
+                            'timestamp' => \Carbon\Carbon::parse($timestamp),
+                            'level' => $level,
+                            'message' => $enhancedMessage,
+                            'context' => $context
+                        ];
+                    }
+                }
+            }
+            
+            // Return last 20 relevant entries
+            return array_slice(array_reverse($logs), 0, 20);
+            
+        } catch (\Exception $e) {
+            Log::warning('Error reading logs for status view', [
+                'job_id' => $jobId,
+                'error' => $e->getMessage()
+            ]);
+            
+            // Fallback to simulated logs for file-based processing
+            return [
+                [
+                    'timestamp' => now()->subSeconds(10),
+                    'level' => 'INFO',
+                    'message' => 'File-based analysis in progress - check individual model status',
+                    'context' => ['processing_type' => 'file_attachment']
+                ]
+            ];
+        }
+    }
+
+    /**
+     * Enhance log messages with better descriptions for file processing.
+     */
+    private function enhanceLogMessage(string $message, array $context): string
+    {
+        // Enhance messages based on context
+        if (isset($context['status'])) {
+            switch ($context['status']) {
+                case 'uploading':
+                    if (isset($context['model'])) {
+                        return "📤 Uploading file to {$context['model']} API...";
+                    }
+                    break;
+                case 'processing':
+                    if (isset($context['model'])) {
+                        return "🤖 {$context['model']} is analyzing the file...";
+                    }
+                    break;
+                case 'completed':
+                    if (isset($context['model'])) {
+                        return "✅ {$context['model']} analysis completed";
+                    }
+                    break;
+                case 'failed':
+                    if (isset($context['model'])) {
+                        return "❌ {$context['model']} analysis failed";
+                    }
+                    break;
+            }
+        }
+        
+        // Enhance by job type
+        if (isset($context['job_type']) && $context['job_type'] === 'BatchAnalysisJobV4') {
+            if (stripos($message, 'starting') !== false) {
+                return "🚀 Starting file-based batch analysis";
+            } elseif (stripos($message, 'completed') !== false) {
+                return "🎉 File-based batch analysis completed";
+            }
+        }
+        
+        // Default enhancement based on keywords
+        if (stripos($message, 'gemini file api') !== false) {
+            return "📁 " . $message . " (using File API)";
+        } elseif (stripos($message, 'claude') !== false && stripos($message, 'structured') !== false) {
+            return "📄 " . $message . " (JSON in message)";
+        } elseif (stripos($message, 'openai') !== false && stripos($message, 'structured') !== false) {
+            return "📊 " . $message . " (full JSON)";
+        }
+        
+        return $message;
     }
 
     /**

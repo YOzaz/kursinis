@@ -205,7 +205,7 @@
                                                                             <div class="model-selector-expanded me-2" id="model-selector-expanded-{{ $textAnalysis->id }}">
                                                                                 <select class="form-select form-select-sm" id="ai-model-select-{{ $textAnalysis->id }}">
                                                                                     <option value="all">Visi modeliai</option>
-                                                                                    @foreach($textAnalysis->getAllModelAnnotations() as $modelName => $annotations)
+                                                                                    @foreach($textAnalysis->getAllAttemptedModels() as $modelName => $modelData)
                                                                                         <option value="{{ $modelName }}">{{ $modelName }}</option>
                                                                                     @endforeach
                                                                                 </select>
@@ -290,11 +290,18 @@
                                                         @endif
                                                     </td>
                                                     <td>
-                                                        <button class="btn btn-sm btn-outline-primary" 
-                                                                data-bs-toggle="modal" 
-                                                                data-bs-target="#analysisModal{{ $textAnalysis->id }}">
-                                                            <i class="fas fa-eye me-1"></i>Detalės
-                                                        </button>
+                                                        <div class="btn-group" role="group">
+                                                            <button class="btn btn-sm btn-outline-primary" 
+                                                                    data-bs-toggle="modal" 
+                                                                    data-bs-target="#analysisModal{{ $textAnalysis->id }}">
+                                                                <i class="fas fa-eye me-1"></i>Detalės
+                                                            </button>
+                                                            <button class="btn btn-sm btn-outline-info" 
+                                                                    onclick="showDebugInfo({{ $textAnalysis->id }})"
+                                                                    title="Peržiūrėti raw RISEN užklausas ir atsakymus">
+                                                                <i class="fas fa-bug me-1"></i>Debug
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             @endforeach
@@ -318,14 +325,7 @@
                         </div>
                     @endif
                 </div>
-            </div>
 
-            </div>
-            
-            <div class="row">
-                <div class="col-lg-8">
-                    <!-- Results table takes up main area -->
-                </div>
                 <div class="col-lg-4">
                     @if(isset($statistics))
                         <div class="card mb-4">
@@ -1752,6 +1752,269 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeModalTextHighlighting();
     updateTechniqueNames();
 });
+
+// Debug functionality
+function showDebugInfo(textAnalysisId) {
+    const modal = new bootstrap.Modal(document.getElementById('debugModal'));
+    loadDebugInfo(textAnalysisId);
+    modal.show();
+}
+
+function loadDebugInfo(textAnalysisId) {
+    const container = document.getElementById('debugContent');
+    const title = document.getElementById('debugModalTitle');
+    
+    title.textContent = `Debug informacija - Tekstas ID: ${textAnalysisId}`;
+    container.innerHTML = `
+        <div class="text-center py-4">
+            <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+            <p class="mt-2 text-muted">Kraunama debug informacija...</p>
+        </div>
+    `;
+    
+    fetch(`/api/debug/${textAnalysisId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayDebugInfo(data);
+            } else {
+                container.innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        ${data.message || 'Nepavyko įkelti debug informacijos'}
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading debug info:', error);
+            container.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Klaida kraunant debug informaciją
+                </div>
+            `;
+        });
+}
+
+function displayDebugInfo(data) {
+    const container = document.getElementById('debugContent');
+    const textAnalysis = data.text_analysis;
+    const debugInfo = data.debug_info;
+    
+    let html = `
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">Teksto informacija</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Tekstas ID:</strong> ${textAnalysis.text_id}<br>
+                        <strong>Analizės ID:</strong> ${textAnalysis.job_id}<br>
+                        <strong>Teksto ilgis:</strong> ${textAnalysis.content_length} simboliai
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Sukurta:</strong> ${new Date(textAnalysis.created_at).toLocaleString('lt-LT')}
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <strong>Teksto peržiūra:</strong>
+                    <div class="bg-light p-2 rounded small" style="max-height: 100px; overflow-y: auto;">
+                        ${escapeHtml(textAnalysis.content_preview)}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add debug info for each model
+    Object.entries(debugInfo).forEach(([modelKey, modelDebug]) => {
+        const statusClass = modelDebug.status === 'completed' ? 'success' : 
+                           modelDebug.status === 'failed' ? 'danger' : 'warning';
+        const statusIcon = modelDebug.status === 'completed' ? 'check-circle' : 
+                          modelDebug.status === 'failed' ? 'times-circle' : 'clock';
+        
+        html += `
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="fas fa-robot me-2"></i>
+                        ${modelDebug.model_name} (${modelDebug.provider})
+                    </h6>
+                    <span class="badge bg-${statusClass}">
+                        <i class="fas fa-${statusIcon} me-1"></i>
+                        ${modelDebug.status}
+                    </span>
+                </div>
+                <div class="card-body">
+        `;
+        
+        // Execution time
+        if (modelDebug.execution_time_ms) {
+            html += `
+                <div class="mb-3">
+                    <strong>Vykdymo laikas:</strong> ${modelDebug.execution_time_ms}ms
+                </div>
+            `;
+        }
+        
+        // API Configuration
+        html += `
+            <div class="mb-4">
+                <h6 class="text-primary">API konfigūracija</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <tr><td><strong>Base URL:</strong></td><td><code>${modelDebug.api_config.base_url || 'N/A'}</code></td></tr>
+                        <tr><td><strong>Modelis:</strong></td><td><code>${modelDebug.api_config.model || 'N/A'}</code></td></tr>
+                        <tr><td><strong>Max tokens:</strong></td><td><code>${modelDebug.api_config.max_tokens || 'N/A'}</code></td></tr>
+                        <tr><td><strong>Temperature:</strong></td><td><code>${modelDebug.api_config.temperature || 'N/A'}</code></td></tr>
+                    </table>
+                </div>
+            </div>
+        `;
+        
+        // Query reconstruction
+        if (modelDebug.query && !modelDebug.query.error) {
+            html += `
+                <div class="mb-4">
+                    <h6 class="text-primary">
+                        Išsiųsta užklausa
+                        <button class="btn btn-sm btn-outline-secondary ms-2" onclick="copyToClipboard('query-${modelKey}')">
+                            <i class="fas fa-copy me-1"></i>Kopijuoti
+                        </button>
+                    </h6>
+                    <div class="accordion" id="queryAccordion-${modelKey}">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#queryCollapse-${modelKey}">
+                                    <strong>URL ir Headers</strong>
+                                </button>
+                            </h2>
+                            <div id="queryCollapse-${modelKey}" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <div class="mb-3">
+                                        <strong>Method:</strong> <code>${modelDebug.query.method}</code><br>
+                                        <strong>URL:</strong> <code>${modelDebug.query.url}</code>
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Headers:</strong>
+                                        <pre class="bg-light p-2 rounded small">${JSON.stringify(modelDebug.query.headers, null, 2)}</pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#queryBodyCollapse-${modelKey}">
+                                    <strong>Request Body</strong>
+                                </button>
+                            </h2>
+                            <div id="queryBodyCollapse-${modelKey}" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <pre id="query-${modelKey}" class="bg-light p-3 rounded small" style="max-height: 400px; overflow-y: auto;">${JSON.stringify(modelDebug.query.body, null, 2)}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Response or Error
+        if (modelDebug.error) {
+            html += `
+                <div class="mb-3">
+                    <h6 class="text-danger">Klaida</h6>
+                    <div class="alert alert-danger">
+                        <code>${escapeHtml(modelDebug.error)}</code>
+                    </div>
+                </div>
+            `;
+        } else if (modelDebug.response) {
+            html += `
+                <div class="mb-3">
+                    <h6 class="text-success">
+                        Gauta response
+                        <button class="btn btn-sm btn-outline-secondary ms-2" onclick="copyToClipboard('response-${modelKey}')">
+                            <i class="fas fa-copy me-1"></i>Kopijuoti
+                        </button>
+                    </h6>
+                    <div class="accordion" id="responseAccordion-${modelKey}">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#responseCollapse-${modelKey}">
+                                    <strong>Response data</strong>
+                                </button>
+                            </h2>
+                            <div id="responseCollapse-${modelKey}" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <pre id="response-${modelKey}" class="bg-light p-3 rounded small" style="max-height: 400px; overflow-y: auto;">${JSON.stringify(modelDebug.response, null, 2)}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        html += `
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+function copyToClipboard(elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        navigator.clipboard.writeText(element.textContent).then(() => {
+            // Show temporary success message
+            const button = document.querySelector(`button[onclick="copyToClipboard('${elementId}')"]`);
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-check me-1"></i>Nukopijuota!';
+            button.classList.remove('btn-outline-secondary');
+            button.classList.add('btn-success');
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.remove('btn-success');
+                button.classList.add('btn-outline-secondary');
+            }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+            alert('Nepavyko nukopijuoti į clipboard');
+        });
+    }
+}
 </script>
+
+<!-- Debug Modal -->
+<div class="modal fade" id="debugModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="debugModalTitle">Debug informacija</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="debugContent">
+                    <div class="text-center py-4">
+                        <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+                        <p class="mt-2 text-muted">Kraunama...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Uždaryti</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @endsection

@@ -45,25 +45,45 @@ Universali propagandos analizės platforma, kuri veikia dviem pagrindiniais rež
 - Generuoja struktūrizuotus analizės rezultatus praktiniam naudojimui
 
 
-## ✨ Naujos funkcijos (2025-06-04)
+## ✨ Naujos funkcijos (2025-06-05) - Architektūrinis sistemos pertvarkymas
 
-### 🚀 Optimizuotas batch apdorojimas
-- **98% API užklausų sumažinimas**: 6000 tekstų → 360 užklausų vietoj 18,000
-- **Automatinis režimo pasirinkimas**: >100 tekstų naudoja batch apdorojimą
-- **10x greičio padidėjimas**: 2-3 val. → 15-30 min. dideliems duomenų rinkiniams
-- **Pagerinta JSON analizė**: 5 atstatomosios strategijos AI atsakymams
+### 🚀 File Attachment API architektūra (BatchAnalysisJobV4)
+- **Maksimalus efektyvumas**: Vietoj teksto fragmentavimo naudojami file attachment API metodai
+- **True parallel processing**: Modeliai apdoroja lygiagretiškai per atskirus ModelAnalysisJob darbus
+- **Provider-specific optimization**:
+  - **Claude**: JSON duomenys siųsčiami tiesiogiai message content
+  - **Gemini**: Naudojamas File API su failo įkėlimu ir reference
+  - **OpenAI**: Struktūrizuoti JSON duomenys message content
+- **Retry mechanizmai**: Modelių lygmenyje su atskirais error handling mechanizmais
 
-### 🎯 AI modelių ryšio monitoringas
-- **Realaus laiko statusas**: Rodo kurie AI modeliai pasiekiami
-- **Automatinis tikrinimas**: Kas 5 min. tikrina modelių būklę
-- **Detalūs pranešimai**: Klaidos priežastys ir sprendimo būdai
-- **Nėra išankstinio pasirinkimo**: Vartotojas pasirenka norimą modelį
+### 🎯 Enhanced Mission Control sistemų monitoringas
+- **Real-time log parsing**: Tiesioginis Laravel log failų skaitymas ir analizė
+- **Emoji status indicators**: Akivaizdi darbo progreso ir būklės vizualizacija
+- **Technical job details**: Job ID, modelių statusai, laiko žymos, klaidos diagnostika
+- **Auto-refresh every 5s**: Automatinis realaus laiko atnaujinimas be puslapio perkrovimo
 
-### 🔧 Sistemos tobulinimas
-- **Ištaisytos testavimo problemos**: Visi unit ir feature testai dabar veikia sėkmingai
-- **Pagerintos failų teisės**: Išspręstos permission konflikto problemos tarp vartotojų
-- **Stabilizuota duomenų bazė**: Ištaisytos queue system problemos ir stuck job issues
-- **Atnaujinta dokumentacija**: Patikslinti API endpoint aprašymai ir naudojimo instrukcijos
+### 🔍 Raw Query/Response debug sistema
+- **API call reconstruction**: Tikslus užklausų atkūrimas su headers, body ir endpoint informacija
+- **Model-specific debugging**: Kiekvieno modelio atskiras debug view su detalėmis
+- **Copy-to-clipboard functionality**: Greitam užklausų kopijavimui ir reprodukavimui
+- **Error analysis**: Detalūs failure scenarijai su execution time ir specifinėmis klaidomis
+
+### 🏥 Enhanced model liveness checks
+- **Meaningful test queries**: Tikrų JSON atsakymų validavimas vietoj simple ping
+- **Retry logic**: 2 bandymai su 0.5s delay tarp jų
+- **Response capability validation**: Tikrina ar modeliai gali grąžinti struktūrizuotus atsakymus
+- **Performance metrics**: Response time, JSON capability, provider-specific health metrics
+
+### 📊 Intelligent progress tracking
+- **Model completion tracking**: Progresas atsispindi pagal užbaigtų modelių skaičių
+- **File-based processing explanation**: Aiškus skirtumas tarp chunk ir file attachment metodų
+- **Accurate text × model calculations**: Tikslūs skaičiavimai (tekstai × modeliai = total jobs)
+
+### 🔧 Architektūriniai pagerinmai
+- **JSON format documentation**: Išsami dokumentacija su pavyzdžiais Label Studio formatui
+- **Enhanced error handling**: Provider-specific error handlers su retry strategijomis
+- **Performance optimizations**: 30-minute timeouts file processing, optimizuoti queue routings
+- **Comprehensive logging**: Detali informacija apie file attachment strategijas ir model coordination
 
 ## ✨ Anksčiau pridėtos funkcijos (2025-05-29)
 
@@ -142,13 +162,47 @@ Universali propagandos analizės platforma, kuri veikia dviem pagrindiniais rež
 
 ## 🏗️ Sistemos architektūra
 
+### Aukšto lygio architektūra
 ```
 Web Browser ──► Nginx ──► Laravel App
                               │
                               ├─► Redis (Cache/Queue/Sessions)
                               ├─► MySQL (Database)
-                              └─► Queue Workers ──► LLM APIs
+                              └─► Queue Workers
+                                    │
+                                    ├─► BatchAnalysisJobV4 (Orchestrator)
+                                    └─► ModelAnalysisJob (×3 parallel)
+                                          │
+                                          ├─► Claude API (JSON in message)
+                                          ├─► Gemini API (File upload + reference)
+                                          └─► OpenAI API (Structured JSON)
 ```
+
+### File Attachment Processing Flow
+```
+1. User uploads JSON ──► BatchAnalysisJobV4
+                           │
+                           ├─► Creates temp JSON file
+                           ├─► Creates TextAnalysis records
+                           └─► Dispatches ModelAnalysisJob×N
+                                 │
+                                 ├─► ModelAnalysisJob (Claude)
+                                 │   └─► Sends full JSON in message
+                                 │
+                                 ├─► ModelAnalysisJob (Gemini)  
+                                 │   ├─► Upload file to File API
+                                 │   └─► Reference file in generation
+                                 │
+                                 └─► ModelAnalysisJob (OpenAI)
+                                     └─► Sends structured JSON chunks
+```
+
+### Key Architectural Benefits
+- **True Parallel Processing**: Each model processes independently
+- **Provider Optimization**: Best strategy for each LLM provider
+- **Fault Isolation**: Model failures don't affect other models
+- **Scalable**: Easy to add new models or providers
+- **Efficient**: Minimal API calls, maximum throughput
 
 ## 🚀 Greitas startas
 
@@ -380,7 +434,7 @@ curl -X POST /api/analyze \
   }'
 ```
 
-### Batch analizė (ATSPARA formatas)
+### Batch analizė (ATSPARA formatas su file attachment)
 ```bash
 curl -X POST /api/batch-analyze \
   -H "Content-Type: application/json" \
@@ -394,6 +448,32 @@ curl -X POST /api/batch-analyze \
     ],
     "models": ["claude-4", "gemini-2.5-pro"]
   }'
+```
+
+**Nauja file attachment architektūra (BatchAnalysisJobV4):**
+- Visi tekstai siunčiami kiekvienam modeliui vienu kartu (ne fragmentais)
+- Parallel processing: kiekvienas modelis apdoroja savo ModelAnalysisJob darbe
+- Provider-optimized: Claude (JSON in message), Gemini (File API), OpenAI (structured)
+
+### Debug informacijos gavimas
+```bash
+# Gauti raw query/response debug informaciją
+curl /api/debug/{textAnalysisId}
+
+# Konkretaus modelio debug info
+curl /api/debug/{textAnalysisId}?model=claude-opus-4
+```
+
+### Modelių statusas ir monitoringas
+```bash
+# Gauti visų modelių status
+curl /api/models/status
+
+# Refresh modelių status (force check)
+curl -X POST /api/models/status/refresh
+
+# Mission Control view (Web UI)
+# GET /status/{jobId} - Real-time technical monitoring
 ```
 
 ### Rezultatų gavimas
@@ -437,9 +517,13 @@ tail -f storage/logs/worker.log
 ## 📚 Dokumentacija
 
 - **[DEPLOYMENT.md](DEPLOYMENT.md)** - Išsami diegimo instrukcija
-- **[REQUIREMENTS.md](REQUIREMENTS.md)** - Detalūs sistemos reikalavimai
+- **[REQUIREMENTS.md](REQUIREMENTS.md)** - Detalūs sistemos reikalavimai  
+- **[NEW_FEATURES_2025.md](NEW_FEATURES_2025.md)** - Naujos funkcijos ir architektūriniai sprendimai
+- **[JSON Format Documentation](docs/JSON-FORMAT.md)** - Išsami JSON failo formato dokumentacija
 - **[ATSPARA Anotavimo metodologija](docs/ATSPARA-ANNOTATION-METHODOLOGY.md)** - Propagandos technikų klasifikavimo kriterijai
 - **[Metrikų vadovas](docs/METRICS-GUIDE.md)** - Išsami metrikų analizė ir interpretacija
+- **[Batch Processing Guide](docs/BATCH-PROCESSING.md)** - File attachment architektūros vadovas
+- **[Status Monitoring Guide](docs/STATUS-MONITORING.md)** - Mission Control ir sistemos monitoringo vadovas
 - **[API dokumentacija](docs/API.md)** - API endpointų aprašymas
 - **[Architektūros dokumentacija](docs/ARCHITECTURE.md)** - Sistemos architektūros aprašymas
 - **[Problemų sprendimas](docs/TROUBLESHOOTING.md)** - Dažniausių problemų sprendimo vadovas

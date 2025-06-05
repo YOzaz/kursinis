@@ -14,7 +14,8 @@ use Illuminate\Support\Facades\Cache;
 class ModelStatusService
 {
     private const CACHE_TTL = 300; // 5 minutes
-    private const HEALTH_CHECK_TIMEOUT = 10; // 10 seconds
+    private const HEALTH_CHECK_TIMEOUT = 15; // 15 seconds for more thorough checks
+    private const HEALTH_CHECK_RETRIES = 2; // Number of retries for failed checks
     
     /**
      * Get status of all configured models.
@@ -189,51 +190,80 @@ class ModelStatusService
             ]);
         }
         
-        try {
-            $startTime = microtime(true);
-            
-            switch ($provider) {
-                case 'anthropic':
-                    $status = $this->checkClaudeStatus($modelConfig);
-                    break;
-                case 'openai':
-                    $status = $this->checkOpenAIStatus($modelConfig);
-                    break;
-                case 'google':
-                    $status = $this->checkGeminiStatus($modelConfig);
-                    break;
-                default:
-                    return array_merge($baseStatus, [
-                        'status' => 'unsupported',
-                        'message' => 'Provider not supported for health checks',
-                        'online' => false,
-                    ]);
+        // Try the health check with retries
+        $lastException = null;
+        for ($attempt = 1; $attempt <= self::HEALTH_CHECK_RETRIES; $attempt++) {
+            try {
+                $startTime = microtime(true);
+                
+                switch ($provider) {
+                    case 'anthropic':
+                        $status = $this->checkClaudeStatus($modelConfig, $attempt);
+                        break;
+                    case 'openai':
+                        $status = $this->checkOpenAIStatus($modelConfig, $attempt);
+                        break;
+                    case 'google':
+                        $status = $this->checkGeminiStatus($modelConfig, $attempt);
+                        break;
+                    default:
+                        return array_merge($baseStatus, [
+                            'status' => 'unsupported',
+                            'message' => 'Provider not supported for health checks',
+                            'online' => false,
+                        ]);
+                }
+                
+                $responseTime = round((microtime(true) - $startTime) * 1000, 2);
+                $status['response_time'] = $responseTime;
+                $status['attempts'] = $attempt;
+                
+                // If we got here, the check was successful
+                return array_merge($baseStatus, $status);
+                
+            } catch (\Exception $e) {
+                $lastException = $e;
+                
+                // Log the attempt failure
+                Log::debug("Model status check attempt {$attempt} failed for {$modelKey}", [
+                    'error' => $e->getMessage(),
+                    'provider' => $provider,
+                    'attempt' => $attempt,
+                ]);
+                
+                // If this was the last attempt, we'll fall through to the error handling
+                if ($attempt < self::HEALTH_CHECK_RETRIES) {
+                    // Wait a bit before retrying
+                    usleep(500000); // 0.5 seconds
+                }
             }
-            
-            $responseTime = round((microtime(true) - $startTime) * 1000, 2);
-            $status['response_time'] = $responseTime;
-            
-            return array_merge($baseStatus, $status);
-            
-        } catch (\Exception $e) {
-            Log::warning("Model status check failed for {$modelKey}", [
-                'error' => $e->getMessage(),
-                'provider' => $provider,
-            ]);
-            
-            return array_merge($baseStatus, [
-                'status' => 'error',
-                'message' => $e->getMessage(),
-                'online' => false,
-            ]);
         }
+        
+        // If we get here, all retries failed
+        Log::warning("Model status check failed for {$modelKey} after {attempts} attempts", [
+            'error' => $lastException ? $lastException->getMessage() : 'Unknown error',
+            'provider' => $provider,
+            'attempts' => self::HEALTH_CHECK_RETRIES,
+        ]);
+        
+        return array_merge($baseStatus, [
+            'status' => 'error',
+            'message' => $lastException ? $lastException->getMessage() : 'Health check failed after retries',
+            'online' => false,
+            'attempts' => self::HEALTH_CHECK_RETRIES,
+        ]);
     }
     
     /**
-     * Check Claude/Anthropic API status.
+     * Check Claude/Anthropic API status with meaningful test query.
      */
-    private function checkClaudeStatus(array $config): array
+    private function checkClaudeStatus(array $config, int $attempt = 1): array
     {
+        // Use a more comprehensive test that validates JSON response capability
+        $testPrompt = $attempt === 1 ? 
+            'Respond with valid JSON: {"status": "ok", "test": true}' :
+            'Health check test - respond with JSON containing test: true';
+            
         $response = Http::withHeaders([
             'x-api-key' => $config['api_key'],
             'Content-Type' => 'application/json',
@@ -242,20 +272,34 @@ class ModelStatusService
         ->timeout(self::HEALTH_CHECK_TIMEOUT)
         ->post($config['base_url'] . 'messages', [
             'model' => $config['model'],
-            'max_tokens' => 10,
+            'max_tokens' => 50,
+            'temperature' => 0,
+            'system' => 'You are a health check system. Respond only with valid JSON.',
             'messages' => [
                 [
                     'role' => 'user',
-                    'content' => 'Hello'
+                    'content' => $testPrompt
                 ]
             ]
         ]);
         
         if ($response->successful()) {
+            $responseData = $response->json();
+            $isValidResponse = isset($responseData['content'][0]['text']);
+            
+            // Try to validate the response content
+            $responseText = $responseData['content'][0]['text'] ?? '';
+            $hasValidJsonResponse = strpos($responseText, '"test"') !== false || 
+                                  strpos($responseText, '"status"') !== false;
+            
             return [
                 'status' => 'online',
-                'message' => 'API responding normally',
+                'message' => $hasValidJsonResponse ? 
+                    'API responding with valid JSON capability' : 
+                    'API responding normally',
                 'online' => true,
+                'response_valid' => $isValidResponse,
+                'json_capable' => $hasValidJsonResponse,
             ];
         } else {
             $statusCode = $response->status();
@@ -271,10 +315,15 @@ class ModelStatusService
     }
     
     /**
-     * Check OpenAI API status.
+     * Check OpenAI API status with meaningful test query.
      */
-    private function checkOpenAIStatus(array $config): array
+    private function checkOpenAIStatus(array $config, int $attempt = 1): array
     {
+        // Use a test that validates JSON response capability
+        $testPrompt = $attempt === 1 ? 
+            'Respond with valid JSON: {"status": "ok", "test": true}' :
+            'Health check - reply with JSON format containing test: true';
+            
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $config['api_key'],
             'Content-Type' => 'application/json',
@@ -282,20 +331,37 @@ class ModelStatusService
         ->timeout(self::HEALTH_CHECK_TIMEOUT)
         ->post($config['base_url'] . '/chat/completions', [
             'model' => $config['model'],
-            'max_tokens' => 10,
+            'max_tokens' => 50,
+            'temperature' => 0,
             'messages' => [
                 [
+                    'role' => 'system',
+                    'content' => 'You are a health check system. Respond only with valid JSON.'
+                ],
+                [
                     'role' => 'user',
-                    'content' => 'Hello'
+                    'content' => $testPrompt
                 ]
             ]
         ]);
         
         if ($response->successful()) {
+            $responseData = $response->json();
+            $isValidResponse = isset($responseData['choices'][0]['message']['content']);
+            
+            // Try to validate the response content
+            $responseText = $responseData['choices'][0]['message']['content'] ?? '';
+            $hasValidJsonResponse = strpos($responseText, '"test"') !== false || 
+                                  strpos($responseText, '"status"') !== false;
+            
             return [
                 'status' => 'online',
-                'message' => 'API responding normally',
+                'message' => $hasValidJsonResponse ? 
+                    'API responding with valid JSON capability' : 
+                    'API responding normally',
                 'online' => true,
+                'response_valid' => $isValidResponse,
+                'json_capable' => $hasValidJsonResponse,
             ];
         } else {
             $statusCode = $response->status();
@@ -311,11 +377,16 @@ class ModelStatusService
     }
     
     /**
-     * Check Gemini API status.
+     * Check Gemini API status with meaningful test query.
      */
-    private function checkGeminiStatus(array $config): array
+    private function checkGeminiStatus(array $config, int $attempt = 1): array
     {
         $url = $config['base_url'] . 'v1beta/models/' . $config['model'] . ':generateContent?key=' . $config['api_key'];
+        
+        // Use a test that validates JSON response capability
+        $testPrompt = $attempt === 1 ? 
+            'Respond with valid JSON: {"status": "ok", "test": true}' :
+            'Health check test - respond with JSON containing test: true';
         
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
@@ -325,20 +396,33 @@ class ModelStatusService
             'contents' => [
                 [
                     'parts' => [
-                        ['text' => 'Hello']
+                        ['text' => 'You are a health check system. ' . $testPrompt]
                     ]
                 ]
             ],
             'generationConfig' => [
-                'maxOutputTokens' => 10,
+                'maxOutputTokens' => 50,
+                'temperature' => 0,
             ]
         ]);
         
         if ($response->successful()) {
+            $responseData = $response->json();
+            $isValidResponse = isset($responseData['candidates'][0]['content']['parts'][0]['text']);
+            
+            // Try to validate the response content
+            $responseText = $responseData['candidates'][0]['content']['parts'][0]['text'] ?? '';
+            $hasValidJsonResponse = strpos($responseText, '"test"') !== false || 
+                                  strpos($responseText, '"status"') !== false;
+            
             return [
                 'status' => 'online',
-                'message' => 'API responding normally',
+                'message' => $hasValidJsonResponse ? 
+                    'API responding with valid JSON capability' : 
+                    'API responding normally',
                 'online' => true,
+                'response_valid' => $isValidResponse,
+                'json_capable' => $hasValidJsonResponse,
             ];
         } else {
             $statusCode = $response->status();

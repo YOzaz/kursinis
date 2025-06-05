@@ -177,7 +177,15 @@ class BatchAnalysisJobV3 implements ShouldQueue
             throw new \Exception("Model {$modelKey} not found in configuration");
         }
         
-        // Smart chunking: use very small batch sizes for maximum reliability
+        // Smart chunking: only chunk if there are multiple texts
+        $totalTexts = count($fileContent);
+        
+        if ($totalTexts === 1) {
+            // For single text, process individually to avoid unnecessary chunking overhead
+            return $this->processChunkIndividually($fileContent, $modelKey, $customPrompt);
+        }
+        
+        // For multiple texts, use small batch sizes for maximum reliability
         $chunkSize = 3; // Reduced to 3 for faster API responses and no timeouts
         $chunks = array_chunk($fileContent, $chunkSize);
         $allResults = [];
@@ -580,29 +588,17 @@ class BatchAnalysisJobV3 implements ShouldQueue
             $modelConfig = config("llm.models.{$modelKey}");
             $modelName = $modelConfig['model'] ?? $modelKey;
 
-            $metrics = $metricsService->calculateMetricsForText(
-                $textAnalysis->expert_annotations,
-                $result,
-                $textAnalysis->content,
+            // Set the model annotations for calculation
+            $textAnalysis->setModelAnnotations($modelKey, $result, $modelName);
+            $textAnalysis->save();
+
+            // Calculate and save comparison metrics (already creates the ComparisonMetric record)
+            $metricsService->calculateMetricsForText(
+                $textAnalysis,
+                $modelKey,
+                $this->jobId,
                 $modelName
             );
-
-            ComparisonMetric::create([
-                'job_id' => $this->jobId,
-                'text_analysis_id' => $textAnalysis->id,
-                'model_name' => $modelName,
-                'precision' => $metrics['precision'],
-                'recall' => $metrics['recall'],
-                'f1_score' => $metrics['f1_score'],
-                'exact_matches' => $metrics['exact_matches'],
-                'partial_matches' => $metrics['partial_matches'],
-                'false_positives' => $metrics['false_positives'],
-                'false_negatives' => $metrics['false_negatives'],
-                'total_expert_annotations' => $metrics['total_expert_annotations'],
-                'total_ai_annotations' => $metrics['total_ai_annotations'],
-                'overlap_threshold' => $metrics['overlap_threshold'],
-                'detailed_results' => $metrics['detailed_results'] ?? null,
-            ]);
 
         } catch (\Exception $e) {
             Log::error('Failed to create comparison metrics', [

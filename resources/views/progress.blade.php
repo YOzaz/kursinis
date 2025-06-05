@@ -68,7 +68,7 @@
                 <!-- Progreso juosta -->
                 <div class="mb-4">
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="fw-bold">Progresas (analizės darbai):</span>
+                        <span class="fw-bold">Progresas:</span>
                         <span id="progressText">{{ $job->processed_texts }} / {{ $job->total_texts }}</span>
                     </div>
                     <div class="progress" style="height: 20px;">
@@ -81,6 +81,19 @@
                              aria-valuemax="100">
                             <span id="progressPercent">{{ round($job->getProgressPercentage(), 1) }}%</span>
                         </div>
+                    </div>
+                    <div class="text-center mt-2">
+                        <small class="text-muted" id="progressExplanation">
+                            @php
+                                $textCount = \App\Models\TextAnalysis::where('job_id', $job->job_id)->distinct('text_id')->count();
+                                $modelCount = $job->models ? count(json_decode($job->models, true)) : 0;
+                            @endphp
+                            @if($textCount > 0 && $modelCount > 0)
+                                {{ $textCount }} tekstų analizė su {{ $modelCount }} modeliais (failo apdorojimas)
+                            @else
+                                Analizės darbų progreso sekimas
+                            @endif
+                        </small>
                     </div>
                 </div>
 
@@ -153,8 +166,15 @@
                     
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle me-2"></i>
-                        <strong>Informacija:</strong> Kiekvienas tekstas analizuojamas su pasirinktu modelių skaičiumi. 
-                        Pavyzdžiui, 1 tekstas su 2 modeliais = 2 analizės darbai.
+                        <strong>Failo apdorojimas:</strong> Naudojama file attachment metodika - visi tekstai siunčiami kiekvienam modeliui vienu kartu. 
+                        Progresas atsispindi pagal užbaigtus modelius.
+                        @php
+                            $textCount = \App\Models\TextAnalysis::where('job_id', $job->job_id)->distinct('text_id')->count();
+                            $modelCount = $job->models ? count(json_decode($job->models, true)) : 0;
+                        @endphp
+                        @if($textCount > 0 && $modelCount > 0)
+                            <br><small><strong>Šis darbas:</strong> {{ $textCount }} tekstai × {{ $modelCount }} modeliai = {{ $job->total_texts }} analizės</small>
+                        @endif
                     </div>
                     
                     <hr>

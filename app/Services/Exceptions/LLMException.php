@@ -64,6 +64,11 @@ class LLMException extends Exception
      */
     public function shouldFailBatch(): bool
     {
+        // If the error is retryable or quota-related, don't fail the entire batch
+        if ($this->isRetryable || $this->isQuotaRelated) {
+            return false;
+        }
+        
         // These errors should not fail the entire batch, just skip this model
         $skipableErrors = [
             'timeout_error',
@@ -73,6 +78,6 @@ class LLMException extends Exception
             'safety_error'
         ];
         
-        return !in_array($this->errorType, $skipableErrors) && !$this->isQuotaRelated;
+        return !in_array($this->errorType, $skipableErrors);
     }
 }

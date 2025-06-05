@@ -36,7 +36,8 @@ interface LLMErrorHandlerInterface
      * Check if a status code indicates a retryable error.
      *
      * @param int $statusCode HTTP status code
+     * @param string $errorType Error type classification
      * @return bool True if the error is retryable
      */
-    public function isRetryableError(int $statusCode): bool;
+    public function isRetryableError(int $statusCode, string $errorType = ''): bool;
 }

@@ -23,7 +23,7 @@ class GeminiErrorHandler implements LLMErrorHandlerInterface
             statusCode: $statusCode,
             errorType: $errorType,
             provider: $this->getProviderName(),
-            isRetryable: $this->isRetryableError($statusCode),
+            isRetryable: $this->isRetryableError($statusCode, $errorType),
             isQuotaRelated: $this->isQuotaError($statusCode),
             previous: $exception
         );
@@ -44,8 +44,13 @@ class GeminiErrorHandler implements LLMErrorHandlerInterface
         };
     }
 
-    public function isRetryableError(int $statusCode): bool
+    public function isRetryableError(int $statusCode, string $errorType = ''): bool
     {
+        // Timeout errors should always be retryable regardless of status code
+        if ($errorType === 'timeout_error') {
+            return true;
+        }
+        
         return match ($statusCode) {
             429, // RESOURCE_EXHAUSTED - rate limit exceeded, retryable
             500, // Internal server error

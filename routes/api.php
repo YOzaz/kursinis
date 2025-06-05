@@ -51,6 +51,10 @@ Route::get('/models/status', [AnalysisController::class, 'getModelStatus'])
 Route::post('/models/status/refresh', [AnalysisController::class, 'refreshModelStatus'])
     ->name('api.models.status.refresh');
 
+// Debug information for completed analyses
+Route::get('/debug/{textAnalysisId}', [AnalysisController::class, 'getDebugInfo'])
+    ->name('api.debug.info');
+
 // Standartinio prompt'o gavimas
 Route::get('/default-prompt', function() {
     $promptService = app(\App\Services\PromptService::class);

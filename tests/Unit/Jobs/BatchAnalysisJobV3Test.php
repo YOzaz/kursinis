@@ -26,7 +26,7 @@ class BatchAnalysisJobV3Test extends TestCase
         
         // Mock HTTP responses to avoid real API calls
         Http::fake([
-            'api.anthropic.com/*' => Http::response([
+            'https://api.anthropic.com/*' => Http::response([
                 'content' => [
                     [
                         'text' => json_encode([
@@ -35,12 +35,18 @@ class BatchAnalysisJobV3Test extends TestCase
                                 'primaryChoice' => ['choices' => ['yes']],
                                 'annotations' => [],
                                 'desinformationTechnique' => ['choices' => []]
+                            ],
+                            [
+                                'text_id' => '2',
+                                'primaryChoice' => ['choices' => ['no']],
+                                'annotations' => [],
+                                'desinformationTechnique' => ['choices' => []]
                             ]
                         ])
                     ]
                 ]
             ], 200),
-            'api.openai.com/*' => Http::response([
+            'https://api.openai.com/*' => Http::response([
                 'choices' => [
                     [
                         'message' => [
@@ -50,13 +56,19 @@ class BatchAnalysisJobV3Test extends TestCase
                                     'primaryChoice' => ['choices' => ['no']],
                                     'annotations' => [],
                                     'desinformationTechnique' => ['choices' => []]
+                                ],
+                                [
+                                    'text_id' => '2',
+                                    'primaryChoice' => ['choices' => ['yes']],
+                                    'annotations' => [],
+                                    'desinformationTechnique' => ['choices' => []]
                                 ]
                             ])
                         ]
                     ]
                 ]
             ], 200),
-            'generativelanguage.googleapis.com/*' => Http::response([
+            'https://generativelanguage.googleapis.com/*' => Http::response([
                 'candidates' => [
                     [
                         'content' => [
@@ -66,6 +78,12 @@ class BatchAnalysisJobV3Test extends TestCase
                                         [
                                             'text_id' => '1',
                                             'primaryChoice' => ['choices' => ['yes']],
+                                            'annotations' => [],
+                                            'desinformationTechnique' => ['choices' => []]
+                                        ],
+                                        [
+                                            'text_id' => '2',
+                                            'primaryChoice' => ['choices' => ['no']],
                                             'annotations' => [],
                                             'desinformationTechnique' => ['choices' => []]
                                         ]
@@ -353,19 +371,15 @@ class BatchAnalysisJobV3Test extends TestCase
         Log::shouldReceive('error')->andReturn(true);
         
         $mockMetricsService = $this->createMock(MetricsService::class);
-        $mockMetricsService->method('calculateMetricsForText')->willReturn([
+        $mockMetric = new \App\Models\ComparisonMetric([
             'precision' => 0.8,
             'recall' => 0.7,
             'f1_score' => 0.75,
-            'exact_matches' => 5,
-            'partial_matches' => 3,
+            'true_positives' => 5,
             'false_positives' => 2,
             'false_negatives' => 1,
-            'total_expert_annotations' => 8,
-            'total_ai_annotations' => 7,
-            'overlap_threshold' => 0.5,
-            'detailed_results' => []
         ]);
+        $mockMetricsService->method('calculateMetricsForText')->willReturn($mockMetric);
         
         $this->app->instance(MetricsService::class, $mockMetricsService);
         

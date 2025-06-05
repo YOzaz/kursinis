@@ -19,7 +19,7 @@ class OpenAIErrorHandler implements LLMErrorHandlerInterface
         $errorType = $this->extractErrorType($message);
 
         $isQuotaRelated = $this->isQuotaError($statusCode) || $this->isQuotaErrorMessage($message);
-        $isRetryable = $this->isRetryableError($statusCode) || $this->isRateLimitButNotQuota($errorType, $message);
+        $isRetryable = $this->isRetryableError($statusCode, $errorType) || $this->isRateLimitButNotQuota($errorType, $message);
         
         return new LLMException(
             message: $message,
@@ -47,7 +47,7 @@ class OpenAIErrorHandler implements LLMErrorHandlerInterface
         };
     }
 
-    public function isRetryableError(int $statusCode): bool
+    public function isRetryableError(int $statusCode, string $errorType = ''): bool
     {
         return match ($statusCode) {
             500, // Internal server error
