@@ -9,6 +9,7 @@ use App\Jobs\BatchAnalysisJobV4;
 use App\Models\AnalysisJob;
 use App\Services\PromptService;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
@@ -137,6 +138,16 @@ class WebController extends Controller
         }
 
         return view('progress', compact('job'));
+    }
+
+    /**
+     * Mission Control system-wide monitoring dashboard.
+     */
+    public function missionControl(Request $request): JsonResponse
+    {
+        $jobFilter = $request->get('job_id'); // Optional job filter
+        
+        return $this->getSystemWideStatus($jobFilter);
     }
 
     /**
@@ -439,5 +450,375 @@ class WebController extends Controller
         }
 
         return true;
+    }
+
+    /**
+     * Get system-wide status for Mission Control dashboard.
+     */
+    private function getSystemWideStatus(?string $jobFilter = null): JsonResponse
+    {
+        // Get all recent jobs (or filtered by job ID)
+        $jobsQuery = AnalysisJob::orderBy('created_at', 'desc');
+        
+        if ($jobFilter) {
+            $jobsQuery->where('job_id', $jobFilter);
+        } else {
+            $jobsQuery->limit(10); // Show last 10 jobs if no filter
+        }
+        
+        $jobs = $jobsQuery->get();
+        
+        // Get all text analyses for these jobs with analysisJob relationship
+        $jobIds = $jobs->pluck('job_id')->toArray();
+        $textAnalyses = \App\Models\TextAnalysis::whereIn('job_id', $jobIds)->with('analysisJob')->get();
+        
+        // Model configurations
+        $models = config('llm.models', []);
+        
+        // Calculate system-wide statistics
+        $systemStats = [
+            'overview' => [
+                'total_jobs' => $jobs->count(),
+                'active_jobs' => $jobs->whereIn('status', ['pending', 'processing'])->count(),
+                'completed_jobs' => $jobs->where('status', 'completed')->count(),
+                'failed_jobs' => $jobs->where('status', 'failed')->count(),
+                'total_texts_processed' => $textAnalyses->count(),
+                'unique_texts' => $textAnalyses->unique('text_id')->count(),
+            ],
+            'queue' => [
+                'batch_workers_active' => $this->checkBatchWorkers(),
+                'jobs_in_queue' => \DB::table('jobs')->count(),
+                'failed_jobs' => \DB::table('failed_jobs')->count(),
+                'last_activity' => now()->subMinutes(1) // TODO: Get actual last activity
+            ],
+            'models' => []
+        ];
+
+        // Calculate model statistics across all jobs
+        foreach ($models as $modelKey => $modelConfig) {
+            $provider = $modelConfig['provider'] ?? 'unknown';
+            $modelName = $modelConfig['model'] ?? $modelKey;
+            
+            $modelStats = [
+                'key' => $modelKey,
+                'name' => $modelName,
+                'provider' => $provider,
+                'total_analyses' => 0,
+                'successful' => 0,
+                'failed' => 0,
+                'pending' => 0,
+                'success_rate' => 0,
+                'avg_response_time' => null,
+                'status' => 'idle'
+            ];
+            
+            // Count analyses for this model across all jobs
+            foreach ($textAnalyses as $analysis) {
+                $hasResult = false;
+                $hasFailed = false;
+                
+                // Check if this specific model was used for this analysis
+                // We need to determine which specific model was used, not just the provider
+                $modelWasUsed = false;
+                
+                switch ($provider) {
+                    case 'anthropic':
+                        if ($analysis->claude_annotations || $analysis->claude_error) {
+                            // Determine which Claude model was actually used
+                            $actualModel = $this->determineActualClaudeModel($analysis, $modelKey);
+                            if ($actualModel === $modelKey) {
+                                $modelWasUsed = true;
+                                if ($analysis->claude_annotations) {
+                                    $modelStats['successful']++;
+                                    $hasResult = true;
+                                } else {
+                                    $modelStats['failed']++;
+                                    $hasFailed = true;
+                                }
+                            }
+                        } else {
+                            // Check if this model was intended for this job but hasn't been processed yet
+                            $jobModels = $analysis->analysisJob ? json_decode($analysis->analysisJob->models, true) : [];
+                            if (in_array($modelKey, $jobModels ?? [])) {
+                                $modelWasUsed = true;
+                                // This is pending
+                            }
+                        }
+                        break;
+                    case 'openai':
+                        if ($analysis->gpt_annotations || $analysis->gpt_error) {
+                            // Determine which GPT model was actually used
+                            $actualModel = $this->determineActualGptModel($analysis, $modelKey);
+                            if ($actualModel === $modelKey) {
+                                $modelWasUsed = true;
+                                if ($analysis->gpt_annotations) {
+                                    $modelStats['successful']++;
+                                    $hasResult = true;
+                                } else {
+                                    $modelStats['failed']++;
+                                    $hasFailed = true;
+                                }
+                            }
+                        } else {
+                            // Check if this model was intended for this job but hasn't been processed yet
+                            $jobModels = $analysis->analysisJob ? json_decode($analysis->analysisJob->models, true) : [];
+                            if (in_array($modelKey, $jobModels ?? [])) {
+                                $modelWasUsed = true;
+                                // This is pending
+                            }
+                        }
+                        break;
+                    case 'google':
+                        if ($analysis->gemini_annotations || $analysis->gemini_error) {
+                            // Determine which Gemini model was actually used
+                            $actualModel = $this->determineActualGeminiModel($analysis, $modelKey);
+                            if ($actualModel === $modelKey) {
+                                $modelWasUsed = true;
+                                if ($analysis->gemini_annotations) {
+                                    $modelStats['successful']++;
+                                    $hasResult = true;
+                                } else {
+                                    $modelStats['failed']++;
+                                    $hasFailed = true;
+                                }
+                            }
+                        } else {
+                            // Check if this model was intended for this job but hasn't been processed yet
+                            $jobModels = $analysis->analysisJob ? json_decode($analysis->analysisJob->models, true) : [];
+                            if (in_array($modelKey, $jobModels ?? [])) {
+                                $modelWasUsed = true;
+                                // This is pending
+                            }
+                        }
+                        break;
+                }
+                
+                if ($modelWasUsed) {
+                    $modelStats['total_analyses']++;
+                    if (!$hasResult && !$hasFailed) {
+                        // This analysis was intended for this model but hasn't been processed
+                        $modelStats['pending']++;
+                    }
+                }
+            }
+            
+            // Calculate success rate
+            if ($modelStats['total_analyses'] > 0) {
+                $modelStats['success_rate'] = round(($modelStats['successful'] / $modelStats['total_analyses']) * 100, 1);
+            }
+            
+            // Determine overall status
+            if ($modelStats['pending'] > 0) {
+                $modelStats['status'] = 'processing';
+            } elseif ($modelStats['total_analyses'] === 0) {
+                $modelStats['status'] = 'idle';
+            } elseif ($modelStats['failed'] > 0 && $modelStats['successful'] === 0) {
+                $modelStats['status'] = 'failed';
+            } elseif ($modelStats['failed'] > 0) {
+                $modelStats['status'] = 'partial_failure';
+            } else {
+                $modelStats['status'] = 'operational';
+            }
+            
+            $systemStats['models'][$modelKey] = $modelStats;
+        }
+
+        // Get recent system logs (filtered or system-wide)
+        $recentLogs = $this->getSystemLogs($jobFilter);
+        
+        // Job details (if filtering by specific job)
+        $jobDetails = null;
+        if ($jobFilter && $jobs->isNotEmpty()) {
+            $job = $jobs->first();
+            $jobDetails = [
+                'id' => $job->job_id,
+                'name' => $job->name,
+                'status' => $job->status,
+                'created_at' => $job->created_at,
+                'duration' => $job->created_at->diffForHumans(),
+                'progress_percentage' => $job->total_texts > 0 ? round(($job->processed_texts / $job->total_texts) * 100, 2) : 0,
+                'total_texts' => $job->total_texts,
+                'processed_texts' => $job->processed_texts,
+                'error_message' => $job->error_message
+            ];
+        }
+
+        return response()->json([
+            'system' => $systemStats,
+            'job_details' => $jobDetails,
+            'logs' => $recentLogs,
+            'timestamp' => now(),
+            'filtered_by_job' => $jobFilter,
+            'refresh_interval' => 5
+        ]);
+    }
+
+    /**
+     * Determine which Claude model was actually used for an analysis.
+     */
+    private function determineActualClaudeModel($analysis, $expectedModelKey): string
+    {
+        // If we have actual model info, use it to determine the config key
+        if ($analysis->claude_actual_model) {
+            if (str_contains($analysis->claude_actual_model, 'sonnet')) {
+                return 'claude-sonnet-4';
+            } elseif (str_contains($analysis->claude_actual_model, 'opus')) {
+                return 'claude-opus-4';
+            }
+        }
+        
+        // If we have model name info, use it
+        if ($analysis->claude_model_name) {
+            if (str_contains($analysis->claude_model_name, 'sonnet')) {
+                return 'claude-sonnet-4';
+            } elseif (str_contains($analysis->claude_model_name, 'opus')) {
+                return 'claude-opus-4';
+            }
+        }
+        
+        // Default fallback - assume claude-opus-4 for any Claude analysis
+        return 'claude-opus-4';
+    }
+    
+    /**
+     * Determine which GPT model was actually used for an analysis.
+     */
+    private function determineActualGptModel($analysis, $expectedModelKey): string
+    {
+        if ($analysis->gpt_actual_model) {
+            if (str_contains($analysis->gpt_actual_model, 'gpt-4o')) {
+                return 'gpt-4o-latest';
+            } elseif (str_contains($analysis->gpt_actual_model, 'gpt-4.1')) {
+                return 'gpt-4.1';
+            }
+        }
+        
+        if ($analysis->gpt_model_name) {
+            if (str_contains($analysis->gpt_model_name, 'gpt-4o')) {
+                return 'gpt-4o-latest';
+            } elseif (str_contains($analysis->gpt_model_name, 'gpt-4.1')) {
+                return 'gpt-4.1';
+            }
+        }
+        
+        // Default fallback
+        return 'gpt-4.1';
+    }
+    
+    /**
+     * Determine which Gemini model was actually used for an analysis.
+     */
+    private function determineActualGeminiModel($analysis, $expectedModelKey): string
+    {
+        if ($analysis->gemini_actual_model) {
+            if (str_contains($analysis->gemini_actual_model, 'flash')) {
+                return 'gemini-2.5-flash';
+            } elseif (str_contains($analysis->gemini_actual_model, 'pro')) {
+                return 'gemini-2.5-pro';
+            }
+        }
+        
+        if ($analysis->gemini_model_name) {
+            if (str_contains($analysis->gemini_model_name, 'flash')) {
+                return 'gemini-2.5-flash';
+            } elseif (str_contains($analysis->gemini_model_name, 'pro')) {
+                return 'gemini-2.5-pro';
+            }
+        }
+        
+        // Default fallback
+        return 'gemini-2.5-pro';
+    }
+
+    /**
+     * Get system logs (optionally filtered by job ID).
+     */
+    private function getSystemLogs(?string $jobFilter = null): array
+    {
+        try {
+            $logFile = storage_path('logs/laravel.log');
+            if (!file_exists($logFile)) {
+                return [];
+            }
+            
+            $logs = [];
+            $file = new \SplFileObject($logFile);
+            $file->seek(PHP_INT_MAX);
+            $totalLines = $file->key() + 1;
+            
+            // Read last 1000 lines
+            $startLine = max(0, $totalLines - 1000);
+            $file->seek($startLine);
+            
+            while (!$file->eof()) {
+                $line = trim($file->current());
+                $file->next();
+                
+                if (empty($line)) continue;
+                
+                // Parse Laravel log format
+                if (preg_match('/\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\] \w+\.(\w+): (.+)/', $line, $matches)) {
+                    $timestamp = $matches[1];
+                    $level = strtoupper($matches[2]);
+                    $message = $matches[3];
+                    
+                    // Extract context if available
+                    $context = [];
+                    if (preg_match('/^(.+?) (\{.+\})$/', $message, $contextMatches)) {
+                        $message = trim($contextMatches[1]);
+                        try {
+                            $context = json_decode($contextMatches[2], true) ?? [];
+                        } catch (\Exception $e) {
+                            // Ignore JSON parsing errors
+                        }
+                    }
+                    
+                    // Filter by job ID if specified
+                    $isRelevant = true;
+                    if ($jobFilter) {
+                        $isRelevant = false;
+                        if (stripos($line, $jobFilter) !== false ||
+                            (isset($context['job_id']) && $context['job_id'] === $jobFilter)) {
+                            $isRelevant = true;
+                        }
+                    } else {
+                        // For system-wide view, include logs related to analysis system
+                        if (stripos($line, 'BatchAnalysisJob') === false && 
+                            stripos($line, 'ModelAnalysisJob') === false &&
+                            stripos($line, 'AnalyzeTextJob') === false &&
+                            stripos($line, 'ModelStatusService') === false &&
+                            !isset($context['job_type'])) {
+                            $isRelevant = false;
+                        }
+                    }
+                    
+                    if ($isRelevant) {
+                        $enhancedMessage = $this->enhanceLogMessage($message, $context);
+                        
+                        $logs[] = [
+                            'timestamp' => \Carbon\Carbon::parse($timestamp),
+                            'level' => $level,
+                            'message' => $enhancedMessage,
+                            'context' => $context,
+                            'job_id' => $context['job_id'] ?? null
+                        ];
+                    }
+                }
+            }
+            
+            // Return last 50 relevant entries
+            return array_reverse(array_slice($logs, -50));
+            
+        } catch (\Exception $e) {
+            return [
+                [
+                    'timestamp' => now(),
+                    'level' => 'ERROR',
+                    'message' => 'Failed to read system logs: ' . $e->getMessage(),
+                    'context' => [],
+                    'job_id' => null
+                ]
+            ];
+        }
     }
 }

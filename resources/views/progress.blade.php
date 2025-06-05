@@ -34,15 +34,19 @@
                     </div>
                 </div>
 
-                <!-- Mission Control Link -->
+                <!-- Mission Control Links -->
                 <div class="text-center mb-4">
-                    <a href="{{ route('status.view', $job->job_id) }}" class="btn btn-outline-primary" target="_blank">
+                    <a href="{{ route('mission-control') }}?job_id={{ $job->job_id }}" class="btn btn-outline-primary" target="_blank">
                         <i class="fas fa-satellite-dish me-2"></i>
-                        🤖 Mission Control View
+                        🤖 Mission Control (Filtered)
                         <i class="fas fa-external-link-alt ms-2"></i>
                     </a>
+                    <a href="{{ route('mission-control') }}" class="btn btn-outline-secondary" target="_blank">
+                        <i class="fas fa-chart-line me-2"></i>
+                        System-Wide View
+                    </a>
                     <div class="text-muted mt-2">
-                        <small>Advanced real-time monitoring with technical details</small>
+                        <small>Advanced real-time monitoring with technical details and system-wide status</small>
                     </div>
                 </div>
 

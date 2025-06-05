@@ -24,6 +24,12 @@ Route::get('/status-view/{jobId}', function($jobId) {
     return view('detailed-status', compact('jobId'));
 })->name('status.view');
 
+// Mission Control system-wide monitoring
+Route::get('/mission-control', function() {
+    return view('mission-control');
+})->name('mission-control');
+Route::get('/api/mission-control', [WebController::class, 'missionControl'])->name('api.mission-control');
+
 Route::get('/analyses', [AnalysisController::class, 'index'])->name('analyses.index');
 Route::get('/analyses/{jobId}', [AnalysisController::class, 'show'])->name('analyses.show');
 Route::post('/analysis/repeat', [AnalysisController::class, 'repeat'])->name('analysis.repeat');
