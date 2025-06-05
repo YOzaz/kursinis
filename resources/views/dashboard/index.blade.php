@@ -26,7 +26,7 @@
         <div class="card-body py-3">
             <div class="row g-3">
                 <div class="col-lg-3 col-md-6">
-                    <a href="{{ route('home') }}" class="btn btn-primary btn-lg w-100 quick-action-btn">
+                    <a href="{{ route('create') }}" class="btn btn-primary btn-lg w-100 quick-action-btn">
                         <i class="fas fa-plus fa-2x mb-2 d-block"></i>
                         <div class="fw-bold">Nauja analizė</div>
                         <small class="opacity-75">Sukurti naują teksto analizę</small>
@@ -310,7 +310,7 @@
                             <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
                             <h5 class="text-muted">Nėra našumo duomenų</h5>
                             <p class="text-muted">Paleiskite analizę, kad pamatytumėte modelių našumo statistikas</p>
-                            <a href="{{ route('home') }}" class="btn btn-primary">
+                            <a href="{{ route('create') }}" class="btn btn-primary">
                                 <i class="fas fa-plus me-1"></i>Pradėti analizę
                             </a>
                         </div>

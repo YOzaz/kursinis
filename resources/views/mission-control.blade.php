@@ -625,7 +625,9 @@
         }
 
         function applyFilter() {
+            console.log('applyFilter called');
             const filterValue = document.getElementById('jobFilter').value.trim();
+            console.log('Filter value:', filterValue);
             if (filterValue) {
                 currentJobFilter = filterValue;
                 updateStatus();
@@ -633,10 +635,17 @@
         }
 
         function clearFilter() {
+            console.log('clearFilter called');
             currentJobFilter = null;
             document.getElementById('jobFilter').value = '';
             updateStatus();
         }
+        
+        // Make functions globally accessible
+        window.clearFilter = clearFilter;
+        window.applyFilter = applyFilter;
+        window.filterByJob = filterByJob;
+        window.forceRefresh = forceRefresh;
 
         function filterByJob(jobId) {
             currentJobFilter = jobId;

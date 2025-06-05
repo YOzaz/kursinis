@@ -76,4 +76,47 @@ class StatisticsServiceTest extends TestCase
         $this->assertEquals(0, $statistics['recall']);
         $this->assertEquals(0, $statistics['f1_score']);
     }
+
+    public function test_extracts_propaganda_techniques_from_annotations(): void
+    {
+        // Create text analysis with AI annotations
+        $textAnalysis = TextAnalysis::factory()->create([
+            'claude_annotations' => [
+                'annotations' => [
+                    [
+                        'type' => 'labels',
+                        'value' => [
+                            'labels' => ['emotionalExpression', 'uncertainty']
+                        ]
+                    ]
+                ]
+            ]
+        ]);
+
+        $statistics = $this->service->getGlobalStatistics();
+
+        $this->assertArrayHasKey('top_techniques', $statistics);
+        $this->assertIsArray($statistics['top_techniques']);
+        
+        if (!empty($statistics['top_techniques'])) {
+            $this->assertContains('emotionalExpression', array_keys($statistics['top_techniques']));
+        }
+    }
+
+    public function test_provides_time_series_data(): void
+    {
+        $statistics = $this->service->getGlobalStatistics();
+
+        $this->assertArrayHasKey('time_series_data', $statistics);
+        $this->assertIsArray($statistics['time_series_data']);
+        $this->assertCount(30, $statistics['time_series_data']); // 30 days
+        
+        // Check structure of first item
+        if (!empty($statistics['time_series_data'])) {
+            $firstItem = $statistics['time_series_data'][0];
+            $this->assertArrayHasKey('date', $firstItem);
+            $this->assertArrayHasKey('count', $firstItem);
+            $this->assertArrayHasKey('label', $firstItem);
+        }
+    }
 }

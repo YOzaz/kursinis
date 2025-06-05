@@ -157,6 +157,31 @@ class StatisticsService
      */
     private function extractTechniquesFromAnnotations(array $annotations, array &$techniques): void
     {
+        // Handle AI model annotation structure (Claude, Gemini, GPT)
+        if (isset($annotations['annotations']) && is_array($annotations['annotations'])) {
+            foreach ($annotations['annotations'] as $annotation) {
+                if (isset($annotation['type']) && $annotation['type'] === 'labels' && 
+                    isset($annotation['value']['labels']) && is_array($annotation['value']['labels'])) {
+                    foreach ($annotation['value']['labels'] as $label) {
+                        $techniques[$label] = ($techniques[$label] ?? 0) + 1;
+                    }
+                }
+            }
+        }
+        
+        // Handle expert annotation structure (Label Studio format)
+        if (isset($annotations[0]['result']) && is_array($annotations[0]['result'])) {
+            foreach ($annotations[0]['result'] as $result) {
+                if (isset($result['type']) && $result['type'] === 'labels' && 
+                    isset($result['value']['labels']) && is_array($result['value']['labels'])) {
+                    foreach ($result['value']['labels'] as $label) {
+                        $techniques[$label] = ($techniques[$label] ?? 0) + 1;
+                    }
+                }
+            }
+        }
+        
+        // Legacy format support - direct array of annotations
         foreach ($annotations as $annotation) {
             if (is_array($annotation)) {
                 // Handle different annotation formats
