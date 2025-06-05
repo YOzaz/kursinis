@@ -328,8 +328,8 @@ class WebController extends Controller
                     if (stripos($line, $jobId) !== false) {
                         $isRelevant = true;
                     } elseif (isset($context['job_id']) && 
-                              (is_string($context['job_id']) && $context['job_id'] === $jobId) ||
-                              (is_object($context['job_id']) && property_exists($context['job_id'], 'Ramsey\\Uuid\\Lazy\\LazyUuidFromString') && $context['job_id']->{'Ramsey\\Uuid\\Lazy\\LazyUuidFromString'} === $jobId)) {
+                              ((is_string($context['job_id']) && $context['job_id'] === $jobId) ||
+                              (is_object($context['job_id']) && property_exists($context['job_id'], 'Ramsey\\Uuid\\Lazy\\LazyUuidFromString') && $context['job_id']->{'Ramsey\\Uuid\\Lazy\\LazyUuidFromString'} === $jobId))) {
                         $isRelevant = true;
                     }
                     
@@ -538,7 +538,7 @@ class WebController extends Controller
                             }
                         } else {
                             // Check if this model was intended for this job but hasn't been processed yet
-                            $jobModels = $analysis->analysisJob ? json_decode($analysis->analysisJob->models, true) : [];
+                            $jobModels = $analysis->analysisJob && $analysis->analysisJob->models ? json_decode($analysis->analysisJob->models, true) : [];
                             if (in_array($modelKey, $jobModels ?? [])) {
                                 $modelWasUsed = true;
                                 // This is pending
@@ -561,7 +561,7 @@ class WebController extends Controller
                             }
                         } else {
                             // Check if this model was intended for this job but hasn't been processed yet
-                            $jobModels = $analysis->analysisJob ? json_decode($analysis->analysisJob->models, true) : [];
+                            $jobModels = $analysis->analysisJob && $analysis->analysisJob->models ? json_decode($analysis->analysisJob->models, true) : [];
                             if (in_array($modelKey, $jobModels ?? [])) {
                                 $modelWasUsed = true;
                                 // This is pending
@@ -584,7 +584,7 @@ class WebController extends Controller
                             }
                         } else {
                             // Check if this model was intended for this job but hasn't been processed yet
-                            $jobModels = $analysis->analysisJob ? json_decode($analysis->analysisJob->models, true) : [];
+                            $jobModels = $analysis->analysisJob && $analysis->analysisJob->models ? json_decode($analysis->analysisJob->models, true) : [];
                             if (in_array($modelKey, $jobModels ?? [])) {
                                 $modelWasUsed = true;
                                 // This is pending

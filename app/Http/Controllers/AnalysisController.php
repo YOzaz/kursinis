@@ -79,11 +79,8 @@ class AnalysisController extends Controller
     {
         $analysis = AnalysisJob::where('job_id', $jobId)->firstOrFail();
         
-        // Paginate text analyses for large datasets with filtered metrics
+        // Paginate text analyses for large datasets
         $textAnalyses = TextAnalysis::where('job_id', $analysis->job_id)
-            ->with(['comparisonMetrics' => function($query) use ($analysis) {
-                $query->where('job_id', $analysis->job_id);
-            }])
             ->paginate(50, ['*'], 'page', $request->get('page', 1));
             
         $statistics = $this->metricsService->calculateJobStatistics($analysis);

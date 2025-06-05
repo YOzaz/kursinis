@@ -581,9 +581,9 @@
             
             logs.forEach(log => {
                 const time = new Date(log.timestamp).toLocaleTimeString();
-                const jobId = log.job_id ? log.job_id.substring(0, 8) + '...' : 'SYSTEM';
+                const jobId = log.job_id && typeof log.job_id === 'string' ? log.job_id.substring(0, 8) + '...' : 'SYSTEM';
                 html += `
-                <div class="log-entry" ${log.job_id ? `onclick="filterByJob('${log.job_id}')"` : ''}>
+                <div class="log-entry" ${log.job_id && typeof log.job_id === 'string' ? `onclick="filterByJob('${log.job_id}')"` : ''}>
                     <div class="log-timestamp">${time}</div>
                     <div class="log-level ${log.level}">${log.level}</div>
                     <div class="log-job-id">${jobId}</div>
@@ -627,7 +627,18 @@
             }
         });
 
+        // Check URL parameters on page load
+        function initializeFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const jobIdParam = urlParams.get('job_id');
+            if (jobIdParam) {
+                document.getElementById('jobFilter').value = jobIdParam;
+                currentJobFilter = jobIdParam;
+            }
+        }
+
         // Start monitoring
+        initializeFromURL();
         updateStatus();
         refreshInterval = setInterval(updateStatus, 5000);
 

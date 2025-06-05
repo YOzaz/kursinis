@@ -115,7 +115,38 @@
                                 </div>
                                 <div class="col-6">
                                     <div class="small text-muted">Modelių</div>
-                                    <div class="h5">{{ count(explode(',', $analysis->models ?? '')) }}</div>
+    @php
+                                        $modelCount = 0;
+                                        $textAnalyses = $analysis->textAnalyses;
+                                        
+                                        if ($textAnalyses->count() > 0) {
+                                            // Check new structure (unified columns)
+                                            $actualModels = $textAnalyses->pluck('actual_model_name')->filter()->unique()->count();
+                                            $requestedModels = $textAnalyses->pluck('requested_model_name')->filter()->unique()->count();
+                                            
+                                            if ($actualModels > 0 || $requestedModels > 0) {
+                                                $modelCount = $actualModels ?: $requestedModels;
+                                            } else {
+                                                // Check old structure (separate model columns)
+                                                $hasClaudeData = $textAnalyses->whereNotNull('claude_annotations')->count() > 0 || $textAnalyses->whereNotNull('claude_model_name')->count() > 0;
+                                                $hasGeminiData = $textAnalyses->whereNotNull('gemini_annotations')->count() > 0 || $textAnalyses->whereNotNull('gemini_model_name')->count() > 0;
+                                                $hasGptData = $textAnalyses->whereNotNull('gpt_annotations')->count() > 0 || $textAnalyses->whereNotNull('gpt_model_name')->count() > 0;
+                                                
+                                                $modelCount = ($hasClaudeData ? 1 : 0) + ($hasGeminiData ? 1 : 0) + ($hasGptData ? 1 : 0);
+                                                
+                                                // If no models detected but we have analysis records, estimate based on ratio
+                                                if ($modelCount === 0 && $analysis->total_texts > 0) {
+                                                    $modelCount = intval($textAnalyses->count() / $analysis->total_texts);
+                                                }
+                                            }
+                                        }
+                                        
+                                        // Ensure at least 1 model if we have analysis records
+                                        if ($modelCount === 0 && $textAnalyses->count() > 0) {
+                                            $modelCount = 1;
+                                        }
+                                    @endphp
+                                    <div class="h5">{{ $modelCount }}</div>
                                 </div>
                             </div>
 

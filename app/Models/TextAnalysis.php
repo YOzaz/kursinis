@@ -67,11 +67,21 @@ class TextAnalysis extends Model
     }
 
     /**
-     * Ryšys su palyginimo metrikomis (filtruojama pagal job_id ir text_analysis_id).
+     * Gauti palyginimo metrikos šiam teksto analizės įrašui.
      */
-    public function comparisonMetrics(): HasMany
+    public function getComparisonMetricsAttribute()
     {
-        return $this->hasMany(ComparisonMetric::class, 'text_analysis_id', 'id');
+        return ComparisonMetric::where('job_id', $this->job_id)
+                              ->where('text_id', $this->text_id)
+                              ->get();
+    }
+    
+    /**
+     * Ryšys su palyginimo metrikomis - legacy method (for compatibility).
+     */
+    public function comparisonMetrics()
+    {
+        return $this->getComparisonMetricsAttribute();
     }
 
     /**
