@@ -171,7 +171,8 @@ class BatchAnalysisJobV3 implements ShouldQueue
      */
     private function processModelWithChunking(string $modelKey, array $fileContent, ?string $customPrompt = null): array
     {
-        $modelConfig = config("llm.models.{$modelKey}");
+        $allModels = config('llm.models');
+        $modelConfig = $allModels[$modelKey] ?? null;
         
         if (!$modelConfig) {
             throw new \Exception("Model {$modelKey} not found in configuration");
@@ -233,7 +234,8 @@ class BatchAnalysisJobV3 implements ShouldQueue
      */
     private function processChunk(array $chunk, string $modelKey, ?string $customPrompt = null): array
     {
-        $modelConfig = config("llm.models.{$modelKey}");
+        $allModels = config('llm.models');
+        $modelConfig = $allModels[$modelKey] ?? null;
         $provider = $modelConfig['provider'];
         
         // Prepare texts for batch processing
@@ -510,7 +512,8 @@ class BatchAnalysisJobV3 implements ShouldQueue
      */
     private function saveModelResults(TextAnalysis $textAnalysis, string $modelKey, array $result): void
     {
-        $modelConfig = config("llm.models.{$modelKey}");
+        $allModels = config('llm.models');
+        $modelConfig = $allModels[$modelKey] ?? null;
         $provider = $modelConfig['provider'] ?? 'unknown';
         
         $cleanResult = $result;
@@ -553,7 +556,8 @@ class BatchAnalysisJobV3 implements ShouldQueue
      */
     private function markModelAsFailed(TextAnalysis $textAnalysis, string $modelKey, string $error): void
     {
-        $modelConfig = config("llm.models.{$modelKey}");
+        $allModels = config('llm.models');
+        $modelConfig = $allModels[$modelKey] ?? null;
         $provider = $modelConfig['provider'] ?? 'unknown';
         
         switch ($provider) {
@@ -585,7 +589,8 @@ class BatchAnalysisJobV3 implements ShouldQueue
                 return;
             }
 
-            $modelConfig = config("llm.models.{$modelKey}");
+            $allModels = config('llm.models');
+        $modelConfig = $allModels[$modelKey] ?? null;
             $modelName = $modelConfig['model'] ?? $modelKey;
 
             // Set the model annotations for calculation
@@ -614,7 +619,8 @@ class BatchAnalysisJobV3 implements ShouldQueue
      */
     private function getServiceForModel(string $modelKey): \App\Services\LLMServiceInterface
     {
-        $modelConfig = config("llm.models.{$modelKey}");
+        $allModels = config('llm.models');
+        $modelConfig = $allModels[$modelKey] ?? null;
         $provider = $modelConfig['provider'];
         
         switch ($provider) {

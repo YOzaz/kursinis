@@ -224,10 +224,15 @@
             border-radius: 4px;
             border-left: 3px solid #00ff41;
             cursor: pointer;
+            position: relative;
         }
 
         .log-entry:hover {
             background: rgba(0, 255, 65, 0.1);
+        }
+
+        .log-entry:hover .copy-btn {
+            opacity: 1;
         }
 
         .log-timestamp {
@@ -260,6 +265,66 @@
             flex-shrink: 0;
             text-overflow: ellipsis;
             overflow: hidden;
+        }
+
+        .log-actions {
+            width: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .copy-btn {
+            background: rgba(0, 255, 65, 0.2);
+            border: 2px solid #00ff41;
+            color: #00ff41;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            opacity: 0;
+            transition: all 0.3s ease;
+            min-width: 40px;
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .copy-btn:hover {
+            background: rgba(0, 255, 65, 0.4);
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+        }
+
+        .copy-btn.copied {
+            background: rgba(0, 255, 0, 0.4);
+            color: #00ff00;
+            border-color: #00ff00;
+        }
+
+        .copy-feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 255, 65, 0.9);
+            color: #000;
+            padding: 15px 25px;
+            border-radius: 8px;
+            border: 2px solid #00ff41;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            z-index: 10000;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.7);
+            animation: copyFeedbackPulse 0.5s ease-in-out;
+        }
+
+        @keyframes copyFeedbackPulse {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
         }
 
         .refresh-indicator {
@@ -603,11 +668,20 @@
                 const time = new Date(log.timestamp).toLocaleTimeString();
                 const jobId = log.job_id && typeof log.job_id === 'string' ? log.job_id.substring(0, 8) + '...' : 'SYSTEM';
                 html += `
-                <div class="log-entry" ${log.job_id && typeof log.job_id === 'string' ? `onclick="filterByJob('${log.job_id}')"` : ''}>
+                <div class="log-entry" ${log.job_id && typeof log.job_id === 'string' ? `onclick="filterByJob('${log.job_id}')"` : ''}
+                     data-log-time="${time}" 
+                     data-log-level="${log.level}" 
+                     data-log-job-id="${log.job_id || 'SYSTEM'}"
+                     data-log-message="${log.message.replace(/"/g, '&quot;').replace(/'/g, '&#39;')}">
                     <div class="log-timestamp">${time}</div>
                     <div class="log-level ${log.level}">${log.level}</div>
                     <div class="log-job-id">${jobId}</div>
                     <div class="log-message">${log.message}</div>
+                    <div class="log-actions">
+                        <button class="copy-btn" onclick="copyLogMessage(event)" title="Copy to clipboard">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
                 </div>`;
             });
 
@@ -646,6 +720,7 @@
         window.applyFilter = applyFilter;
         window.filterByJob = filterByJob;
         window.forceRefresh = forceRefresh;
+        window.copyLogMessage = copyLogMessage;
 
         function filterByJob(jobId) {
             currentJobFilter = jobId;
@@ -655,6 +730,87 @@
 
         function forceRefresh() {
             updateStatus();
+        }
+
+        function copyLogMessage(event) {
+            event.stopPropagation(); // Prevent log entry click
+            
+            // Find the parent log entry element
+            const logEntry = event.target.closest('.log-entry');
+            if (!logEntry) return;
+            
+            // Extract data from data attributes
+            const time = logEntry.dataset.logTime;
+            const level = logEntry.dataset.logLevel;
+            const jobId = logEntry.dataset.logJobId;
+            const message = logEntry.dataset.logMessage;
+            
+            // Decode HTML entities
+            const decodedMessage = message
+                .replace(/&quot;/g, '"')
+                .replace(/&#39;/g, "'")
+                .replace(/&amp;/g, '&')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>');
+            
+            const formattedText = `[${time}] ${level} ${jobId !== 'SYSTEM' ? `(${jobId})` : ''}: ${decodedMessage}`;
+            
+            // Try to copy to clipboard
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(formattedText).then(() => {
+                    showCopyFeedback(event.target);
+                }).catch(err => {
+                    console.error('Failed to copy to clipboard:', err);
+                    fallbackCopyTextToClipboard(formattedText, event.target);
+                });
+            } else {
+                fallbackCopyTextToClipboard(formattedText, event.target);
+            }
+        }
+
+        function fallbackCopyTextToClipboard(text, button) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.position = "fixed";
+            textArea.style.opacity = "0";
+            
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showCopyFeedback(button);
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        function showCopyFeedback(button) {
+            const btn = button.closest('.copy-btn');
+            if (btn) {
+                btn.classList.add('copied');
+                const originalIcon = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i>';
+                
+                // Show global feedback message
+                const feedback = document.createElement('div');
+                feedback.className = 'copy-feedback';
+                feedback.textContent = '📋 LOG MESSAGE COPIED TO CLIPBOARD';
+                document.body.appendChild(feedback);
+                
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btn.innerHTML = originalIcon;
+                    if (feedback && feedback.parentNode) {
+                        feedback.parentNode.removeChild(feedback);
+                    }
+                }, 2000);
+            }
         }
 
         // Handle Enter key in filter input

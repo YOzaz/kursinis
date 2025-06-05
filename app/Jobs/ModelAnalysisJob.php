@@ -134,7 +134,8 @@ class ModelAnalysisJob implements ShouldQueue
      */
     private function processModelWithFileAttachment(string $modelKey, string $tempFile, ?string $customPrompt = null): array
     {
-        $modelConfig = config("llm.models.{$modelKey}");
+        $allModels = config('llm.models');
+        $modelConfig = $allModels[$modelKey] ?? null;
         
         if (!$modelConfig) {
             throw new \Exception("Model {$modelKey} not found in configuration");
@@ -159,7 +160,8 @@ class ModelAnalysisJob implements ShouldQueue
      */
     private function processClaudeWithAttachment(string $modelKey, string $tempFile, ?string $customPrompt = null): array
     {
-        $modelConfig = config("llm.models.{$modelKey}");
+        $allModels = config('llm.models');
+        $modelConfig = $allModels[$modelKey] ?? null;
         $systemMessage = app(\App\Services\PromptService::class)->getSystemMessage();
         
         // Read file content and include in prompt
@@ -210,7 +212,8 @@ class ModelAnalysisJob implements ShouldQueue
      */
     private function processOpenAIWithAttachment(string $modelKey, string $tempFile, ?string $customPrompt = null): array
     {
-        $modelConfig = config("llm.models.{$modelKey}");
+        $allModels = config('llm.models');
+        $modelConfig = $allModels[$modelKey] ?? null;
         
         $fileContent = file_get_contents($tempFile);
         
@@ -261,7 +264,8 @@ class ModelAnalysisJob implements ShouldQueue
      */
     private function processGeminiWithFileAPI(string $modelKey, string $tempFile, ?string $customPrompt = null): array
     {
-        $modelConfig = config("llm.models.{$modelKey}");
+        $allModels = config('llm.models');
+        $modelConfig = $allModels[$modelKey] ?? null;
         
         $this->logProgress("Uploading file to Gemini File API", [
             'model' => $modelKey,
@@ -419,7 +423,8 @@ class ModelAnalysisJob implements ShouldQueue
      */
     private function saveModelResults(TextAnalysis $textAnalysis, string $modelKey, array $result): void
     {
-        $modelConfig = config("llm.models.{$modelKey}");
+        $allModels = config('llm.models');
+        $modelConfig = $allModels[$modelKey] ?? null;
         $provider = $modelConfig['provider'] ?? 'unknown';
         
         $cleanResult = $result;
@@ -466,7 +471,8 @@ class ModelAnalysisJob implements ShouldQueue
         $textAnalysis->storeModelResult($modelKey, [], null, null, $error);
         
         // Also update legacy fields for backward compatibility
-        $modelConfig = config("llm.models.{$modelKey}");
+        $allModels = config('llm.models');
+        $modelConfig = $allModels[$modelKey] ?? null;
         $provider = $modelConfig['provider'] ?? 'unknown';
         
         switch ($provider) {
@@ -498,7 +504,8 @@ class ModelAnalysisJob implements ShouldQueue
                 return;
             }
 
-            $modelConfig = config("llm.models.{$modelKey}");
+            $allModels = config('llm.models');
+        $modelConfig = $allModels[$modelKey] ?? null;
             $modelName = $modelConfig['model'] ?? $modelKey;
 
             // Set the model annotations for calculation

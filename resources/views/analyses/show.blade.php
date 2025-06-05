@@ -380,7 +380,7 @@
                                         <i class="fas fa-question-circle text-muted ms-1" 
                                            data-bs-toggle="tooltip" 
                                            data-bs-placement="top" 
-                                           title="F1 Score - suvienytas tikslumo ir atsaukimo įvertis. Harmoninė tikslumo ir atsaukimo vidurkis. Idealus F1 = 100%"></i>
+                                           title="F1 Score - bendras AI modelio tikslumas. Suvienija tikslumą ir atsaukimą į vieną skaičių. Pvz.: jei AI rado 80% propagandos fragmentų (atsaukimas) ir 90% rastųjų yra teisingi (tikslumas), F1 = 85%. Aukštesnis F1 = geresnis modelis."></i>
                                     </dt>
                                     <dd class="col-6">{{ number_format(($statistics['overall_metrics']['avg_f1'] ?? 0) * 100, 2) }}%</dd>
                                 </dl>

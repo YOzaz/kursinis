@@ -184,7 +184,8 @@ class BatchAnalysisJobV2 implements ShouldQueue
      */
     private function saveModelResults(TextAnalysis $textAnalysis, string $modelKey, array $result): void
     {
-        $modelConfig = config("llm.models.{$modelKey}");
+        $allModels = config('llm.models');
+        $modelConfig = $allModels[$modelKey] ?? null;
         $provider = $modelConfig['provider'] ?? 'unknown';
         
         // Remove error field if present (it's not part of the annotations)
@@ -228,7 +229,8 @@ class BatchAnalysisJobV2 implements ShouldQueue
      */
     private function markModelAsFailed(TextAnalysis $textAnalysis, string $modelKey, string $error): void
     {
-        $modelConfig = config("llm.models.{$modelKey}");
+        $allModels = config('llm.models');
+        $modelConfig = $allModels[$modelKey] ?? null;
         $provider = $modelConfig['provider'] ?? 'unknown';
         
         switch ($provider) {
@@ -260,7 +262,8 @@ class BatchAnalysisJobV2 implements ShouldQueue
                 return;
             }
 
-            $modelConfig = config("llm.models.{$modelKey}");
+            $allModels = config('llm.models');
+        $modelConfig = $allModels[$modelKey] ?? null;
             $modelName = $modelConfig['model'] ?? $modelKey;
 
             // Calculate metrics

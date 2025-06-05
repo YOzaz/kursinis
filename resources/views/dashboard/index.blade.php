@@ -106,9 +106,9 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h2 class="mb-1">{{ count($globalStats['model_performance'] ?? []) }}</h2>
-                            <p class="mb-0 opacity-75">Aktyvūs modeliai</p>
-                            <small class="opacity-50">Claude Sonnet 4, GPT-4o/4.1, Gemini Pro/Flash</small>
+                            <h2 class="mb-1">{{ count(config('llm.models', [])) }}</h2>
+                            <p class="mb-0 opacity-75">Konfigūruoti modeliai</p>
+                            <small class="opacity-50">Claude Opus/Sonnet 4, GPT-4o/4.1, Gemini Pro/Flash</small>
                         </div>
                         <div class="text-end">
                             <i class="fas fa-robot fa-2x opacity-50"></i>
@@ -338,7 +338,7 @@
                         @foreach($sortedModels as $model => $stats)
                             @php
                                 $rank = $loop->iteration;
-                                $medalClass = $rank === 1 ? 'text-warning' : ($rank === 2 ? 'text-secondary' : ($rank === 3 ? 'text-warning' : 'text-muted'));
+                                $medalClass = $rank === 1 ? 'text-warning' : ($rank === 2 ? 'text-secondary' : ($rank === 3 ? 'text-danger' : 'text-muted'));
                                 $medalIcon = $rank <= 3 ? 'fas fa-medal' : 'fas fa-trophy';
                             @endphp
                             <div class="d-flex justify-content-between align-items-center mb-2 {{ $rank <= 3 ? 'p-2 bg-light rounded' : '' }}">
@@ -423,16 +423,7 @@
                     </h6>
                 </div>
                 <div class="card-body">
-                    <div id="time-series-chart" class="timeline-container">
-                        <p class="text-muted">Time series analysis will be displayed here</p>
-                        <div class="auto-refresh-indicator">
-                            <i class="fas fa-sync-alt me-1"></i>Auto-refresh enabled
-                        </div>
-                    </div>
-                    <div class="propaganda-techniques-distribution mt-3">
-                        <h6>Propaganda Techniques Distribution</h6>
-                        <div id="techniques-chart"></div>
-                    </div>
+                    <canvas id="timeSeriesChart" height="100"></canvas>
                 </div>
             </div>
         </div>
@@ -705,6 +696,85 @@ document.addEventListener('DOMContentLoaded', function() {
                         padding: 15
                     }
                 }
+            }
+        }
+    });
+
+    // Time Series Chart
+    const timeSeriesCtx = document.getElementById('timeSeriesChart').getContext('2d');
+    const timeSeriesData = @json($globalStats['time_series_data'] ?? []);
+    
+    const timeSeriesLabels = timeSeriesData.map(item => item.label);
+    const timeSeriesCounts = timeSeriesData.map(item => item.count);
+    
+    const timeSeriesChart = new Chart(timeSeriesCtx, {
+        type: 'line',
+        data: {
+            labels: timeSeriesLabels,
+            datasets: [{
+                label: 'Analyses per Day',
+                data: timeSeriesCounts,
+                borderColor: 'rgba(54, 162, 235, 1)',
+                backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        callback: function(value) {
+                            return Number.isInteger(value) ? value : '';
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Analizių skaičius per paskutines 30 dienų'
+                },
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        title: function(context) {
+                            const index = context[0].dataIndex;
+                            return timeSeriesData[index].date;
+                        },
+                        label: function(context) {
+                            const count = context.parsed.y;
+                            return count === 1 ? '1 analizė' : count + ' analizės';
+                        }
+                    }
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
             }
         }
     });

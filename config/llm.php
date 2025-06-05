@@ -70,7 +70,7 @@ return [
             'presence_penalty' => 0.0,
             'provider' => 'openai',
             'tier' => 'premium',
-            'description' => 'OpenAI\'s latest flagship model with improved coding',
+            'description' => 'OpenAI GPT-4.1 model with latest improvements',
             'context_window' => 1000000, // 1M tokens input context
             'is_default' => true,
             'batch_size' => 100, // Number of texts to process in one request
