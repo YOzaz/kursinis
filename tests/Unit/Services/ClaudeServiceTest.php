@@ -179,7 +179,7 @@ class ClaudeServiceTest extends TestCase
         $service = new ClaudeService($promptService);
 
         $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Claude API neprieinamas po 3 bandymų');
+        $this->expectExceptionMessage('Claude API grąžino klaidą: 400');
         $service->analyzeText('Test text');
     }
 

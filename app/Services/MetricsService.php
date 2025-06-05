@@ -655,13 +655,13 @@ class MetricsService
     /**
      * Apskaičiuoti dokumento lygio klasifikacijos metrikas.
      */
-    private function calculateDocumentLevelMetrics(array $expertAnnotations, array $modelAnnotations): array
+    private function calculateDocumentLevelMetrics(array $expertAnnotations, array $modelAnnotations): ?array
     {
         // Išgauti primarius sprendimus
         $expertDecision = $this->extractPrimaryChoice($expertAnnotations);
         $modelDecision = $this->extractPrimaryChoice($modelAnnotations);
         
-        // Jei bet kuris sprendimas nėra aiškus, grąžinti fragmentų metrikas
+        // Jei bet kuris sprendimas nėra aiškus, grąžinti null kad naudotume fragmentų lygio metrikas
         if ($expertDecision === null || $modelDecision === null) {
             return null;
         }
