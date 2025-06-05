@@ -52,6 +52,7 @@ class AnalysisJob extends Model
         'total_execution_time_seconds',
         'started_at',
         'completed_at',
+        'requested_models',
     ];
 
     /**
@@ -65,6 +66,7 @@ class AnalysisJob extends Model
         'total_texts' => 'integer',
         'processed_texts' => 'integer',
         'total_execution_time_seconds' => 'integer',
+        'requested_models' => 'array',
     ];
 
     /**
@@ -89,6 +91,14 @@ class AnalysisJob extends Model
     public function comparisonMetrics(): HasMany
     {
         return $this->hasMany(ComparisonMetric::class, 'job_id', 'job_id');
+    }
+
+    /**
+     * Get all model results for this analysis job.
+     */
+    public function modelResults(): HasMany
+    {
+        return $this->hasMany(ModelResult::class, 'job_id', 'job_id');
     }
 
     /**

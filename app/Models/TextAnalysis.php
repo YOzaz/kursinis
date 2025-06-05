@@ -67,6 +67,24 @@ class TextAnalysis extends Model
     }
 
     /**
+     * Get model results for this text analysis.
+     */
+    public function modelResults(): HasMany
+    {
+        return $this->hasMany(ModelResult::class, 'text_id', 'text_id')
+                    ->where('job_id', $this->job_id);
+    }
+
+    /**
+     * Get comparison metrics using the relationship.
+     */
+    public function comparisonMetrics(): HasMany
+    {
+        return $this->hasMany(ComparisonMetric::class, 'text_id', 'text_id')
+                    ->where('job_id', $this->job_id);
+    }
+
+    /**
      * Gauti palyginimo metrikos šiam teksto analizės įrašui.
      */
     public function getComparisonMetricsAttribute()
@@ -76,21 +94,27 @@ class TextAnalysis extends Model
                               ->get();
     }
     
-    /**
-     * Ryšys su palyginimo metrikomis - legacy method (for compatibility).
-     */
-    public function comparisonMetrics()
-    {
-        return $this->getComparisonMetricsAttribute();
-    }
 
     /**
      * Gauti visų modelių anotacijas.
+     * Uses new ModelResult table if available, falls back to legacy columns.
      */
     public function getAllModelAnnotations(): array
     {
         $annotations = [];
         
+        // First, check if we have model results in the new table
+        $modelResults = $this->modelResults()->whereNotNull('annotations')->get();
+        if ($modelResults->isNotEmpty()) {
+            foreach ($modelResults as $result) {
+                if (!empty($result->annotations)) {
+                    $annotations[$result->model_key] = $result->annotations;
+                }
+            }
+            return $annotations;
+        }
+        
+        // Fallback to legacy structure for backward compatibility
         // Return annotations with config keys, not actual model names
         if (!empty($this->claude_annotations)) {
             // Determine which Claude model was used based on the actual model name
@@ -136,11 +160,29 @@ class TextAnalysis extends Model
 
     /**
      * Gauti visų bandytų modelių sąrašą (ir sėkmingų, ir nesėkmingų).
+     * Uses new ModelResult table if available, falls back to legacy columns.
      */
     public function getAllAttemptedModels(): array
     {
         $models = [];
         
+        // First, check if we have model results in the new table
+        $modelResults = $this->modelResults;
+        if ($modelResults->isNotEmpty()) {
+            foreach ($modelResults as $result) {
+                $models[$result->model_key] = [
+                    'status' => $result->isSuccessful() ? 'success' : 'failed',
+                    'annotations' => $result->annotations,
+                    'error' => $result->error_message,
+                    'actual_model' => $result->actual_model_name ?: $result->model_name,
+                    'execution_time_ms' => $result->execution_time_ms,
+                    'has_metrics' => $this->comparisonMetrics()->where('model_name', $result->model_key)->exists()
+                ];
+            }
+            return $models;
+        }
+        
+        // Fallback to legacy structure for backward compatibility
         // Check each provider's fields for annotations and errors
         
         // Claude models
@@ -234,10 +276,49 @@ class TextAnalysis extends Model
     }
 
     /**
+     * Store model result in the new ModelResult table.
+     * This is the preferred method for new analyses.
+     */
+    public function storeModelResult(string $modelKey, array $annotations, ?string $actualModelName = null, ?int $executionTimeMs = null, ?string $errorMessage = null): ModelResult
+    {
+        // Determine provider from model key
+        $provider = 'unknown';
+        if (str_starts_with($modelKey, 'claude')) {
+            $provider = 'anthropic';
+        } elseif (str_starts_with($modelKey, 'gpt')) {
+            $provider = 'openai';
+        } elseif (str_starts_with($modelKey, 'gemini')) {
+            $provider = 'google';
+        }
+
+        return ModelResult::updateOrCreate(
+            [
+                'job_id' => $this->job_id,
+                'text_id' => $this->text_id,
+                'model_key' => $modelKey,
+            ],
+            [
+                'provider' => $provider,
+                'model_name' => $modelKey,
+                'actual_model_name' => $actualModelName,
+                'annotations' => $annotations,
+                'error_message' => $errorMessage,
+                'execution_time_ms' => $executionTimeMs,
+                'status' => empty($errorMessage) ? ModelResult::STATUS_COMPLETED : ModelResult::STATUS_FAILED,
+            ]
+        );
+    }
+
+    /**
      * Nustatyti modelio anotacijas.
+     * Legacy method for backward compatibility.
      */
     public function setModelAnnotations(string $modelName, array $annotations, ?string $actualModelName = null, ?int $executionTimeMs = null): void
     {
+        // Try to use new method first
+        $this->storeModelResult($modelName, $annotations, $actualModelName, $executionTimeMs);
+        
+        // Also store in legacy fields for backward compatibility
         $field = $this->getAnnotationField($modelName);
         if ($field) {
             $this->$field = $annotations;

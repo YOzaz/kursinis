@@ -462,6 +462,10 @@ class ModelAnalysisJob implements ShouldQueue
      */
     private function markModelAsFailed(TextAnalysis $textAnalysis, string $modelKey, string $error): void
     {
+        // Use new structure to store the failure
+        $textAnalysis->storeModelResult($modelKey, [], null, null, $error);
+        
+        // Also update legacy fields for backward compatibility
         $modelConfig = config("llm.models.{$modelKey}");
         $provider = $modelConfig['provider'] ?? 'unknown';
         
@@ -525,13 +529,13 @@ class ModelAnalysisJob implements ShouldQueue
     {
         // Count how many models have completed for this job
         $textAnalyses = TextAnalysis::where('job_id', $this->jobId)->get();
-        $totalModels = count($job->models ? json_decode($job->models, true) : []);
+        $totalModels = count($job->requested_models ?? []);
         $totalTexts = $textAnalyses->groupBy('text_id')->count();
         
         $completedModels = 0;
         
         // Check completion for each model
-        $models = json_decode($job->models, true) ?? [];
+        $models = $job->requested_models ?? [];
         foreach ($models as $modelKey) {
             $modelConfig = config("llm.models.{$modelKey}");
             $provider = $modelConfig['provider'] ?? 'unknown';
@@ -571,7 +575,7 @@ class ModelAnalysisJob implements ShouldQueue
         $this->logProgress("Job progress updated", [
             'completed_models' => $completedModels,
             'total_models' => $totalModels,
-            'progress_percentage' => round(($completedModels / $totalModels) * 100, 1),
+            'progress_percentage' => $totalModels > 0 ? round(($completedModels / $totalModels) * 100, 1) : 0,
             'job_status' => $job->status
         ]);
     }

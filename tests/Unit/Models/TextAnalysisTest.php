@@ -304,15 +304,13 @@ class TextAnalysisTest extends TestCase
                 'primaryChoice' => ['choices' => ['yes']],
                 'annotations' => []
             ],
-            'claude_actual_model' => 'claude-sonnet-4-20250514',
-            'gpt_annotations' => [
-                'error' => 'API quota exceeded',
-                'model' => 'gpt-4o-latest'
-            ],
-            'gemini_annotations' => [
-                'error' => 'Invalid response format',
-                'model' => 'gemini-2.5-flash'
-            ]
+            'claude_actual_model' => 'claude-3-sonnet-20240229',
+            'gpt_annotations' => null,
+            'gpt_error' => 'API quota exceeded',
+            'gpt_model_name' => 'gpt-4o-latest',
+            'gemini_annotations' => null,
+            'gemini_error' => 'Invalid response format',
+            'gemini_model_name' => 'gemini-2.5-flash'
         ]);
 
         $attemptedModels = $analysis->getAllAttemptedModels();
@@ -320,12 +318,12 @@ class TextAnalysisTest extends TestCase
         // Should have 3 models: 1 successful, 2 failed
         $this->assertCount(3, $attemptedModels);
         
-        // Check successful model
-        $this->assertArrayHasKey('claude-sonnet-4-20250514', $attemptedModels);
-        $this->assertEquals('success', $attemptedModels['claude-sonnet-4-20250514']['status']);
-        $this->assertNotNull($attemptedModels['claude-sonnet-4-20250514']['annotations']);
+        // Check successful Claude model (mapped to config key)
+        $this->assertArrayHasKey('claude-sonnet-4', $attemptedModels);
+        $this->assertEquals('success', $attemptedModels['claude-sonnet-4']['status']);
+        $this->assertNotNull($attemptedModels['claude-sonnet-4']['annotations']);
         
-        // Check failed models
+        // Check failed models (mapped to config keys)
         $this->assertArrayHasKey('gpt-4o-latest', $attemptedModels);
         $this->assertEquals('failed', $attemptedModels['gpt-4o-latest']['status']);
         $this->assertEquals('API quota exceeded', $attemptedModels['gpt-4o-latest']['error']);
@@ -333,5 +331,149 @@ class TextAnalysisTest extends TestCase
         $this->assertArrayHasKey('gemini-2.5-flash', $attemptedModels);
         $this->assertEquals('failed', $attemptedModels['gemini-2.5-flash']['status']);
         $this->assertEquals('Invalid response format', $attemptedModels['gemini-2.5-flash']['error']);
+    }
+
+    public function test_new_model_results_architecture(): void
+    {
+        $job = AnalysisJob::factory()->create([
+            'requested_models' => ['claude-opus-4', 'claude-sonnet-4']
+        ]);
+        
+        $analysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => 'test-123'
+        ]);
+
+        // Store results using new architecture
+        $analysis->storeModelResult(
+            'claude-opus-4', 
+            ['primaryChoice' => ['choices' => ['yes']], 'annotations' => []],
+            'claude-3-opus-20240229',
+            15000
+        );
+
+        $analysis->storeModelResult(
+            'claude-sonnet-4',
+            ['primaryChoice' => ['choices' => ['no']], 'annotations' => []],
+            'claude-3-sonnet-20240229',
+            8000
+        );
+
+        $this->assertDatabaseHas('model_results', [
+            'job_id' => $job->job_id,
+            'text_id' => 'test-123',
+            'model_key' => 'claude-opus-4',
+            'provider' => 'anthropic',
+            'status' => 'completed'
+        ]);
+
+        $this->assertDatabaseHas('model_results', [
+            'job_id' => $job->job_id,
+            'text_id' => 'test-123',
+            'model_key' => 'claude-sonnet-4',
+            'provider' => 'anthropic',
+            'status' => 'completed'
+        ]);
+
+        // Test retrieval using new architecture
+        $attemptedModels = $analysis->getAllAttemptedModels();
+        $this->assertCount(2, $attemptedModels);
+        $this->assertArrayHasKey('claude-opus-4', $attemptedModels);
+        $this->assertArrayHasKey('claude-sonnet-4', $attemptedModels);
+        $this->assertEquals('success', $attemptedModels['claude-opus-4']['status']);
+        $this->assertEquals('success', $attemptedModels['claude-sonnet-4']['status']);
+    }
+
+    public function test_new_model_results_with_failures(): void
+    {
+        $job = AnalysisJob::factory()->create([
+            'requested_models' => ['claude-opus-4', 'gpt-4o-latest']
+        ]);
+        
+        $analysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => 'test-456'
+        ]);
+
+        // Store successful result
+        $analysis->storeModelResult(
+            'claude-opus-4', 
+            ['primaryChoice' => ['choices' => ['yes']], 'annotations' => []],
+            'claude-3-opus-20240229',
+            12000
+        );
+
+        // Store failed result
+        $analysis->storeModelResult(
+            'gpt-4o-latest',
+            [],
+            null,
+            null,
+            'Rate limit exceeded'
+        );
+
+        $this->assertDatabaseHas('model_results', [
+            'job_id' => $job->job_id,
+            'text_id' => 'test-456',
+            'model_key' => 'claude-opus-4',
+            'status' => 'completed'
+        ]);
+
+        $this->assertDatabaseHas('model_results', [
+            'job_id' => $job->job_id,
+            'text_id' => 'test-456',
+            'model_key' => 'gpt-4o-latest',
+            'status' => 'failed',
+            'error_message' => 'Rate limit exceeded'
+        ]);
+
+        $attemptedModels = $analysis->getAllAttemptedModels();
+        $this->assertCount(2, $attemptedModels);
+        $this->assertEquals('success', $attemptedModels['claude-opus-4']['status']);
+        $this->assertEquals('failed', $attemptedModels['gpt-4o-latest']['status']);
+        $this->assertEquals('Rate limit exceeded', $attemptedModels['gpt-4o-latest']['error']);
+    }
+
+    public function test_model_results_relationship(): void
+    {
+        $job = AnalysisJob::factory()->create();
+        $analysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => 'test-789'
+        ]);
+
+        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\HasMany::class, $analysis->modelResults());
+        
+        // Store some model results
+        $analysis->storeModelResult('claude-opus-4', ['test' => 'data']);
+        $analysis->storeModelResult('gpt-4o-latest', ['test' => 'data2']);
+
+        $modelResults = $analysis->modelResults;
+        $this->assertCount(2, $modelResults);
+        $this->assertEquals('claude-opus-4', $modelResults->first()->model_key);
+    }
+
+    public function test_backward_compatibility_fallback(): void
+    {
+        $job = AnalysisJob::factory()->create();
+        
+        // Create analysis with legacy data only (no model results)
+        $analysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => 'test-legacy',
+            'claude_annotations' => ['primaryChoice' => ['choices' => ['yes']]],
+            'claude_actual_model' => 'claude-3-opus-20240229',
+            'gpt_annotations' => null,
+            'gpt_error' => 'Failed',
+            'gpt_model_name' => 'gpt-4o'
+        ]);
+
+        $attemptedModels = $analysis->getAllAttemptedModels();
+        
+        // Should fallback to legacy structure and map to config keys
+        $this->assertArrayHasKey('claude-opus-4', $attemptedModels);
+        $this->assertArrayHasKey('gpt-4o-latest', $attemptedModels);
+        $this->assertEquals('success', $attemptedModels['claude-opus-4']['status']);
+        $this->assertEquals('failed', $attemptedModels['gpt-4o-latest']['status']);
     }
 }

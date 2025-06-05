@@ -96,6 +96,7 @@ class WebController extends Controller
                 'name' => $request->input('name', 'Batch analizė'),
                 'description' => $request->input('description'),
                 'custom_prompt' => $customPrompt,
+                'requested_models' => $models,
             ]);
 
             // Use file attachment processing for optimal performance and reliability
@@ -537,11 +538,22 @@ class WebController extends Controller
                                 }
                             }
                         } else {
-                            // Check if this model was intended for this job but hasn't been processed yet
-                            $jobModels = $analysis->analysisJob && $analysis->analysisJob->models ? json_decode($analysis->analysisJob->models, true) : [];
-                            if (in_array($modelKey, $jobModels ?? [])) {
-                                $modelWasUsed = true;
-                                // This is pending
+                            // Check if this model was actually requested for this job
+                            if ($analysis->analysisJob && 
+                                in_array($analysis->analysisJob->status, ['pending', 'processing'])) {
+                                
+                                // First check if we have model results (new architecture)
+                                $hasModelResult = $analysis->analysisJob->modelResults()
+                                    ->where('model_key', $modelKey)->exists();
+                                
+                                // Then check if model was in requested models
+                                $wasRequested = $analysis->analysisJob->requested_models &&
+                                    in_array($modelKey, $analysis->analysisJob->requested_models);
+                                
+                                if ($hasModelResult || $wasRequested) {
+                                    $modelWasUsed = true;
+                                    // This is pending
+                                }
                             }
                         }
                         break;
@@ -560,11 +572,22 @@ class WebController extends Controller
                                 }
                             }
                         } else {
-                            // Check if this model was intended for this job but hasn't been processed yet
-                            $jobModels = $analysis->analysisJob && $analysis->analysisJob->models ? json_decode($analysis->analysisJob->models, true) : [];
-                            if (in_array($modelKey, $jobModels ?? [])) {
-                                $modelWasUsed = true;
-                                // This is pending
+                            // Check if this model was actually requested for this job
+                            if ($analysis->analysisJob && 
+                                in_array($analysis->analysisJob->status, ['pending', 'processing'])) {
+                                
+                                // First check if we have model results (new architecture)
+                                $hasModelResult = $analysis->analysisJob->modelResults()
+                                    ->where('model_key', $modelKey)->exists();
+                                
+                                // Then check if model was in requested models
+                                $wasRequested = $analysis->analysisJob->requested_models &&
+                                    in_array($modelKey, $analysis->analysisJob->requested_models);
+                                
+                                if ($hasModelResult || $wasRequested) {
+                                    $modelWasUsed = true;
+                                    // This is pending
+                                }
                             }
                         }
                         break;
@@ -583,11 +606,22 @@ class WebController extends Controller
                                 }
                             }
                         } else {
-                            // Check if this model was intended for this job but hasn't been processed yet
-                            $jobModels = $analysis->analysisJob && $analysis->analysisJob->models ? json_decode($analysis->analysisJob->models, true) : [];
-                            if (in_array($modelKey, $jobModels ?? [])) {
-                                $modelWasUsed = true;
-                                // This is pending
+                            // Check if this model was actually requested for this job
+                            if ($analysis->analysisJob && 
+                                in_array($analysis->analysisJob->status, ['pending', 'processing'])) {
+                                
+                                // First check if we have model results (new architecture)
+                                $hasModelResult = $analysis->analysisJob->modelResults()
+                                    ->where('model_key', $modelKey)->exists();
+                                
+                                // Then check if model was in requested models
+                                $wasRequested = $analysis->analysisJob->requested_models &&
+                                    in_array($modelKey, $analysis->analysisJob->requested_models);
+                                
+                                if ($hasModelResult || $wasRequested) {
+                                    $modelWasUsed = true;
+                                    // This is pending
+                                }
                             }
                         }
                         break;
