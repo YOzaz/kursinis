@@ -31,57 +31,6 @@
         </div>
     </div>
 
-    <!-- Enhanced Quick Actions Bar -->
-    <div class="card mb-4 border-primary quick-actions-card">
-        <div class="card-header bg-primary text-white d-flex align-items-center">
-            <h5 class="mb-0">
-                <i class="fas fa-bolt me-2"></i>Greiti veiksmai
-            </h5>
-            <span class="badge bg-light text-primary ms-2">Dažniausiai naudojamos funkcijos</span>
-        </div>
-        <div class="card-body py-3">
-            <div class="row g-3">
-                <div class="col-lg-3 col-md-6">
-                    <a href="{{ route('create') }}" class="btn btn-primary btn-lg w-100 quick-action-btn">
-                        <i class="fas fa-plus fa-2x mb-2 d-block"></i>
-                        <div class="fw-bold">Nauja analizė</div>
-                        <small class="opacity-75">Sukurti naują teksto analizę</small>
-                    </a>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <a href="{{ route('analyses.index') }}" class="btn btn-outline-primary btn-lg w-100 quick-action-btn">
-                        <i class="fas fa-list fa-2x mb-2 d-block"></i>
-                        <div class="fw-bold">Visos analizės</div>
-                        <small class="opacity-75">Peržiūrėti visas analizės</small>
-                    </a>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <a href="/mission-control" class="btn btn-outline-info btn-lg w-100 quick-action-btn">
-                        <i class="fas fa-satellite-dish fa-2x mb-2 d-block"></i>
-                        <div class="fw-bold">Mission Control</div>
-                        <small class="opacity-75">Sistemos būklės monitoringas</small>
-                    </a>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="dropdown">
-                        <button class="btn btn-outline-success btn-lg w-100 quick-action-btn dropdown-toggle" type="button" id="exportQuickBtn" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-download fa-2x mb-2 d-block"></i>
-                            <div class="fw-bold">Eksportuoti</div>
-                            <small class="opacity-75">Dashboard duomenis</small>
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="exportQuickBtn">
-                            <li><a class="dropdown-item" href="/api/dashboard/export?format=json" target="_blank">
-                                <i class="fas fa-file-code me-2"></i>JSON
-                            </a></li>
-                            <li><a class="dropdown-item" href="/api/dashboard/export?format=csv" target="_blank">
-                                <i class="fas fa-file-csv me-2"></i>CSV
-                            </a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Global KPI Cards -->
     <div class="row mb-4">
@@ -117,7 +66,7 @@
                             @endphp
                             <h2 class="mb-1">{{ number_format($avgF1 * 100, 1) }}%</h2>
                             <p class="mb-0 opacity-75">Vidutinis F1 balas</p>
-                            <small class="opacity-50">Visų modelių</small>
+                            <small class="opacity-50">Tik propagandos tekstai</small>
                         </div>
                         <div class="text-end">
                             <i class="fas fa-bullseye fa-2x opacity-50"></i>
@@ -228,28 +177,28 @@
                                             <i class="fas fa-robot me-1"></i>Modelis
                                         </th>
                                         <th class="text-center">
-                                            <i class="fas fa-chart-line me-1"></i>Analizių
+                                            <i class="fas fa-chart-line me-1"></i>Tekstų
                                             <i class="fas fa-question-circle text-muted ms-1" 
                                                data-bs-toggle="tooltip" 
-                                               title="Kiek analizių atlikta šiuo modeliu"></i>
+                                               title="Propagandos / iš viso tekstų analizuotų šiuo modeliu"></i>
                                         </th>
                                         <th class="text-center">
                                             <i class="fas fa-bullseye me-1"></i>F1 balas
                                             <i class="fas fa-question-circle text-muted ms-1" 
                                                data-bs-toggle="tooltip" 
-                                               title="Harmoninė tikslumo ir atsaukimo vidurkis"></i>
+                                               title="F1 = 2×(Tikslumas×Atsaukimas)/(Tikslumas+Atsaukimas). Subalansuotas tikslumas+atsaukimas metrikos. 100% = tobulas rezultatas."></i>
                                         </th>
                                         <th class="text-center">
                                             <i class="fas fa-crosshairs me-1"></i>Tikslumas
                                             <i class="fas fa-question-circle text-muted ms-1" 
                                                data-bs-toggle="tooltip" 
-                                               title="Kiek AI rastų propagandos fragmentų yra teisingi"></i>
+                                               title="Tikslumas = Teisingai_rasti / Visi_AI_rasti. Pvz: AI rado 10 fragmentų, 8 teisingi → 80% tikslumas. Matuoja 'klaidingų pavojų' kiekį."></i>
                                         </th>
                                         <th class="text-center">
                                             <i class="fas fa-search me-1"></i>Atsaukimas
                                             <i class="fas fa-question-circle text-muted ms-1" 
                                                data-bs-toggle="tooltip" 
-                                               title="Kokią dalį visų propagandos fragmentų AI surado"></i>
+                                               title="Atsaukimas = Teisingai_rasti / Visi_ekspertų_fragmentai. Pvz: ekspertai rado 10, AI surado 6 → 60% atsaukimas. Matuoja 'praleidimų' kiekį."></i>
                                         </th>
                                         <th class="text-center">
                                             <i class="fas fa-tachometer-alt me-1"></i>Greitis
@@ -261,7 +210,7 @@
                                             <i class="fas fa-star me-1"></i>Įvertis
                                             <i class="fas fa-question-circle text-muted ms-1" 
                                                data-bs-toggle="tooltip" 
-                                               title="Bendras modelio įvertinimas"></i>
+                                               title="Bendras modelio įvertinimas: F1×50% + Tikslumas×25% + Atsaukimas×25% (naudojamas reitingui)"></i>
                                         </th>
                                     </tr>
                                 </thead>
@@ -273,8 +222,8 @@
                                             $recall = $stats['avg_recall'] ?? 0;
                                             $avgTime = $globalStats['avg_execution_times'][$model] ?? 0;
                                             
-                                            // Calculate overall score (weighted average)
-                                            $overallScore = ($f1Score * 0.5) + ($precision * 0.25) + ($recall * 0.25);
+                                            // Use overall score from statistics service
+                                            $overallScore = $stats['overall_score'] ?? 0;
                                             
                                             // Determine performance level
                                             $performanceClass = $f1Score >= 0.7 ? 'success' : ($f1Score >= 0.4 ? 'warning' : 'danger');
@@ -296,7 +245,9 @@
                                                 </div>
                                             </td>
                                             <td class="text-center">
-                                                <span class="badge bg-primary">{{ $stats['total_analyses'] }}</span>
+                                                <span class="badge bg-success">{{ $stats['total_propaganda_texts'] ?? 0 }}</span>
+                                                <span class="text-muted">/</span>
+                                                <span class="badge bg-secondary">{{ $stats['total_analyses'] }}</span>
                                             </td>
                                             <td class="text-center">
                                                 <div class="d-flex align-items-center justify-content-center">
@@ -352,13 +303,16 @@
                 <div class="card-header">
                     <h6 class="mb-0">
                         <i class="fas fa-medal me-2"></i>Modelių reitingas
+                        <i class="fas fa-question-circle text-muted ms-1" 
+                           data-bs-toggle="tooltip" 
+                           title="Reitingas skaičiuojamas pagal bendrą įvertį: F1×50% + Tikslumas×25% + Atsaukimas×25%. Aukštesnis balas reiškia geresnį modelio našumą."></i>
                     </h6>
                 </div>
                 <div class="card-body">
                     @if(!empty($globalStats['model_performance']))
                         @php
                             $sortedModels = collect($globalStats['model_performance'])
-                                ->sortByDesc('avg_f1_score')
+                                ->sortByDesc('overall_score')
                                 ->take(5);
                         @endphp
                         @foreach($sortedModels as $model => $stats)
@@ -373,7 +327,7 @@
                                     <span class="fw-bold">#{{ $rank }}</span>
                                     <span class="ms-2">{{ $model }}</span>
                                 </div>
-                                <span class="badge bg-primary">{{ number_format($stats['avg_f1_score'] * 100, 1) }}%</span>
+                                <span class="badge bg-primary">{{ number_format(($stats['overall_score'] ?? 0) * 100, 0) }}</span>
                             </div>
                         @endforeach
                     @else
@@ -567,52 +521,14 @@ $(document).ready(function() {
     background-color: #e9ecef;
 }
 
-/* Enhanced Quick Actions Styling */
-.quick-actions-card {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    border-width: 2px;
+/* Quick Actions Styling */
+.card-body .btn {
+    transition: all 0.2s ease;
 }
 
-.quick-action-btn {
-    height: 120px;
-    border-width: 2px;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    position: relative;
-    overflow: hidden;
-}
-
-.quick-action-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-}
-
-.quick-action-btn i {
-    transition: transform 0.3s ease;
-}
-
-.quick-action-btn:hover i {
-    transform: scale(1.1);
-}
-
-.quick-action-btn::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.2),
-        transparent
-    );
-    transition: left 0.5s ease;
-}
-
-.quick-action-btn:hover::after {
-    left: 100%;
+.card-body .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
 }
 </style>
 

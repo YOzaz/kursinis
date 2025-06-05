@@ -45,15 +45,102 @@ class StatisticsService
             
         $performance = [];
         foreach ($metrics as $model => $modelMetrics) {
+            // Filter to only include propaganda texts for metrics calculation
+            $propagandaMetrics = $modelMetrics->filter(function($metric) {
+                $textAnalysis = $metric->textAnalysis;
+                if (!$textAnalysis || !$textAnalysis->expert_annotations) {
+                    return false;
+                }
+                return $this->expertFoundPropaganda($textAnalysis->expert_annotations);
+            });
+            
+            // Calculate accuracy for propaganda detection (all texts)
+            $accuracy = $this->calculatePropagandaDetectionAccuracy($modelMetrics);
+            
+            $f1Score = $propagandaMetrics->avg('f1_score') ?? 0;
+            $precision = $propagandaMetrics->avg('precision') ?? 0;
+            $recall = $propagandaMetrics->avg('recall') ?? 0;
+            
+            // Calculate overall score (weighted average: F1 more important)
+            $overallScore = ($f1Score * 0.5) + ($precision * 0.25) + ($recall * 0.25);
+            
             $performance[$model] = [
                 'total_analyses' => $modelMetrics->count(),
-                'avg_precision' => round($modelMetrics->avg('precision') ?? 0, 2),
-                'avg_recall' => round($modelMetrics->avg('recall') ?? 0, 2),
-                'avg_f1_score' => round($modelMetrics->avg('f1_score') ?? 0, 2),
+                'total_propaganda_texts' => $propagandaMetrics->count(),
+                'avg_precision' => round($precision, 2),
+                'avg_recall' => round($recall, 2),
+                'avg_f1_score' => round($f1Score, 2),
+                'overall_score' => round($overallScore, 2),
+                'propaganda_detection_accuracy' => round($accuracy, 2),
             ];
         }
         
         return $performance;
+    }
+    
+    /**
+     * Calculate accuracy for propaganda detection specifically.
+     * Only counts texts where model correctly identified propaganda presence/absence.
+     */
+    private function calculatePropagandaDetectionAccuracy($modelMetrics): float
+    {
+        $correctDetections = 0;
+        $totalTexts = 0;
+        
+        foreach ($modelMetrics as $metric) {
+            $textAnalysis = $metric->textAnalysis;
+            if (!$textAnalysis || !$textAnalysis->expert_annotations) {
+                continue;
+            }
+            
+            // Check if expert found propaganda
+            $expertFoundPropaganda = $this->expertFoundPropaganda($textAnalysis->expert_annotations);
+            
+            // Check if model found propaganda (has any true or false positives)
+            $modelFoundPropaganda = ($metric->true_positives + $metric->false_positives) > 0;
+            
+            // Count as correct if both agree on propaganda presence/absence
+            if ($expertFoundPropaganda === $modelFoundPropaganda) {
+                $correctDetections++;
+            }
+            
+            $totalTexts++;
+        }
+        
+        return $totalTexts > 0 ? $correctDetections / $totalTexts : 0;
+    }
+    
+    /**
+     * Check if expert annotations indicate propaganda was found.
+     */
+    private function expertFoundPropaganda(array $expertAnnotations): bool
+    {
+        // Check for label annotations (fragments)
+        foreach ($expertAnnotations as $annotation) {
+            if (isset($annotation['result'])) {
+                foreach ($annotation['result'] as $result) {
+                    if (isset($result['type']) && $result['type'] === 'labels' && 
+                        isset($result['value']['labels']) && !empty($result['value']['labels'])) {
+                        return true;
+                    }
+                }
+            }
+        }
+        
+        // Check for primary choice (document level)
+        foreach ($expertAnnotations as $annotation) {
+            if (isset($annotation['result'])) {
+                foreach ($annotation['result'] as $result) {
+                    if (isset($result['type']) && $result['type'] === 'choices' && 
+                        isset($result['value']['choices']) && 
+                        in_array('yes', $result['value']['choices'])) {
+                        return true;
+                    }
+                }
+            }
+        }
+        
+        return false;
     }
 
     public function calculateJobStatistics(AnalysisJob $job): array
@@ -66,35 +153,47 @@ class StatisticsService
                 'recall' => 0,
                 'f1_score' => 0,
                 'total_texts' => 0,
+                'propaganda_texts' => 0,
                 'with_expert_annotations' => 0,
             ];
         }
 
         $allMetrics = collect();
+        $propagandaMetrics = collect();
         $withExpertAnnotations = 0;
+        $propagandaTexts = 0;
         
         foreach ($textAnalyses as $textAnalysis) {
             if ($textAnalysis->expert_annotations) {
                 $withExpertAnnotations++;
+                
+                // Check if this is a propaganda text
+                $isPropaganda = $this->expertFoundPropaganda($textAnalysis->expert_annotations);
+                if ($isPropaganda) {
+                    $propagandaTexts++;
+                    $propagandaMetrics = $propagandaMetrics->merge($textAnalysis->comparisonMetrics);
+                }
             }
             $allMetrics = $allMetrics->merge($textAnalysis->comparisonMetrics);
         }
 
-        if ($allMetrics->isEmpty()) {
+        if ($propagandaMetrics->isEmpty()) {
             return [
                 'precision' => 0,
                 'recall' => 0,
                 'f1_score' => 0,
                 'total_texts' => $textAnalyses->count(),
+                'propaganda_texts' => $propagandaTexts,
                 'with_expert_annotations' => $withExpertAnnotations,
             ];
         }
 
         return [
-            'precision' => round($allMetrics->avg('precision') ?? 0, 2),
-            'recall' => round($allMetrics->avg('recall') ?? 0, 2),
-            'f1_score' => round($allMetrics->avg('f1_score') ?? 0, 2),
+            'precision' => round($propagandaMetrics->avg('precision') ?? 0, 2),
+            'recall' => round($propagandaMetrics->avg('recall') ?? 0, 2),
+            'f1_score' => round($propagandaMetrics->avg('f1_score') ?? 0, 2),
             'total_texts' => $textAnalyses->count(),
+            'propaganda_texts' => $propagandaTexts,
             'with_expert_annotations' => $withExpertAnnotations,
         ];
     }

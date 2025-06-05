@@ -121,7 +121,13 @@
                                         
                                         // If no metrics yet, use requested models count as fallback
                                         if ($modelCount === 0 && $analysis->requested_models) {
-                                            $modelCount = count(explode(',', $analysis->requested_models));
+                                            if (is_array($analysis->requested_models)) {
+                                                $modelCount = count($analysis->requested_models);
+                                            } elseif (is_string($analysis->requested_models)) {
+                                                $modelCount = count(explode(',', $analysis->requested_models));
+                                            } else {
+                                                $modelCount = 1; // fallback
+                                            }
                                         }
                                         
                                         // Ensure at least 1 model if we have analysis records
