@@ -278,6 +278,59 @@ class ModelAnalysisJob implements ShouldQueue
 
         $prompt = $this->createFileAnalysisPrompt($customPrompt) . "\n\nJSON DATA:\n" . $fileContent;
         
+        // For very long content, try to use the improved GeminiService with better error handling
+        if (strlen($prompt) > 15000) {
+            try {
+                $geminiService = app(\App\Services\GeminiService::class);
+                if ($geminiService->setModel($modelKey)) {
+                    $this->logProgress("Using improved GeminiService for long content", [
+                        'model' => $modelKey,
+                        'prompt_length' => strlen($prompt),
+                        'status' => 'processing'
+                    ]);
+                    
+                    // Since GeminiService expects single text analysis, we need to parse the JSON and analyze each text
+                    $jsonData = json_decode($fileContent, true);
+                    $results = [];
+                    
+                    foreach ($jsonData as $item) {
+                        if (isset($item['data']['content'])) {
+                            try {
+                                $textResult = $geminiService->analyzeText($item['data']['content'], $customPrompt);
+                                $results[] = [
+                                    'text_id' => $item['id'],
+                                    'primaryChoice' => $textResult['primaryChoice'] ?? ['choices' => ['no']],
+                                    'annotations' => $textResult['annotations'] ?? [],
+                                    'desinformationTechnique' => $textResult['desinformationTechnique'] ?? ['choices' => []]
+                                ];
+                            } catch (\Exception $e) {
+                                $this->logProgress("GeminiService failed for text " . $item['id'], [
+                                    'error' => $e->getMessage(),
+                                    'status' => 'error'
+                                ], 'error');
+                                
+                                // Add failed result
+                                $results[] = [
+                                    'text_id' => $item['id'],
+                                    'primaryChoice' => ['choices' => ['no']],
+                                    'annotations' => [],
+                                    'desinformationTechnique' => ['choices' => []],
+                                    'error' => $e->getMessage()
+                                ];
+                            }
+                        }
+                    }
+                    
+                    return $results;
+                }
+            } catch (\Exception $e) {
+                $this->logProgress("GeminiService fallback failed, using direct API", [
+                    'error' => $e->getMessage(),
+                    'status' => 'warning'
+                ], 'warning');
+            }
+        }
+        
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
         ])
@@ -333,7 +386,17 @@ class ModelAnalysisJob implements ShouldQueue
         if (isset($candidate['finishReason'])) {
             switch ($candidate['finishReason']) {
                 case 'MAX_TOKENS':
-                    throw new \Exception('Gemini API error: Response truncated due to max tokens limit. Try reducing input size or increasing max_tokens.');
+                    $this->logProgress("Gemini API MAX_TOKENS error - detailed info", [
+                        'model' => $modelKey,
+                        'finish_reason' => $candidate['finishReason'],
+                        'prompt_tokens' => $responseData['usageMetadata']['promptTokenCount'] ?? 'unknown',
+                        'total_tokens' => $responseData['usageMetadata']['totalTokenCount'] ?? 'unknown',
+                        'max_output_tokens_config' => $modelConfig['max_tokens'],
+                        'file_size' => strlen($fileContent),
+                        'full_response' => json_encode($responseData)
+                    ], 'error');
+                    
+                    throw new \Exception("Invalid Gemini API response format. Response: " . json_encode($responseData));
                 case 'SAFETY':
                     throw new \Exception('Gemini API error: Response blocked by safety filters.');
                 case 'RECITATION':

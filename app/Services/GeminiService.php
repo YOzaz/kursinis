@@ -50,8 +50,12 @@ class GeminiService implements LLMServiceInterface
         $retries = config('llm.error_handling.max_retries_per_model', 3);
         $baseRetryDelay = config('llm.error_handling.retry_delay_seconds', 2);
         $useExponentialBackoff = config('llm.error_handling.exponential_backoff', true);
-
-        for ($attempt = 1; $attempt <= $retries; $attempt++) {
+        
+        // Store original max_tokens to restore later
+        $originalMaxTokens = $this->config['max_tokens'];
+        
+        try {
+            for ($attempt = 1; $attempt <= $retries; $attempt++) {
             try {
                 $url = rtrim($this->config['base_url'], '/') . "/v1beta/models/{$this->config['model']}:generateContent";
                 
@@ -108,14 +112,39 @@ class GeminiService implements LLMServiceInterface
                 $candidate = $responseData['candidates'][0];
                 $finishReason = $candidate['finishReason'] ?? 'unknown';
                 
+                // Enhanced debug logging
+                Log::debug('Gemini API response structure', [
+                    'finish_reason' => $finishReason,
+                    'candidate_keys' => array_keys($candidate ?? []),
+                    'content_structure' => isset($candidate['content']) ? array_keys($candidate['content']) : null,
+                    'has_parts' => isset($candidate['content']['parts']),
+                    'full_response' => $responseData
+                ]);
+                
                 // Handle different finish reasons
                 if ($finishReason === 'MAX_TOKENS') {
-                    Log::warning('Gemini API atsakymas nutrauktas dėl maksimalaus token kiekio', [
+                    Log::error('Gemini API response truncated due to MAX_TOKENS', [
                         'finish_reason' => $finishReason,
-                        'attempt' => $attempt
+                        'attempt' => $attempt,
+                        'content_structure' => isset($candidate['content']) ? $candidate['content'] : null,
+                        'prompt_tokens' => $responseData['usageMetadata']['promptTokenCount'] ?? 'unknown',
+                        'total_tokens' => $responseData['usageMetadata']['totalTokenCount'] ?? 'unknown',
+                        'max_output_tokens_config' => $this->config['max_tokens'],
+                        'text_length' => strlen($text)
                     ]);
                     
+                    // Try with reduced max tokens if this is not the last attempt
                     if ($attempt < $retries) {
+                        // Reduce max tokens significantly for retry
+                        $originalMaxTokens = $this->config['max_tokens'];
+                        $this->config['max_tokens'] = min(8192, $originalMaxTokens / 2);
+                        
+                        Log::info('Retrying with reduced max_tokens', [
+                            'original_max_tokens' => $originalMaxTokens,
+                            'new_max_tokens' => $this->config['max_tokens'],
+                            'attempt' => $attempt
+                        ]);
+                        
                         $delay = $useExponentialBackoff 
                             ? $baseRetryDelay * pow(2, $attempt - 1)
                             : $baseRetryDelay * $attempt;
@@ -123,7 +152,7 @@ class GeminiService implements LLMServiceInterface
                         continue;
                     }
                     
-                    throw new \Exception('Gemini API atsakymas per ilgas - viršytas token limitas');
+                    throw new \Exception("Invalid Gemini API response format. Response: " . json_encode($responseData));
                 }
                 
                 if ($finishReason === 'SAFETY') {
@@ -137,9 +166,11 @@ class GeminiService implements LLMServiceInterface
                     Log::error('Gemini API neteisingas kandidato formatas', [
                         'candidate_keys' => array_keys($candidate ?? []),
                         'finish_reason' => $finishReason,
-                        'safety_ratings' => $candidate['safetyRatings'] ?? []
+                        'safety_ratings' => $candidate['safetyRatings'] ?? [],
+                        'content_structure' => isset($candidate['content']) ? $candidate['content'] : null,
+                        'full_response' => $responseData
                     ]);
-                    throw new \Exception('Neteisingas Gemini API atsakymo formatas');
+                    throw new \Exception("Invalid Gemini API response format. Response: " . json_encode($responseData));
                 }
 
                 $content = $responseData['candidates'][0]['content']['parts'][0]['text'];
@@ -204,6 +235,10 @@ class GeminiService implements LLMServiceInterface
         }
 
         throw new \Exception('Gemini analizė nepavyko po visų bandymų');
+        } finally {
+            // Restore original max_tokens configuration
+            $this->config['max_tokens'] = $originalMaxTokens;
+        }
     }
 
     /**
