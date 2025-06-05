@@ -516,29 +516,40 @@ class ModelAnalysisJob implements ShouldQueue
         unset($cleanResult['text_id']);
         
         $modelName = $modelConfig['model'] ?? $modelKey;
+        $errorMessage = $result['error'] ?? null;
         
+        // Store in new ModelResult table for progress tracking
+        $textAnalysis->storeModelResult(
+            $modelKey, 
+            $cleanResult, 
+            $modelName, 
+            null, // execution time - could be added later
+            $errorMessage
+        );
+        
+        // Also store in legacy TextAnalysis columns for backward compatibility
         switch ($provider) {
             case 'anthropic':
                 $textAnalysis->claude_annotations = $cleanResult;
                 $textAnalysis->claude_model_name = $modelName;
-                if (isset($result['error'])) {
-                    $textAnalysis->claude_error = $result['error'];
+                if ($errorMessage) {
+                    $textAnalysis->claude_error = $errorMessage;
                 }
                 break;
                 
             case 'openai':
                 $textAnalysis->gpt_annotations = $cleanResult;
                 $textAnalysis->gpt_model_name = $modelName;
-                if (isset($result['error'])) {
-                    $textAnalysis->gpt_error = $result['error'];
+                if ($errorMessage) {
+                    $textAnalysis->gpt_error = $errorMessage;
                 }
                 break;
                 
             case 'google':
                 $textAnalysis->gemini_annotations = $cleanResult;
                 $textAnalysis->gemini_model_name = $modelName;
-                if (isset($result['error'])) {
-                    $textAnalysis->gemini_error = $result['error'];
+                if ($errorMessage) {
+                    $textAnalysis->gemini_error = $errorMessage;
                 }
                 break;
         }
