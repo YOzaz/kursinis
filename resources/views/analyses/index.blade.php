@@ -9,7 +9,7 @@
             <h1>Analizių sąrašas</h1>
             <p class="text-muted mb-0">Visos atliktos propagandos analizės</p>
         </div>
-        <a href="{{ route('home') }}" class="btn btn-primary">
+        <a href="{{ route('create') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Nauja analizė
         </a>
     </div>
@@ -204,7 +204,7 @@
                 Dar nėra atlikta jokių propagandos analizių.<br>
                 Pradėkite naują analizę įkeldami JSON failą su tekstais.
             </p>
-            <a href="{{ route('home') }}" class="btn btn-primary">
+            <a href="{{ route('create') }}" class="btn btn-primary">
                 <i class="fas fa-upload"></i> Pradėti analizę
             </a>
         </div>
