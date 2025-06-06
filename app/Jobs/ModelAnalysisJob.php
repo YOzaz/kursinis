@@ -577,16 +577,38 @@ class ModelAnalysisJob implements ShouldQueue
             }
             
             $jsonString = trim($jsonString);
+            
+            // Clean control characters that cause "Control character error"
+            $jsonString = preg_replace('/[\x00-\x1F\x7F]/', '', $jsonString);
+            
+            // Try to fix common JSON issues
+            $jsonString = str_replace(["\n", "\r", "\t"], ['', '', ''], $jsonString);
+            $jsonString = preg_replace('/,\s*([}\]])/', '$1', $jsonString); // Remove trailing commas
+            
             $decoded = json_decode($jsonString, true);
             
             if (json_last_error() !== JSON_ERROR_NONE) {
-                $this->logProgress("All JSON parsing attempts failed", [
-                    'json_error' => json_last_error_msg(),
-                    'cleaned_content_preview' => substr($jsonString, 0, 200),
-                    'status' => 'parse_failed'
-                ], 'error');
+                // Last resort: try to extract just a valid JSON array/object structure
+                if (preg_match('/(\[.*?\]|\{.*?\})/s', $jsonString, $matches)) {
+                    $cleanedJson = $matches[1];
+                    $decoded = json_decode($cleanedJson, true);
+                    
+                    if (json_last_error() === JSON_ERROR_NONE) {
+                        $this->logProgress("Successfully parsed with fallback cleaning", [
+                            'status' => 'fallback_success'
+                        ], 'info');
+                    }
+                }
                 
-                throw new \Exception('Failed to parse file response JSON: ' . json_last_error_msg() . '. Content preview: ' . substr($jsonString, 0, 200));
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    $this->logProgress("All JSON parsing attempts failed", [
+                        'json_error' => json_last_error_msg(),
+                        'cleaned_content_preview' => substr($jsonString, 0, 200),
+                        'status' => 'parse_failed'
+                    ], 'error');
+                    
+                    throw new \Exception('Failed to parse file response JSON: ' . json_last_error_msg() . '. Content preview: ' . substr($jsonString, 0, 200));
+                }
             }
         }
         
