@@ -1660,15 +1660,34 @@ function displayModalHighlightedText(textAnalysisId, content, annotations, legen
     let lastIndex = 0;
     
     cleanedAnnotations.forEach(annotation => {
-        // Ensure we don't have negative positions or overlaps
-        const safeStart = Math.max(annotation.start, lastIndex);
-        const safeEnd = Math.max(annotation.end, safeStart);
+        // When AI provides text, find its actual position in content and trust it completely
+        let actualStart, actualEnd, annotationText;
+        
+        if (annotation.text && annotation.text.length > 0) {
+            // Trust AI-provided text completely
+            annotationText = annotation.text;
+            
+            // Find where this text actually appears in the content
+            const searchStart = Math.max(lastIndex, annotation.start - 50); // Search from last position
+            const foundPosition = content.indexOf(annotationText, searchStart);
+            
+            if (foundPosition !== -1 && foundPosition >= lastIndex) {
+                actualStart = foundPosition;
+                actualEnd = foundPosition + annotationText.length;
+            } else {
+                // Fallback: use provided coordinates  
+                actualStart = Math.max(annotation.start, lastIndex);
+                actualEnd = actualStart + annotationText.length;
+            }
+        } else {
+            // No AI text provided, use coordinate extraction
+            actualStart = Math.max(annotation.start, lastIndex);
+            actualEnd = Math.max(annotation.end, actualStart);
+            annotationText = content.substring(actualStart, actualEnd);
+        }
         
         // Add text before annotation
-        highlightedContent += escapeHtml(content.substring(lastIndex, safeStart));
-        
-        // Use AI-provided text if available, otherwise extract from content (trust provided text approach)
-        const annotationText = annotation.text || content.substring(safeStart, safeEnd);
+        highlightedContent += escapeHtml(content.substring(lastIndex, actualStart));
         
         // Add highlighted annotation with tooltip for multiple techniques
         const labels = Array.isArray(annotation.labels) ? annotation.labels : [annotation.technique];
@@ -1695,7 +1714,7 @@ function displayModalHighlightedText(textAnalysisId, content, annotations, legen
                                      data-bs-html="true"
                                      title="${tooltipContent}">${escapeHtml(annotationText)}</span>`;
         
-        lastIndex = safeEnd;
+        lastIndex = actualEnd;
     });
     
     // Add remaining text

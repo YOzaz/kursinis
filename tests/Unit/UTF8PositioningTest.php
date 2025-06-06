@@ -226,4 +226,35 @@ class UTF8PositioningTest extends TestCase
         // Should return true because 'simplification' is in both expert and model labels
         $this->assertTrue($overlap);
     }
+
+    public function test_no_text_duplication_when_ai_provides_full_text()
+    {
+        // Simulate the scenario where AI provides complete text that doesn't match coordinates
+        $annotation = [
+            'start' => 0,
+            'end' => 280, // Coordinates suggest 280 characters
+            'text' => 'Visų pirma nusiimkim spalvotus vaikiškus akinėlius, kuriuos mums kasdien uždeda ekranai iš visų pasaulio šalių, tada taip greit viską suprasim, kad ilgai stebėsimės, kaip anksčiau to nesupratom. Elementari tiesa, kurią nuo mūsų slepia – globalioje politikoje nėra jokių vertybių ir jokios tiesos', // But full text is 295 characters
+            'technique' => 'simplification',
+            'labels' => ['simplification', 'emotionalExpression']
+        ];
+        
+        $originalText = 'Visų pirma nusiimkim spalvotus vaikiškus akinėlius, kuriuos mums kasdien uždeda ekranai iš visų pasaulio šalių, tada taip greit viską suprasim, kad ilgai stebėsimės, kaip anksčiau to nesupratom. Elementari tiesa, kurią nuo mūsų slepia – globalioje politikoje nėra jokių vertybių ir jokios tiesos, išskyrus kovą dėl įtakų, resursų, pelnų, valdžios ir teritorijų.';
+        
+        // Verify that AI text is complete and doesn't get truncated
+        $this->assertStringEndsWith('jokios tiesos', $annotation['text']);
+        $this->assertNotEquals(280, mb_strlen($annotation['text'], 'UTF-8')); // Text is longer than coordinates suggest
+        
+        // Verify the text appears in original content
+        $this->assertStringContainsString($annotation['text'], $originalText);
+        
+        // Find position of AI text in original content
+        $foundPosition = mb_strpos($originalText, $annotation['text'], 0, 'UTF-8');
+        $this->assertEquals(0, $foundPosition); // Should be at the beginning
+        
+        // Verify no duplication would occur - text after annotation should not repeat
+        $afterPosition = $foundPosition + mb_strlen($annotation['text'], 'UTF-8');
+        $textAfter = mb_substr($originalText, $afterPosition, 20, 'UTF-8');
+        $this->assertEquals(', išskyrus kovą dėl ', $textAfter);
+        $this->assertStringNotContainsString('jokios tiesos', $textAfter); // No duplication
+    }
 }

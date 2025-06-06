@@ -65,8 +65,10 @@ echo 'Position 280 (chars): ' . mb_substr(\$text, 0, 280, 'UTF-8') . PHP_EOL;
 
 **JavaScript Improvements:**
 - Fixed "trust provided text" approach in JavaScript display functions
-- Enhanced tooltip content for multiple techniques with HTML formatting
-- Improved error handling for jQuery/Bootstrap initialization
+- **CRITICAL FIX**: Eliminated text duplication when AI provides full text that doesn't match coordinates
+- Enhanced tooltip content for multiple techniques with HTML formatting  
+- Improved text positioning logic to prevent overlapping annotations
+- Added intelligent text search to find actual AI text position in content
 
 **Example of Multiple Techniques:**
 ```json
