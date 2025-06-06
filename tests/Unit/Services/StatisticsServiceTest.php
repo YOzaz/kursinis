@@ -371,4 +371,131 @@ class StatisticsServiceTest extends TestCase
         $this->assertEquals(0, $claudeStats['propaganda_tn']);
         $this->assertEquals(0, $claudeStats['propaganda_fn']);
     }
+
+    public function test_confusion_matrix_excludes_timeout_errors(): void
+    {
+        $job = AnalysisJob::factory()->create();
+        
+        // Create a text analysis with a model that timed out/errored
+        $textAnalysisTimeout = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'expert_annotations' => [
+                [
+                    'result' => [
+                        [
+                            'type' => 'labels',
+                            'value' => [
+                                'labels' => ['propaganda']
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            'claude_error' => 'Request timeout after 60 seconds', // Model failed
+        ]);
+        
+        // Create a ComparisonMetric for this failed analysis (this shouldn't count)
+        ComparisonMetric::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => $textAnalysisTimeout->text_id,
+            'model_name' => 'claude-opus-4',
+            'true_positives' => 0,
+            'false_positives' => 0,
+            'false_negatives' => 0,
+        ]);
+
+        // Create a successful analysis for comparison
+        $textAnalysisSuccess = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'expert_annotations' => [
+                [
+                    'result' => [
+                        [
+                            'type' => 'labels',
+                            'value' => [
+                                'labels' => ['propaganda']
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            'claude_error' => null, // No error
+            'claude_annotations' => ['annotations' => []], // Model ran successfully
+        ]);
+        
+        ComparisonMetric::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => $textAnalysisSuccess->text_id,
+            'model_name' => 'claude-opus-4',
+            'true_positives' => 1,
+            'false_positives' => 0,
+            'false_negatives' => 0,
+        ]);
+
+        $statistics = $this->service->getGlobalStatistics();
+        $claudeStats = $statistics['model_performance']['claude-opus-4'];
+        
+        // Only the successful analysis should be counted
+        // The timeout case should be completely excluded
+        $this->assertEquals(1, $claudeStats['propaganda_tp']); // From successful analysis
+        $this->assertEquals(0, $claudeStats['propaganda_fp']);
+        $this->assertEquals(0, $claudeStats['propaganda_tn']); 
+        $this->assertEquals(0, $claudeStats['propaganda_fn']);
+        
+        // Total should only reflect successfully analyzed texts
+        $totalAnalyzed = $claudeStats['propaganda_tp'] + $claudeStats['propaganda_fp'] + 
+                        $claudeStats['propaganda_tn'] + $claudeStats['propaganda_fn'];
+        $this->assertEquals(1, $totalAnalyzed); // Only 1 text successfully analyzed
+    }
+
+    public function test_confusion_matrix_excludes_model_result_failures(): void
+    {
+        $job = AnalysisJob::factory()->create();
+        
+        // Create text analysis
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'expert_annotations' => [
+                [
+                    'result' => [
+                        [
+                            'type' => 'labels',
+                            'value' => [
+                                'labels' => ['propaganda']
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ]);
+        
+        // Create a failed ModelResult
+        \App\Models\ModelResult::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => $textAnalysis->text_id,
+            'model_key' => 'claude-opus-4',
+            'status' => \App\Models\ModelResult::STATUS_FAILED,
+            'error_message' => 'API timeout',
+            'annotations' => null,
+        ]);
+        
+        // ComparisonMetric might still exist (legacy)
+        ComparisonMetric::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => $textAnalysis->text_id,
+            'model_name' => 'claude-opus-4',
+            'true_positives' => 0,
+            'false_positives' => 0,
+            'false_negatives' => 0,
+        ]);
+
+        $statistics = $this->service->getGlobalStatistics();
+        $claudeStats = $statistics['model_performance']['claude-opus-4'];
+        
+        // Failed ModelResult should be excluded from confusion matrix
+        $this->assertEquals(0, $claudeStats['propaganda_tp']);
+        $this->assertEquals(0, $claudeStats['propaganda_fp']);
+        $this->assertEquals(0, $claudeStats['propaganda_tn']);
+        $this->assertEquals(0, $claudeStats['propaganda_fn']);
+    }
 }

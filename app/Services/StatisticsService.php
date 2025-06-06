@@ -89,6 +89,7 @@ class StatisticsService
     /**
      * Calculate confusion matrix for propaganda detection at text level.
      * Returns TP, FP, TN, FN for propaganda presence/absence detection.
+     * Excludes texts where the model failed to analyze (timeout/error).
      */
     private function calculatePropagandaConfusionMatrix($modelMetrics): array
     {
@@ -101,6 +102,11 @@ class StatisticsService
             $textAnalysis = $metric->textAnalysis;
             if (!$textAnalysis || !$textAnalysis->expert_annotations) {
                 continue;
+            }
+            
+            // Skip this text if the model failed to analyze it (timeout/error)
+            if (!$this->modelSuccessfullyAnalyzed($textAnalysis, $metric->model_name)) {
+                continue; // Exclude from confusion matrix calculation
             }
             
             // Check if expert found propaganda
@@ -130,6 +136,52 @@ class StatisticsService
     }
 
     /**
+     * Check if a model successfully analyzed a text (no timeout/error).
+     * 
+     * @param TextAnalysis $textAnalysis
+     * @param string $modelName
+     * @return bool
+     */
+    private function modelSuccessfullyAnalyzed(TextAnalysis $textAnalysis, string $modelName): bool
+    {
+        // First check new ModelResult table (preferred)
+        $modelResult = $textAnalysis->modelResults()->where('model_key', $modelName)->first();
+        if ($modelResult) {
+            return $modelResult->isSuccessful();
+        }
+        
+        // Fallback to legacy TextAnalysis fields
+        $annotations = $textAnalysis->getModelAnnotations($modelName);
+        $errorField = $this->getErrorField($modelName);
+        
+        // Consider successful if:
+        // 1. Has annotations (even empty array - means model ran)
+        // 2. No error message in error field
+        if ($errorField && !empty($textAnalysis->$errorField)) {
+            return false; // Has error message
+        }
+        
+        // If annotations exist (even empty), consider it a successful run
+        return $annotations !== null;
+    }
+    
+    /**
+     * Get the error field name for a model.
+     */
+    private function getErrorField(string $modelName): ?string
+    {
+        if (str_starts_with($modelName, 'claude')) {
+            return 'claude_error';
+        } elseif (str_starts_with($modelName, 'gemini')) {
+            return 'gemini_error';
+        } elseif (str_starts_with($modelName, 'gpt')) {
+            return 'gpt_error';
+        }
+        
+        return null;
+    }
+
+    /**
      * Calculate accuracy for propaganda detection specifically.
      * Only counts texts where model correctly identified propaganda presence/absence.
      */
@@ -142,6 +194,11 @@ class StatisticsService
             $textAnalysis = $metric->textAnalysis;
             if (!$textAnalysis || !$textAnalysis->expert_annotations) {
                 continue;
+            }
+            
+            // Skip this text if the model failed to analyze it (timeout/error)
+            if (!$this->modelSuccessfullyAnalyzed($textAnalysis, $metric->model_name)) {
+                continue; // Exclude from accuracy calculation
             }
             
             // Check if expert found propaganda

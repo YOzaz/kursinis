@@ -201,6 +201,27 @@ The system now provides **deeper propaganda detection statistics** at the text l
 **Text-Level Precision**: 15 / (15 + 3) = 83.3%
 **Text-Level Recall**: 15 / (15 + 7) = 68.2%
 
+#### Critical Important: Timeout/Error Handling (2025-06-06)
+
+**Texts where models failed to analyze are EXCLUDED from confusion matrix calculations.**
+
+**Why This Matters:**
+- **Timeout ≠ "No Propaganda"**: When a model times out, it means the model failed to analyze, not that it found no propaganda
+- **Error ≠ "No Propaganda"**: API errors, quota limits, etc. should not count as negative predictions
+- **Accurate Metrics**: Only texts that were successfully analyzed should be included in performance metrics
+
+**Implementation:**
+- System checks `ModelResult.isSuccessful()` before including in calculations
+- Texts with `status = 'failed'` or `error_message` are excluded
+- Dashboard shows only metrics for successfully analyzed texts
+- Tooltips clearly indicate this exclusion policy
+
+**Example with Exclusions:**
+- **Total Texts**: 100
+- **Successfully Analyzed**: 90 (10 failed due to timeout/error)
+- **TP**: 15, **FP**: 3, **TN**: 65, **FN**: 7
+- **Accuracy**: (15 + 65) / 90 = 88.9% (calculated on 90 texts, not 100)
+
 ## 🧠 Advanced Methodology
 
 ### Category Mapping Intelligence
