@@ -160,6 +160,59 @@ $executionTimeMs = (int) round(($endTime - $startTime) * 1000);
 
 ---
 
+## 🗑️ Analysis Delete Functionality
+
+### Delete Cancelled Analyses
+
+**Issue**: No way to remove cancelled analyses from the system, leading to database clutter and making it harder to manage the analysis list.
+
+**Solution**: Implemented secure delete functionality with cascade data removal.
+
+**Features**:
+- Delete button for cancelled analyses in UI (analysis list and progress pages)
+- Confirmation dialogs to prevent accidental deletion
+- Cascade deletion of all related data (TextAnalysis, ModelResult, ComparisonMetric)
+- Security validation - only cancelled analyses can be deleted
+- Proper logging of delete operations
+- CSRF protection and authentication requirements
+
+**Usage**:
+1. Navigate to analysis list or specific cancelled analysis page
+2. Click red "Ištrinti" (Delete) button next to cancelled analyses
+3. Confirm deletion in browser dialog
+4. Analysis and all related data is permanently removed
+
+**Files Modified**:
+- `app/Http/Controllers/AnalysisController.php` - Added `delete()` method and `deleteRelatedData()` helper
+- `resources/views/analyses/index.blade.php` - Added delete button for cancelled jobs
+- `resources/views/progress.blade.php` - Added delete option for cancelled analyses
+- `routes/web.php` - Added DELETE route for analysis deletion
+
+**API Endpoint**:
+```http
+DELETE /analysis/delete
+Content-Type: application/x-www-form-urlencoded
+
+job_id=your-job-id-here
+```
+
+**Cascade Deletion Process**:
+1. **Validation**: Verify analysis exists and is cancelled
+2. **ComparisonMetric cleanup**: Remove precision, recall, F1 metrics
+3. **ModelResult cleanup**: Remove AI model analysis results 
+4. **TextAnalysis cleanup**: Remove text content and expert annotations
+5. **AnalysisJob removal**: Delete main analysis record
+6. **Logging**: Record successful deletion with job details
+
+**Security Features**:
+- ✅ Only cancelled analyses can be deleted (status validation)
+- ✅ CSRF token protection against cross-site attacks
+- ✅ Authentication required for delete operations
+- ✅ Comprehensive validation of job_id parameter
+- ✅ Error handling for non-existent or invalid analyses
+
+---
+
 ## 🧪 Test Coverage
 
 ### Comprehensive Test Suite
@@ -171,12 +224,15 @@ Added extensive test coverage for all new features:
 - `tests/Feature/AnalysisStopTest.php` - Analysis stop functionality
 - `tests/Feature/AnalysisRepeatTest.php` - Repeat analysis functionality
 - `tests/Feature/MissionControlConcurrentModelsTest.php` - Mission control status tracking
+- **TODO**: `tests/Feature/AnalysisDeleteTest.php` - Analysis deletion functionality (pending)
 
 **Test Coverage**:
 - ✅ Environment-based authentication with various user formats
 - ✅ Analysis stop for different job statuses
 - ✅ Repeat analysis with different prompt types
 - ✅ Mission control concurrent model status tracking
+- 🔄 **TODO**: Analysis deletion with cascade data removal
+- 🔄 **TODO**: Delete validation and security checks
 - ✅ Edge cases and error conditions
 - ✅ Validation and security checks
 
@@ -200,10 +256,11 @@ php artisan test --testsuite=Unit
 ### Files Modified
 1. **Authentication**: `SimpleAuth.php` + tests
 2. **Analysis Management**: `AnalysisController.php`, `AnalysisJob.php`, `show.blade.php` + tests
-3. **Mission Control**: `WebController.php` + tests
-4. **Speed Metrics**: `ModelAnalysisJob.php`, `TextAnalysis.php`
-5. **Routes**: Added stop analysis route
-6. **Documentation**: This file
+3. **Analysis Deletion**: `AnalysisController.php`, `index.blade.php`, `progress.blade.php` + route
+4. **Mission Control**: `WebController.php` + tests
+5. **Speed Metrics**: `ModelAnalysisJob.php`, `TextAnalysis.php`
+6. **Routes**: Added stop and delete analysis routes
+7. **Documentation**: This file and API.md updates
 
 ### Database Changes
 - Added `STATUS_CANCELLED = 'cancelled'` constant to `AnalysisJob` model
@@ -259,6 +316,7 @@ php artisan test --testsuite=Unit
 |-------|--------|---------|
 | Hardcoded auth users | ✅ Fixed | High - Security & Maintenance |
 | No analysis stop | ✅ Fixed | High - Resource Management |
+| No analysis deletion | ✅ Fixed | Medium - Data Management |
 | Broken repeat analysis | ✅ Fixed | High - Core Functionality |
 | IDLE status for concurrent models | ✅ Fixed | Medium - UX & Monitoring |
 | Empty speed column | ✅ Fixed | Medium - Data Visibility |

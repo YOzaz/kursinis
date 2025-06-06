@@ -415,7 +415,77 @@ Repeat a previous analysis with new parameters (such as different custom prompt 
 }
 ```
 
-### 7. System Health
+### 8. Delete Analysis
+
+**Endpoint**: `DELETE /analysis/delete`
+
+Delete a cancelled analysis job and all its related data. Only cancelled analyses can be deleted to ensure data integrity and prevent accidental deletion of active or completed analyses.
+
+#### Request
+
+```json
+{
+  "job_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+#### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `job_id` | string | Yes | ID of the cancelled analysis to delete |
+
+#### Response (Success)
+
+```json
+{
+  "success": true,
+  "message": "Analizė sėkmingai ištrinta."
+}
+```
+
+#### Response (Error - Not Cancelled)
+
+```json
+{
+  "success": false,
+  "message": "Galima ištrinti tik atšauktas analizes."
+}
+```
+
+#### Cascade Deletion
+
+When an analysis is deleted, the following related data is automatically removed:
+
+- **TextAnalysis records** - All text content and expert annotations
+- **ModelResult records** - All AI model analysis results and execution times
+- **ComparisonMetric records** - All precision, recall, and F1 score metrics
+
+#### Security and Validation
+
+- **Authentication required** - Must be logged in to delete analyses
+- **CSRF protection** - Prevents cross-site request forgery
+- **Status validation** - Only `cancelled` status analyses can be deleted
+- **Existence validation** - Analysis must exist in the database
+
+#### Example Usage
+
+```bash
+curl -X DELETE https://your-domain.com/analysis/delete \
+  -H "Content-Type: application/json" \
+  -H "X-CSRF-TOKEN: your-csrf-token" \
+  -d '{"job_id": "550e8400-e29b-41d4-a716-446655440000"}'
+```
+
+#### Common Error Codes
+
+| Error | Description |
+|-------|-------------|
+| 400 | Invalid job_id or analysis not found |
+| 403 | Cannot delete non-cancelled analysis |
+| 422 | Validation error (missing job_id) |
+
+### 9. System Health
 
 **Endpoint**: `GET /api/health`
 
@@ -460,7 +530,7 @@ Check system status and model availability.
 }
 ```
 
-### 8. Available Models
+### 10. Available Models
 
 **Endpoint**: `GET /api/models`
 
@@ -508,7 +578,7 @@ Get list of available LLM models and their configuration.
 }
 ```
 
-### 9. Text Annotations for Highlighting
+### 11. Text Annotations for Highlighting
 
 **Endpoint**: `GET /text-annotations/{textAnalysisId}`  
 **Description**: Retrieve text annotations with highlighting information for visualization
@@ -855,7 +925,7 @@ REQUEST_TIMEOUT=60
 RETRY_ATTEMPTS=3
 ```
 
-### 9. Text Annotations and Highlighting
+### 12. Text Annotations and Highlighting
 
 **Endpoint**: `GET /api/text-annotations/{textAnalysisId}`
 
@@ -907,7 +977,7 @@ fetch('/api/text-annotations/123?view=ai')
   });
 ```
 
-### 10. Dashboard Export
+### 13. Dashboard Export
 
 **Endpoint**: `GET /api/dashboard/export`
 

@@ -49,6 +49,7 @@ Universali propagandos analizės platforma, kuri veikia dviem pagrindiniais rež
 **Didelės funkcionalumo plėtros ir klaidų pataisymai:**
 - 🔐 **Vartotojų valdymas aplinkos kintamuosiuose** - nebereikia keisti kodo
 - ⏹️ **Analizės sustabdymas** - galimybė sustabdyti vykstančias analizes
+- 🗑️ **Analizės trynimas** - galimybė ištrinti atšauktas analizes su CASCADE duomenų šalinimu
 - 🔄 **Pataisyta pakartotinių analizių funkcija** - veikia su naująja architektūra
 - 📊 **Pataisytas "IDLE" statusas** - tikslus lygiagrečių modelių stebėjimas
 - ⚡ **Greičio metrikos** - analizės trukmės matavimas ir rodymas
@@ -79,7 +80,8 @@ Universali propagandos analizės platforma, kuri veikia dviem pagrindiniais rež
 
 ### 📊 Sistemos funkcionalumas
 - **Dashboard**: Centralizuotas sistemos vaizdas su statistikomis ir greitais veiksmais
-- **Analizių valdymas**: Galimybė paleisti, stebėti ir eksportuoti analizių rezultatus
+- **Analizių valdymas**: Galimybė paleisti, stebėti, sustabdyti, pakartoti ir eksportuoti analizių rezultatus
+- **Analizių trynimas**: Saugi atšauktų analizių šalinimo funkcija su CASCADE duomenų išvalymu
 - **Mission Control**: Real-time sistemos monitoringas su log'ų stebėjimu
 - **Eksportavimas**: JSON/CSV formatuose su detaliais metrikų duomenimis
 - **Regionų lygio metrikų skaičiavimas**: Precision, Recall, F1 Score, Cohen's Kappa (atnaujinta 2025-06-06)
@@ -155,6 +157,7 @@ OPENAI_API_KEY=your_openai_api_key
 4. Pasirinkti LLM modelius analizei  
 5. Stebėti progresą **Mission Control** puslapyje
 6. Peržiūrėti rezultatus ir eksportuoti duomenis
+7. **Analizių valdymas**: Sustabdyti vykstančias analizes arba ištrinti atšauktas
 
 #### 🎛️ Mission Control
 - Real-time sistemos monitoringas

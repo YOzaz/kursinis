@@ -52,6 +52,7 @@
                         <option value="processing">Vykdoma</option>
                         <option value="failed">Nepavyko</option>
                         <option value="pending">Laukia</option>
+                        <option value="cancelled">Atšaukta</option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -87,8 +88,8 @@
                                     <i class="fas fa-chart-line text-primary me-1"></i>Standartinė analizė
                                 @endif
                             </h6>
-                            <span class="badge badge-{{ $analysis->status === 'completed' ? 'success' : ($analysis->status === 'processing' ? 'warning' : ($analysis->status === 'failed' ? 'danger' : 'secondary')) }}">
-                                {{ ucfirst($analysis->status) }}
+                            <span class="badge badge-{{ $analysis->status === 'completed' ? 'success' : ($analysis->status === 'processing' ? 'warning' : ($analysis->status === 'failed' ? 'danger' : ($analysis->status === 'cancelled' ? 'dark' : 'secondary'))) }}">
+                                {{ $analysis->status === 'cancelled' ? 'Atšaukta' : ucfirst($analysis->status) }}
                             </span>
                         </div>
                         <div class="card-body">
@@ -166,24 +167,48 @@
                                 <small class="text-danger">
                                     <i class="fas fa-exclamation-triangle"></i> Analizė nepavyko ({{ round($failedProgressPercent, 1) }}%)
                                 </small>
+                            @elseif($analysis->status === 'cancelled')
+                                <div class="progress mb-2" style="height: 8px;">
+                                    <div class="progress-bar bg-dark" style="width: 100%"></div>
+                                </div>
+                                <small class="text-muted">
+                                    <i class="fas fa-ban"></i> Analizė atšaukta
+                                </small>
                             @endif
                         </div>
                         <div class="card-footer">
-                            <div class="d-flex justify-content-between">
-                                @if($analysis->status === 'completed')
-                                    <a href="{{ route('analyses.show', $analysis->job_id) }}" class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-eye"></i> Peržiūrėti
-                                    </a>
-                                @else
-                                    <a href="{{ route('progress', $analysis->job_id) }}" class="btn btn-sm btn-outline-secondary">
-                                        <i class="fas fa-clock"></i> Statusas
-                                    </a>
-                                @endif
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    @if($analysis->status === 'completed')
+                                        <a href="{{ route('analyses.show', $analysis->job_id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> Peržiūrėti
+                                        </a>
+                                    @elseif($analysis->status === 'cancelled')
+                                        <span class="text-muted small">
+                                            <i class="fas fa-ban"></i> Analizė atšaukta
+                                        </span>
+                                    @else
+                                        <a href="{{ route('progress', $analysis->job_id) }}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-clock"></i> Statusas
+                                        </a>
+                                    @endif
+                                    
+                                    @if($analysis->experiment_id)
+                                        <a href="{{ route('experiments.show', $analysis->experiment_id) }}" class="btn btn-sm btn-outline-warning ms-1">
+                                            <i class="fas fa-flask"></i> Eksperimentas
+                                        </a>
+                                    @endif
+                                </div>
                                 
-                                @if($analysis->experiment_id)
-                                    <a href="{{ route('experiments.show', $analysis->experiment_id) }}" class="btn btn-sm btn-outline-warning">
-                                        <i class="fas fa-flask"></i> Eksperimentas
-                                    </a>
+                                @if($analysis->status === 'cancelled')
+                                    <form method="POST" action="{{ route('analysis.delete') }}" class="d-inline" onsubmit="return confirm('Ar tikrai norite ištrinti šią analizę? Šis veiksmas negrįžtamas.')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <input type="hidden" name="job_id" value="{{ $analysis->job_id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Ištrinti analizę">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
                                 @endif
                             </div>
                         </div>
@@ -253,6 +278,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             break;
                         case 'pending':
                             visible = visible && statusClasses.includes('badge-secondary');
+                            break;
+                        case 'cancelled':
+                            visible = visible && statusClasses.includes('badge-dark');
                             break;
                     }
                 }

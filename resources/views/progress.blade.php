@@ -142,6 +142,20 @@
                             <i class="fas fa-download me-2"></i>
                             Atsisiųsti CSV failą
                         </a>
+                    @elseif($job->status === 'cancelled')
+                        <div class="alert alert-warning">
+                            <i class="fas fa-ban me-2"></i>
+                            <strong>Analizė atšaukta.</strong> Jei norite, galite ištrinti šią analizę iš sistemos.
+                        </div>
+                        <form method="POST" action="{{ route('analysis.delete') }}" class="mb-2" onsubmit="return confirm('Ar tikrai norite ištrinti šią analizę? Visi susiję duomenys bus pašalinti negrįžtamai.')">
+                            @csrf
+                            @method('DELETE')
+                            <input type="hidden" name="job_id" value="{{ $job->job_id }}">
+                            <button type="submit" class="btn btn-danger btn-lg w-100">
+                                <i class="fas fa-trash me-2"></i>
+                                Ištrinti analizę
+                            </button>
+                        </form>
                     @endif
                     
                     <a href="{{ route('home') }}" class="btn btn-outline-secondary">

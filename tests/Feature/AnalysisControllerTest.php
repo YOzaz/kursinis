@@ -10,6 +10,7 @@ use App\Jobs\BatchAnalysisJob;
 use App\Jobs\BatchAnalysisJobV4;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class AnalysisControllerTest extends TestCase
@@ -420,5 +421,448 @@ class AnalysisControllerTest extends TestCase
         $this->assertEquals('Custom batch analysis prompt', $job->custom_prompt);
         $this->assertEquals('Custom Batch Analysis', $job->name);
         $this->assertEquals('Testing batch analysis with custom parameters', $job->description);
+    }
+
+    /**
+     * Set up authenticated session for each test.
+     */
+    protected function authenticateUser(): void
+    {
+        $this->withSession(['authenticated' => true, 'username' => 'admin']);
+    }
+
+    /**
+     * Test successful deletion of a cancelled analysis job.
+     */
+    public function test_delete_cancelled_analysis_successfully(): void
+    {
+        $this->authenticateUser();
+        
+        // Create a cancelled analysis job with related data
+        $jobId = (string) Str::uuid();
+        $job = AnalysisJob::create([
+            'job_id' => $jobId,
+            'status' => AnalysisJob::STATUS_CANCELLED,
+            'name' => 'Test Cancelled Analysis',
+            'description' => 'Analysis that was cancelled',
+            'total_texts' => 1,
+            'processed_texts' => 0
+        ]);
+
+        // Create related data
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => 'test-delete-1',
+            'content' => 'Test content for deletion'
+        ]);
+
+        ComparisonMetric::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => 'test-delete-1',
+            'model_name' => 'claude-opus-4'
+        ]);
+
+        \App\Models\ModelResult::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => 'test-delete-1',
+            'model_key' => 'claude-opus-4'
+        ]);
+
+        // Verify data exists before deletion
+        $this->assertDatabaseHas('analysis_jobs', ['job_id' => $job->job_id]);
+        $this->assertDatabaseHas('text_analysis', ['job_id' => $job->job_id]);
+        $this->assertDatabaseHas('comparison_metrics', ['job_id' => $job->job_id]);
+        $this->assertDatabaseHas('model_results', ['job_id' => $job->job_id]);
+
+        // Perform deletion
+        $response = $this->delete('/analysis/delete', [
+            'job_id' => $job->job_id
+        ]);
+
+        // Assert redirect with success message
+        $response->assertRedirect(route('analyses.index'))
+                ->assertSessionHas('success', 'Analizė sėkmingai ištrinta.');
+
+        // Verify cascade deletion - all related data should be deleted
+        $this->assertDatabaseMissing('analysis_jobs', ['job_id' => $job->job_id]);
+        $this->assertDatabaseMissing('text_analysis', ['job_id' => $job->job_id]);
+        $this->assertDatabaseMissing('comparison_metrics', ['job_id' => $job->job_id]);
+        $this->assertDatabaseMissing('model_results', ['job_id' => $job->job_id]);
+    }
+
+    /**
+     * Test rejection of deletion for non-cancelled analysis (completed status).
+     */
+    public function test_delete_completed_analysis_rejected(): void
+    {
+        $this->authenticateUser();
+        
+        $jobId = (string) Str::uuid();
+        $job = AnalysisJob::create([
+            'job_id' => $jobId,
+            'status' => AnalysisJob::STATUS_COMPLETED,
+            'name' => 'Completed Analysis',
+            'total_texts' => 1,
+            'processed_texts' => 1
+        ]);
+
+        $response = $this->delete('/analysis/delete', [
+            'job_id' => $job->job_id
+        ]);
+
+        $response->assertRedirect()
+                ->assertSessionHas('error', 'Galima ištrinti tik atšauktas analizes.');
+
+        // Verify job still exists
+        $this->assertDatabaseHas('analysis_jobs', ['job_id' => $job->job_id]);
+    }
+
+    /**
+     * Test rejection of deletion for processing analysis.
+     */
+    public function test_delete_processing_analysis_rejected(): void
+    {
+        $this->authenticateUser();
+        
+        $jobId = (string) Str::uuid();
+        $job = AnalysisJob::create([
+            'job_id' => $jobId,
+            'status' => AnalysisJob::STATUS_PROCESSING,
+            'name' => 'Processing Analysis',
+            'total_texts' => 1,
+            'processed_texts' => 0
+        ]);
+
+        $response = $this->delete('/analysis/delete', [
+            'job_id' => $job->job_id
+        ]);
+
+        $response->assertRedirect()
+                ->assertSessionHas('error', 'Galima ištrinti tik atšauktas analizes.');
+
+        // Verify job still exists
+        $this->assertDatabaseHas('analysis_jobs', ['job_id' => $job->job_id]);
+    }
+
+    /**
+     * Test rejection of deletion for pending analysis.
+     */
+    public function test_delete_pending_analysis_rejected(): void
+    {
+        $this->authenticateUser();
+        
+        $jobId = (string) Str::uuid();
+        $job = AnalysisJob::create([
+            'job_id' => $jobId,
+            'status' => AnalysisJob::STATUS_PENDING,
+            'name' => 'Pending Analysis',
+            'total_texts' => 1,
+            'processed_texts' => 0
+        ]);
+
+        $response = $this->delete('/analysis/delete', [
+            'job_id' => $job->job_id
+        ]);
+
+        $response->assertRedirect()
+                ->assertSessionHas('error', 'Galima ištrinti tik atšauktas analizes.');
+
+        // Verify job still exists
+        $this->assertDatabaseHas('analysis_jobs', ['job_id' => $job->job_id]);
+    }
+
+    /**
+     * Test rejection of deletion for failed analysis.
+     */
+    public function test_delete_failed_analysis_rejected(): void
+    {
+        $this->authenticateUser();
+        
+        $jobId = (string) Str::uuid();
+        $job = AnalysisJob::create([
+            'job_id' => $jobId,
+            'status' => AnalysisJob::STATUS_FAILED,
+            'name' => 'Failed Analysis',
+            'error_message' => 'Analysis failed due to API error',
+            'total_texts' => 1,
+            'processed_texts' => 0
+        ]);
+
+        $response = $this->delete('/analysis/delete', [
+            'job_id' => $job->job_id
+        ]);
+
+        $response->assertRedirect()
+                ->assertSessionHas('error', 'Galima ištrinti tik atšauktas analizes.');
+
+        // Verify job still exists
+        $this->assertDatabaseHas('analysis_jobs', ['job_id' => $job->job_id]);
+    }
+
+    /**
+     * Test validation error when job_id is missing.
+     */
+    public function test_delete_analysis_validation_job_id_required(): void
+    {
+        $this->authenticateUser();
+        
+        $response = $this->delete('/analysis/delete', []);
+
+        $response->assertSessionHasErrors(['job_id']);
+    }
+
+    /**
+     * Test validation error when job_id doesn't exist.
+     */
+    public function test_delete_analysis_validation_job_id_not_exists(): void
+    {
+        $this->authenticateUser();
+        
+        $response = $this->delete('/analysis/delete', [
+            'job_id' => 'non-existent-job-id'
+        ]);
+
+        $response->assertSessionHasErrors(['job_id']);
+    }
+
+    /**
+     * Test cascade deletion verification with multiple related records.
+     */
+    public function test_delete_cancelled_analysis_cascade_deletion_multiple_records(): void
+    {
+        $this->authenticateUser();
+        
+        $jobId = (string) Str::uuid();
+        $job = AnalysisJob::create([
+            'job_id' => $jobId,
+            'status' => AnalysisJob::STATUS_CANCELLED,
+            'name' => 'Test Multiple Records Deletion',
+            'total_texts' => 2,
+            'processed_texts' => 0
+        ]);
+
+        // Create multiple text analyses
+        $textAnalysis1 = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => 'multi-test-1'
+        ]);
+
+        $textAnalysis2 = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => 'multi-test-2'
+        ]);
+
+        // Create multiple comparison metrics
+        ComparisonMetric::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => 'multi-test-1',
+            'model_name' => 'claude-opus-4'
+        ]);
+
+        ComparisonMetric::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => 'multi-test-1',
+            'model_name' => 'gpt-4.1'
+        ]);
+
+        ComparisonMetric::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => 'multi-test-2',
+            'model_name' => 'claude-opus-4'
+        ]);
+
+        // Create multiple model results
+        \App\Models\ModelResult::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => 'multi-test-1',
+            'model_key' => 'claude-opus-4'
+        ]);
+
+        \App\Models\ModelResult::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => 'multi-test-1',
+            'model_key' => 'gpt-4.1'
+        ]);
+
+        \App\Models\ModelResult::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => 'multi-test-2',
+            'model_key' => 'claude-opus-4'
+        ]);
+
+        // Verify all records exist before deletion
+        $this->assertEquals(1, AnalysisJob::where('job_id', $job->job_id)->count());
+        $this->assertEquals(2, TextAnalysis::where('job_id', $job->job_id)->count());
+        $this->assertEquals(3, ComparisonMetric::where('job_id', $job->job_id)->count());
+        $this->assertEquals(3, \App\Models\ModelResult::where('job_id', $job->job_id)->count());
+
+        // Perform deletion
+        $response = $this->delete('/analysis/delete', [
+            'job_id' => $job->job_id
+        ]);
+
+        $response->assertRedirect(route('analyses.index'))
+                ->assertSessionHas('success', 'Analizė sėkmingai ištrinta.');
+
+        // Verify all records are deleted
+        $this->assertEquals(0, AnalysisJob::where('job_id', $job->job_id)->count());
+        $this->assertEquals(0, TextAnalysis::where('job_id', $job->job_id)->count());
+        $this->assertEquals(0, ComparisonMetric::where('job_id', $job->job_id)->count());
+        $this->assertEquals(0, \App\Models\ModelResult::where('job_id', $job->job_id)->count());
+    }
+
+    /**
+     * Test that deleting one analysis doesn't affect other analyses.
+     */
+    public function test_delete_analysis_doesnt_affect_other_analyses(): void
+    {
+        $this->authenticateUser();
+        
+        // Create two analyses
+        $jobToDeleteId = (string) Str::uuid();
+        $jobToDelete = AnalysisJob::create([
+            'job_id' => $jobToDeleteId,
+            'status' => AnalysisJob::STATUS_CANCELLED,
+            'name' => 'Analysis to Delete',
+            'total_texts' => 1,
+            'processed_texts' => 0
+        ]);
+
+        $jobToKeepId = (string) Str::uuid();
+        $jobToKeep = AnalysisJob::create([
+            'job_id' => $jobToKeepId,
+            'status' => AnalysisJob::STATUS_COMPLETED,
+            'name' => 'Analysis to Keep',
+            'total_texts' => 1,
+            'processed_texts' => 1
+        ]);
+
+        // Create related data for both analyses
+        TextAnalysis::factory()->create([
+            'job_id' => $jobToDelete->job_id,
+            'text_id' => 'delete-text-1'
+        ]);
+
+        TextAnalysis::factory()->create([
+            'job_id' => $jobToKeep->job_id,
+            'text_id' => 'keep-text-1'
+        ]);
+
+        ComparisonMetric::factory()->create([
+            'job_id' => $jobToDelete->job_id,
+            'text_id' => 'delete-text-1'
+        ]);
+
+        ComparisonMetric::factory()->create([
+            'job_id' => $jobToKeep->job_id,
+            'text_id' => 'keep-text-1'
+        ]);
+
+        // Perform deletion of only the cancelled analysis
+        $response = $this->delete('/analysis/delete', [
+            'job_id' => $jobToDelete->job_id
+        ]);
+
+        $response->assertRedirect(route('analyses.index'))
+                ->assertSessionHas('success', 'Analizė sėkmingai ištrinta.');
+
+        // Verify only the target analysis is deleted
+        $this->assertDatabaseMissing('analysis_jobs', ['job_id' => $jobToDelete->job_id]);
+        $this->assertDatabaseMissing('text_analysis', ['job_id' => $jobToDelete->job_id]);
+        $this->assertDatabaseMissing('comparison_metrics', ['job_id' => $jobToDelete->job_id]);
+
+        // Verify the other analysis is preserved
+        $this->assertDatabaseHas('analysis_jobs', ['job_id' => $jobToKeep->job_id]);
+        $this->assertDatabaseHas('text_analysis', ['job_id' => $jobToKeep->job_id]);
+        $this->assertDatabaseHas('comparison_metrics', ['job_id' => $jobToKeep->job_id]);
+    }
+
+    /**
+     * Test delete functionality handles cases where some related data doesn't exist.
+     */
+    public function test_delete_cancelled_analysis_with_partial_data(): void
+    {
+        $this->authenticateUser();
+        
+        $jobId = (string) Str::uuid();
+        $job = AnalysisJob::create([
+            'job_id' => $jobId,
+            'status' => AnalysisJob::STATUS_CANCELLED,
+            'name' => 'Analysis with Partial Data',
+            'total_texts' => 1,
+            'processed_texts' => 0
+        ]);
+
+        // Create only text analysis but no metrics or model results
+        TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => 'partial-test-1'
+        ]);
+
+        // No ComparisonMetric or ModelResult records created intentionally
+
+        $response = $this->delete('/analysis/delete', [
+            'job_id' => $job->job_id
+        ]);
+
+        $response->assertRedirect(route('analyses.index'))
+                ->assertSessionHas('success', 'Analizė sėkmingai ištrinta.');
+
+        // Verify deletion succeeded even with partial data
+        $this->assertDatabaseMissing('analysis_jobs', ['job_id' => $job->job_id]);
+        $this->assertDatabaseMissing('text_analysis', ['job_id' => $job->job_id]);
+    }
+
+    /**
+     * Test delete functionality with a cancelled analysis that has no related data.
+     */
+    public function test_delete_cancelled_analysis_with_no_related_data(): void
+    {
+        $this->authenticateUser();
+        
+        $jobId = (string) Str::uuid();
+        $job = AnalysisJob::create([
+            'job_id' => $jobId,
+            'status' => AnalysisJob::STATUS_CANCELLED,
+            'name' => 'Analysis with No Related Data',
+            'total_texts' => 0,
+            'processed_texts' => 0
+        ]);
+
+        // No related data created
+
+        $response = $this->delete('/analysis/delete', [
+            'job_id' => $job->job_id
+        ]);
+
+        $response->assertRedirect(route('analyses.index'))
+                ->assertSessionHas('success', 'Analizė sėkmingai ištrinta.');
+
+        // Verify deletion succeeded
+        $this->assertDatabaseMissing('analysis_jobs', ['job_id' => $job->job_id]);
+    }
+
+    /**
+     * Test delete functionality without authentication - should redirect to login.
+     */
+    public function test_delete_analysis_unauthenticated_redirects_to_login(): void
+    {
+        $jobId = (string) Str::uuid();
+        $job = AnalysisJob::create([
+            'job_id' => $jobId,
+            'status' => AnalysisJob::STATUS_CANCELLED,
+            'name' => 'Test Cancelled Analysis',
+            'total_texts' => 1,
+            'processed_texts' => 0
+        ]);
+
+        $response = $this->delete('/analysis/delete', [
+            'job_id' => $job->job_id
+        ]);
+
+        $response->assertRedirect('/login');
+
+        // Verify job still exists
+        $this->assertDatabaseHas('analysis_jobs', ['job_id' => $job->job_id]);
     }
 }

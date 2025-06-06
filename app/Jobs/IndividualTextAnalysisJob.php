@@ -206,24 +206,73 @@ class IndividualTextAnalysisJob implements ShouldQueue
             'status' => 'processing'
         ]);
         
-        switch ($provider) {
-            case 'anthropic':
-                $service = app(ClaudeService::class);
-                $service->setModel($modelKey);
-                return $service->analyzeText($content, $customPrompt);
-                
-            case 'openai':
-                $service = app(OpenAIService::class);
-                $service->setModel($modelKey);
-                return $service->analyzeText($content, $customPrompt);
-                
-            case 'google':
-                $service = app(GeminiService::class);
-                $service->setModel($modelKey);
-                return $service->analyzeText($content, $customPrompt);
-                
-            default:
-                throw new \Exception("Unsupported provider: {$provider}");
+        // Measure execution time
+        $startTime = microtime(true);
+        
+        try {
+            $result = null;
+            
+            switch ($provider) {
+                case 'anthropic':
+                    $service = app(ClaudeService::class);
+                    $service->setModel($modelKey);
+                    $result = $service->analyzeText($content, $customPrompt);
+                    break;
+                    
+                case 'openai':
+                    $service = app(OpenAIService::class);
+                    $service->setModel($modelKey);
+                    $result = $service->analyzeText($content, $customPrompt);
+                    break;
+                    
+                case 'google':
+                    $service = app(GeminiService::class);
+                    $service->setModel($modelKey);
+                    $result = $service->analyzeText($content, $customPrompt);
+                    break;
+                    
+                default:
+                    throw new \Exception("Unsupported provider: {$provider}");
+            }
+            
+            // Calculate execution time in milliseconds
+            $executionTimeMs = round((microtime(true) - $startTime) * 1000);
+            
+            // Add execution time to result
+            $result['execution_time_ms'] = $executionTimeMs;
+            
+            $this->logProgress("Model analysis completed", [
+                'model' => $modelKey,
+                'execution_time_ms' => $executionTimeMs,
+                'status' => 'timing_recorded'
+            ]);
+            
+            return $result;
+            
+        } catch (\Exception $e) {
+            // Still record execution time for failed requests
+            $executionTimeMs = round((microtime(true) - $startTime) * 1000);
+            
+            // For critical configuration errors, throw immediately
+            if (str_contains($e->getMessage(), 'Unsupported provider') || 
+                str_contains($e->getMessage(), 'not found in configuration')) {
+                throw $e;
+            }
+            
+            // Add execution time and error to result
+            $result = [
+                'error' => $e->getMessage(),
+                'execution_time_ms' => $executionTimeMs
+            ];
+            
+            $this->logProgress("Model analysis failed", [
+                'model' => $modelKey,
+                'execution_time_ms' => $executionTimeMs,
+                'error' => $e->getMessage(),
+                'status' => 'failed_with_timing'
+            ]);
+            
+            return $result;
         }
     }
 
@@ -245,7 +294,9 @@ class IndividualTextAnalysisJob implements ShouldQueue
         $provider = $modelConfig['provider'] ?? 'unknown';
         
         $cleanResult = $result;
+        $executionTimeMs = $result['execution_time_ms'] ?? null;
         unset($cleanResult['error']);
+        unset($cleanResult['execution_time_ms']);
         
         $modelName = $modelConfig['model'] ?? $modelKey;
         $errorMessage = $result['error'] ?? null;
@@ -256,7 +307,7 @@ class IndividualTextAnalysisJob implements ShouldQueue
                 $modelKey, 
                 $cleanResult, 
                 $modelName, 
-                null, // execution time - could be added later
+                $executionTimeMs,
                 $errorMessage
             );
             
@@ -281,6 +332,9 @@ class IndividualTextAnalysisJob implements ShouldQueue
             case 'anthropic':
                 $textAnalysis->claude_annotations = $cleanResult;
                 $textAnalysis->claude_model_name = $modelName;
+                if ($executionTimeMs !== null) {
+                    $textAnalysis->claude_execution_time_ms = $executionTimeMs;
+                }
                 if ($errorMessage) {
                     $textAnalysis->claude_error = $errorMessage;
                 }
@@ -289,6 +343,9 @@ class IndividualTextAnalysisJob implements ShouldQueue
             case 'openai':
                 $textAnalysis->gpt_annotations = $cleanResult;
                 $textAnalysis->gpt_model_name = $modelName;
+                if ($executionTimeMs !== null) {
+                    $textAnalysis->gpt_execution_time_ms = $executionTimeMs;
+                }
                 if ($errorMessage) {
                     $textAnalysis->gpt_error = $errorMessage;
                 }
@@ -297,6 +354,9 @@ class IndividualTextAnalysisJob implements ShouldQueue
             case 'google':
                 $textAnalysis->gemini_annotations = $cleanResult;
                 $textAnalysis->gemini_model_name = $modelName;
+                if ($executionTimeMs !== null) {
+                    $textAnalysis->gemini_execution_time_ms = $executionTimeMs;
+                }
                 if ($errorMessage) {
                     $textAnalysis->gemini_error = $errorMessage;
                 }

@@ -35,6 +35,7 @@ Route::get('/analyses', [AnalysisController::class, 'index'])->name('analyses.in
 Route::get('/analyses/{jobId}', [AnalysisController::class, 'show'])->name('analyses.show');
 Route::post('/analysis/repeat', [AnalysisController::class, 'repeat'])->name('analysis.repeat');
 Route::post('/analysis/stop', [AnalysisController::class, 'stop'])->name('analysis.stop');
+Route::delete('/analysis/delete', [AnalysisController::class, 'delete'])->name('analysis.delete');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 

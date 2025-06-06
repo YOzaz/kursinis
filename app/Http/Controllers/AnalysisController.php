@@ -1068,6 +1068,72 @@ class AnalysisController extends Controller
     }
 
     /**
+     * Delete a cancelled analysis job and all related data.
+     */
+    public function delete(Request $request)
+    {
+        $request->validate([
+            'job_id' => 'required|string|exists:analysis_jobs,job_id'
+        ]);
+
+        try {
+            $job = AnalysisJob::where('job_id', $request->job_id)->firstOrFail();
+
+            // Can only delete cancelled jobs
+            if ($job->status !== 'cancelled') {
+                return redirect()->back()->with('error', 'Galima ištrinti tik atšauktas analizes.');
+            }
+
+            // Delete all related data (cascade deletion)
+            $this->deleteRelatedData($request->job_id);
+
+            // Delete the main job
+            $job->delete();
+
+            Log::info('Analizė ištrinta', [
+                'job_id' => $request->job_id,
+                'status' => $job->status,
+                'name' => $job->name
+            ]);
+
+            return redirect()->route('analyses.index')
+                ->with('success', 'Analizė sėkmingai ištrinta.');
+
+        } catch (\Exception $e) {
+            Log::error('Analizės trynimo klaida', [
+                'job_id' => $request->job_id,
+                'error' => $e->getMessage()
+            ]);
+
+            return redirect()->back()->with('error', 'Įvyko klaida trinant analizę: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Delete all data related to an analysis job.
+     */
+    private function deleteRelatedData(string $jobId): void
+    {
+        Log::info('Deleting related data for analysis job', ['job_id' => $jobId]);
+
+        // Delete comparison metrics
+        $deletedMetrics = \App\Models\ComparisonMetric::where('job_id', $jobId)->delete();
+        
+        // Delete model results
+        $deletedResults = \App\Models\ModelResult::where('job_id', $jobId)->delete();
+        
+        // Delete text analyses
+        $deletedTexts = TextAnalysis::where('job_id', $jobId)->delete();
+
+        Log::info('Related data deleted', [
+            'job_id' => $jobId,
+            'deleted_metrics' => $deletedMetrics,
+            'deleted_results' => $deletedResults,
+            'deleted_texts' => $deletedTexts
+        ]);
+    }
+
+    /**
      * Dispatch analysis jobs for repeat analysis.
      */
     private function dispatchAnalysisJobs(string $jobId, array $models, ?string $customPrompt = null): void

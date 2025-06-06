@@ -851,6 +851,70 @@ tail -50 storage/logs/laravel.log
 php artisan queue:monitor
 ```
 
+## 🗑️ Analysis Deletion Issues
+
+### Cannot Delete Analysis
+
+#### Problem: Delete Button Not Visible
+```
+Delete button doesn't appear in analysis list or progress page
+```
+
+**Solution:**
+- Only **cancelled** analyses can be deleted
+- First stop the analysis using "Sustabdyti analizę" button
+- Delete button will appear once analysis status is "cancelled"
+
+#### Problem: Delete Operation Fails
+```
+Error: "Galima ištrinti tik atšauktas analizes"
+```
+
+**Solution:**
+```bash
+# Check analysis status
+php artisan tinker
+>>> App\Models\AnalysisJob::where('job_id', 'your-job-id')->value('status')
+
+# Manually set to cancelled if needed (only for stuck jobs)
+>>> App\Models\AnalysisJob::where('job_id', 'your-job-id')->update(['status' => 'cancelled'])
+```
+
+#### Problem: Database Constraint Errors
+```
+SQLSTATE[23000]: Integrity constraint violation
+```
+
+**Solution:**
+- The cascade deletion should handle all related data automatically
+- If errors persist, check the logs:
+```bash
+tail -f storage/logs/laravel.log
+```
+
+#### Problem: Partial Data Deletion
+```
+Analysis deleted but related data remains
+```
+
+**Investigation:**
+```bash
+# Check for orphaned records
+php artisan tinker
+>>> App\Models\TextAnalysis::where('job_id', 'deleted-job-id')->count()
+>>> App\Models\ModelResult::where('job_id', 'deleted-job-id')->count()
+>>> App\Models\ComparisonMetric::where('job_id', 'deleted-job-id')->count()
+```
+
+**Manual Cleanup (if needed):**
+```bash
+php artisan tinker
+>>> $jobId = 'your-job-id';
+>>> App\Models\ComparisonMetric::where('job_id', $jobId)->delete();
+>>> App\Models\ModelResult::where('job_id', $jobId)->delete();
+>>> App\Models\TextAnalysis::where('job_id', $jobId)->delete();
+```
+
 ### Contact Information
 
 - **Project Author:** Marijus Plančiūnas (marijus.planciunas@mif.stud.vu.lt)

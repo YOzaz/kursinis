@@ -205,17 +205,50 @@ class StatisticsService
     {
         $executionTimes = [];
         
-        // First try to get execution times from comparison metrics
-        $metrics = ComparisonMetric::whereNotNull('analysis_execution_time_ms')
-            ->get()
-            ->groupBy('model_name');
+        // Get execution times from TextAnalysis table (primary source)
+        $textAnalyses = TextAnalysis::whereNotNull('claude_execution_time_ms')
+            ->orWhereNotNull('gpt_execution_time_ms')
+            ->orWhereNotNull('gemini_execution_time_ms')
+            ->get();
             
-        foreach ($metrics as $model => $modelMetrics) {
-            $avgTime = $modelMetrics->avg('analysis_execution_time_ms');
-            $executionTimes[$model] = round($avgTime, 0);
+        foreach ($textAnalyses as $analysis) {
+            // Claude times
+            if ($analysis->claude_execution_time_ms > 0) {
+                $executionTimes['claude-opus-4'] = ($executionTimes['claude-opus-4'] ?? []);
+                $executionTimes['claude-opus-4'][] = $analysis->claude_execution_time_ms;
+                
+                // Also count for claude-sonnet-4 if it was used
+                $executionTimes['claude-sonnet-4'] = ($executionTimes['claude-sonnet-4'] ?? []);
+                $executionTimes['claude-sonnet-4'][] = $analysis->claude_execution_time_ms;
+            }
+            
+            // GPT times
+            if ($analysis->gpt_execution_time_ms > 0) {
+                $executionTimes['gpt-4.1'] = ($executionTimes['gpt-4.1'] ?? []);
+                $executionTimes['gpt-4.1'][] = $analysis->gpt_execution_time_ms;
+                
+                $executionTimes['gpt-4o-latest'] = ($executionTimes['gpt-4o-latest'] ?? []);
+                $executionTimes['gpt-4o-latest'][] = $analysis->gpt_execution_time_ms;
+            }
+            
+            // Gemini times
+            if ($analysis->gemini_execution_time_ms > 0) {
+                $executionTimes['gemini-2.5-pro'] = ($executionTimes['gemini-2.5-pro'] ?? []);
+                $executionTimes['gemini-2.5-pro'][] = $analysis->gemini_execution_time_ms;
+                
+                $executionTimes['gemini-2.5-flash'] = ($executionTimes['gemini-2.5-flash'] ?? []);
+                $executionTimes['gemini-2.5-flash'][] = $analysis->gemini_execution_time_ms;
+            }
         }
         
-        // If no execution time data in comparison metrics, try model_results table
+        // Calculate averages
+        foreach ($executionTimes as $model => $times) {
+            if (!empty($times)) {
+                $executionTimes[$model] = round(array_sum($times) / count($times), 0);
+            }
+        }
+        
+        // Try ModelResult table as backup
         if (empty($executionTimes)) {
             $modelResults = \App\Models\ModelResult::whereNotNull('execution_time_ms')
                 ->where('status', 'completed')
@@ -230,11 +263,17 @@ class StatisticsService
             }
         }
         
-        // If still no execution time data, provide placeholder for configured models
+        // Also try comparison metrics as backup
         if (empty($executionTimes)) {
-            $configuredModels = config('llm.models', []);
-            foreach ($configuredModels as $modelKey => $config) {
-                $executionTimes[$modelKey] = 0; // Will show "Nėra duomenų"
+            $metrics = ComparisonMetric::whereNotNull('analysis_execution_time_ms')
+                ->get()
+                ->groupBy('model_name');
+                
+            foreach ($metrics as $model => $modelMetrics) {
+                $avgTime = $modelMetrics->avg('analysis_execution_time_ms');
+                if ($avgTime > 0) {
+                    $executionTimes[$model] = round($avgTime, 0);
+                }
             }
         }
         
