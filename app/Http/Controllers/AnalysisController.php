@@ -1114,16 +1114,19 @@ class AnalysisController extends Controller
                                 }
                                 $techniqueCount[$technique]++;
                                 
+                                // Always trust the provided text from AI, recalculate coordinates if needed
+                                $providedText = $annotation['value']['text'] ?? '';
                                 $start = $annotation['value']['start'];
                                 $end = $annotation['value']['end'];
-                                // Extract text from original content to ensure accuracy
-                                $extractedText = substr($originalText, $start, $end - $start);
+                                
+                                // Use provided text if available, otherwise extract from coordinates
+                                $finalText = !empty($providedText) ? $providedText : mb_substr($originalText, $start, $end - $start, 'UTF-8');
                                 
                                 $annotations[] = [
                                     'start' => $start,
                                     'end' => $end,
                                     'technique' => $technique,
-                                    'text' => $extractedText
+                                    'text' => $finalText
                                 ];
                             }
                         }
@@ -1136,16 +1139,19 @@ class AnalysisController extends Controller
                                 }
                                 $techniqueCount[$technique]++;
                                 
+                                // Always trust the provided text from AI, recalculate coordinates if needed
+                                $providedText = $annotation['value']['text'] ?? '';
                                 $start = $annotation['value']['start'];
                                 $end = $annotation['value']['end'];
-                                // Extract text from original content to ensure accuracy
-                                $extractedText = substr($originalText, $start, $end - $start);
+                                
+                                // Use provided text if available, otherwise extract from coordinates
+                                $finalText = !empty($providedText) ? $providedText : mb_substr($originalText, $start, $end - $start, 'UTF-8');
                                 
                                 $annotations[] = [
                                     'start' => $start,
                                     'end' => $end,
                                     'technique' => $technique,
-                                    'text' => $extractedText
+                                    'text' => $finalText
                                 ];
                             }
                         }
@@ -1195,16 +1201,19 @@ class AnalysisController extends Controller
                                     $key = $annotation['value']['start'] . '-' . $annotation['value']['end'] . '-' . $technique;
                                     
                                     if (!isset($techniquePositions[$key])) {
+                                        // Always trust the provided text from AI, recalculate coordinates if needed
+                                        $providedText = $annotation['value']['text'] ?? '';
                                         $start = $annotation['value']['start'];
                                         $end = $annotation['value']['end'];
-                                        // Extract text from original content to ensure accuracy
-                                        $extractedText = substr($originalText, $start, $end - $start);
+                                        
+                                        // Use provided text if available, otherwise extract from coordinates
+                                        $finalText = !empty($providedText) ? $providedText : mb_substr($originalText, $start, $end - $start, 'UTF-8');
                                         
                                         $techniquePositions[$key] = [
                                             'start' => $start,
                                             'end' => $end,
                                             'technique' => $technique,
-                                            'text' => $extractedText,
+                                            'text' => $finalText,
                                             'count' => 0,
                                             'models' => []
                                         ];
