@@ -583,6 +583,14 @@ class WebController extends Controller
                         $hasFailed = true;
                     }
                 } else {
+                    // Check if this model was requested but doesn't have results yet
+                    if ($analysis->analysisJob && 
+                        in_array($analysis->analysisJob->status, ['pending', 'processing']) &&
+                        $analysis->analysisJob->requested_models &&
+                        in_array($modelKey, $analysis->analysisJob->requested_models)) {
+                        $modelWasUsed = true;
+                        // This will be counted as pending below
+                    }
                     // FALLBACK: Check legacy architecture only if no new results exist
                     switch ($provider) {
                         case 'anthropic':

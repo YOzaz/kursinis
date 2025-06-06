@@ -23,12 +23,8 @@ class SimpleAuth
             $username = $request->input('username');
             $password = $request->input('password');
             
-            // Simple hardcoded credentials (in production, use database/hash)
-            $validUsers = [
-                'admin' => env('ADMIN_PASSWORD', 'propaganda2025'),
-                'marijus' => env('ADMIN_PASSWORD', 'propaganda2025'),
-                'darius' => env('ADMIN_PASSWORD', 'propaganda2025'),
-            ];
+            // Load valid users from environment configuration
+            $validUsers = $this->getValidUsers();
             
             if (isset($validUsers[$username]) && $validUsers[$username] === $password) {
                 $request->session()->put('authenticated', true);
@@ -45,5 +41,36 @@ class SimpleAuth
         }
         
         return $next($request);
+    }
+
+    /**
+     * Get valid users from environment configuration.
+     */
+    private function getValidUsers(): array
+    {
+        $users = [];
+        
+        // Parse AUTH_USERS from .env file
+        // Format: "username1:password1,username2:password2"
+        $authUsers = env('AUTH_USERS', 'admin:propaganda2025');
+        
+        if (!empty($authUsers)) {
+            $userPairs = explode(',', $authUsers);
+            
+            foreach ($userPairs as $userPair) {
+                $userPair = trim($userPair);
+                if (str_contains($userPair, ':')) {
+                    [$username, $password] = explode(':', $userPair, 2);
+                    $users[trim($username)] = trim($password);
+                }
+            }
+        }
+        
+        // Fallback to default admin user if no users configured
+        if (empty($users)) {
+            $users['admin'] = env('ADMIN_PASSWORD', 'propaganda2025');
+        }
+        
+        return $users;
     }
 }

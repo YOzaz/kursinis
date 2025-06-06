@@ -44,6 +44,17 @@ Universali propagandos analizės platforma, kuri veikia dviem pagrindiniais rež
 - Identifikuoja ATSPARA propagandos technikas ir disinformacijos naratyvus
 - Generuoja struktūrizuotus analizės rezultatus praktiniam naudojimui
 
+## 🆕 Nauji priedai (2025 m. sausis)
+
+**Didelės funkcionalumo plėtros ir klaidų pataisymai:**
+- 🔐 **Vartotojų valdymas aplinkos kintamuosiuose** - nebereikia keisti kodo
+- ⏹️ **Analizės sustabdymas** - galimybė sustabdyti vykstančias analizes
+- 🔄 **Pataisyta pakartotinių analizių funkcija** - veikia su naująja architektūra
+- 📊 **Pataisytas "IDLE" statusas** - tikslus lygiagrečių modelių stebėjimas
+- ⚡ **Greičio metrikos** - analizės trukmės matavimas ir rodymas
+
+**Plačiau:** [NEW-FEATURES-2025.md](docs/NEW-FEATURES-2025.md)
+
 ## ⭐ Pagrindinės funkcijos
 
 ### 🤖 LLM modelių integracija

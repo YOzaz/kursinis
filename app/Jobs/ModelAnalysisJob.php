@@ -152,15 +152,32 @@ class ModelAnalysisJob implements ShouldQueue
         
         $provider = $modelConfig['provider'];
         
-        switch ($provider) {
-            case 'anthropic':
-                return $this->processClaudeWithAttachment($modelKey, $tempFile, $customPrompt);
-            case 'openai':
-                return $this->processOpenAIWithAttachment($modelKey, $tempFile, $customPrompt);
-            case 'google':
-                return $this->processGeminiWithFileAPI($modelKey, $tempFile, $customPrompt);
-            default:
-                throw new \Exception("Unsupported provider: {$provider}");
+        // Measure execution time for the entire model processing
+        $startTime = microtime(true);
+        
+        try {
+            $results = match ($provider) {
+                'anthropic' => $this->processClaudeWithAttachment($modelKey, $tempFile, $customPrompt),
+                'openai' => $this->processOpenAIWithAttachment($modelKey, $tempFile, $customPrompt),
+                'google' => $this->processGeminiWithFileAPI($modelKey, $tempFile, $customPrompt),
+                default => throw new \Exception("Unsupported provider: {$provider}")
+            };
+            
+            $endTime = microtime(true);
+            $executionTimeMs = (int) round(($endTime - $startTime) * 1000);
+            
+            // Add execution time to all results
+            foreach ($results as &$result) {
+                $result['execution_time_ms'] = $executionTimeMs;
+            }
+            
+            return $results;
+        } catch (\Exception $e) {
+            $endTime = microtime(true);
+            $executionTimeMs = (int) round(($endTime - $startTime) * 1000);
+            
+            // Add execution time even for failed requests
+            throw new \Exception($e->getMessage() . " (Execution time: {$executionTimeMs}ms)");
         }
     }
 
@@ -662,9 +679,11 @@ class ModelAnalysisJob implements ShouldQueue
         $cleanResult = $result;
         unset($cleanResult['error']);
         unset($cleanResult['text_id']);
+        unset($cleanResult['execution_time_ms']);
         
         $modelName = $modelConfig['model'] ?? $modelKey;
         $errorMessage = $result['error'] ?? null;
+        $executionTimeMs = $result['execution_time_ms'] ?? null;
         
         try {
             // Store in new ModelResult table for progress tracking
@@ -672,7 +691,7 @@ class ModelAnalysisJob implements ShouldQueue
                 $modelKey, 
                 $cleanResult, 
                 $modelName, 
-                null, // execution time - could be added later
+                $executionTimeMs,
                 $errorMessage
             );
             

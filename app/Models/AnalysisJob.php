@@ -76,6 +76,7 @@ class AnalysisJob extends Model
     const STATUS_PROCESSING = 'processing';
     const STATUS_COMPLETED = 'completed';
     const STATUS_FAILED = 'failed';
+    const STATUS_CANCELLED = 'cancelled';
 
     /**
      * Gauti visas tekstų analizės.
@@ -115,6 +116,14 @@ class AnalysisJob extends Model
     public function isFailed(): bool
     {
         return $this->status === self::STATUS_FAILED;
+    }
+
+    /**
+     * Patikrinti ar darbas buvo atšauktas.
+     */
+    public function isCancelled(): bool
+    {
+        return $this->status === self::STATUS_CANCELLED;
     }
 
     /**

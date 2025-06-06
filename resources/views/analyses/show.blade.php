@@ -1634,12 +1634,40 @@ function displayModalHighlightedText(textAnalysisId, content, annotations, legen
     // Sort annotations by start position
     const sortedAnnotations = [...annotations].sort((a, b) => a.start - b.start);
     
+    // Remove overlapping annotations to prevent text duplication
+    const cleanedAnnotations = [];
+    let lastEnd = 0;
+    
+    sortedAnnotations.forEach(annotation => {
+        // Only add if annotation doesn't overlap with previous one
+        if (annotation.start >= lastEnd) {
+            cleanedAnnotations.push(annotation);
+            lastEnd = annotation.end;
+        } else if (annotation.end > lastEnd) {
+            // Partial overlap - adjust start position
+            annotation.start = lastEnd;
+            if (annotation.start < annotation.end) {
+                // Extract correct text for adjusted annotation
+                annotation.text = content.substring(annotation.start, annotation.end);
+                cleanedAnnotations.push(annotation);
+                lastEnd = annotation.end;
+            }
+        }
+    });
+    
     let highlightedContent = '';
     let lastIndex = 0;
     
-    sortedAnnotations.forEach(annotation => {
+    cleanedAnnotations.forEach(annotation => {
+        // Ensure we don't have negative positions or overlaps
+        const safeStart = Math.max(annotation.start, lastIndex);
+        const safeEnd = Math.max(annotation.end, safeStart);
+        
         // Add text before annotation
-        highlightedContent += escapeHtml(content.substring(lastIndex, annotation.start));
+        highlightedContent += escapeHtml(content.substring(lastIndex, safeStart));
+        
+        // Ensure we're using the correct text for this annotation
+        const annotationText = content.substring(safeStart, safeEnd);
         
         // Add highlighted annotation with tooltip
         const color = techniqueColors[annotation.technique] || '#cccccc';
@@ -1655,9 +1683,9 @@ function displayModalHighlightedText(textAnalysisId, content, annotations, legen
                                      data-bs-toggle="tooltip"
                                      data-bs-placement="top"
                                      data-bs-html="true"
-                                     title="${tooltipContent}">${escapeHtml(annotation.text)}</span>`;
+                                     title="${tooltipContent}">${escapeHtml(annotationText)}</span>`;
         
-        lastIndex = annotation.end;
+        lastIndex = safeEnd;
     });
     
     // Add remaining text
@@ -2034,5 +2062,6 @@ function copyToClipboard(elementId) {
         </div>
     </div>
 </div>
+
 
 @endsection

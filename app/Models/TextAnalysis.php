@@ -346,6 +346,13 @@ class TextAnalysis extends Model
      */
     public function getModelAnnotations(string $modelName): ?array
     {
+        // First check new ModelResult table
+        $modelResult = $this->modelResults()->where('model_key', $modelName)->first();
+        if ($modelResult && !empty($modelResult->annotations)) {
+            return $modelResult->annotations;
+        }
+        
+        // Fallback to legacy fields for backward compatibility
         $field = $this->getAnnotationField($modelName);
         return $field ? $this->$field : null;
     }
@@ -403,6 +410,13 @@ class TextAnalysis extends Model
      */
     public function getModelExecutionTime(string $modelName): ?int
     {
+        // First check new ModelResult table
+        $modelResult = $this->modelResults()->where('model_key', $modelName)->first();
+        if ($modelResult && $modelResult->execution_time_ms !== null) {
+            return $modelResult->execution_time_ms;
+        }
+        
+        // Fallback to legacy fields
         $field = $this->getExecutionTimeField($modelName);
         return $field ? $this->$field : null;
     }

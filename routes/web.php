@@ -34,6 +34,7 @@ Route::get('/api/mission-control', [WebController::class, 'missionControl'])->na
 Route::get('/analyses', [AnalysisController::class, 'index'])->name('analyses.index');
 Route::get('/analyses/{jobId}', [AnalysisController::class, 'show'])->name('analyses.show');
 Route::post('/analysis/repeat', [AnalysisController::class, 'repeat'])->name('analysis.repeat');
+Route::post('/analysis/stop', [AnalysisController::class, 'stop'])->name('analysis.stop');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 

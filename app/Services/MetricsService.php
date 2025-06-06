@@ -578,7 +578,7 @@ class MetricsService
                         
                         // Skip empty or invalid annotations
                         if (empty($value['text']) || empty($value['labels']) || 
-                            ($value['start'] === 0 && $value['end'] === 0)) {
+                            ($value['start'] === $value['end'])) {
                             continue;
                         }
                         
@@ -595,7 +595,8 @@ class MetricsService
                 $value = $annotation['value'];
                 
                 // Skip empty or invalid annotations
-                if (empty($value['text']) || empty($value['labels'])) {
+                if (empty($value['text']) || empty($value['labels']) || 
+                    ($value['start'] === $value['end'])) {
                     continue;
                 }
                 

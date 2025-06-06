@@ -887,6 +887,19 @@ class AnalysisController extends Controller
                     break;
             }
 
+            // Get the models that were originally requested
+            $originalRequestedModels = $originalJob->requested_models ?? [];
+            
+            // If no requested models in DB, extract from actual results
+            if (empty($originalRequestedModels)) {
+                $modelsUsed = [];
+                foreach ($originalJob->textAnalyses as $originalTextAnalysis) {
+                    $models = $originalTextAnalysis->getAllModelAnnotations();
+                    $modelsUsed = array_merge($modelsUsed, array_keys($models));
+                }
+                $originalRequestedModels = array_unique($modelsUsed);
+            }
+
             // Sukurti naują analizės darbą
             $newJobId = Str::uuid();
             $newJob = AnalysisJob::create([
@@ -896,13 +909,13 @@ class AnalysisController extends Controller
                 'reference_analysis_id' => $request->reference_job_id,
                 'name' => $request->name,
                 'description' => $request->description,
-                'total_texts' => $originalJob->textAnalyses->count(),
+                'total_texts' => count($originalRequestedModels), // Number of models to process
                 'processed_texts' => 0,
+                'requested_models' => $originalRequestedModels,
             ]);
 
             // Kopijuoti tekstų analizės su tais pačiais duomenimis
             $textAnalysesToCreate = [];
-            $modelsUsed = [];
 
             foreach ($originalJob->textAnalyses as $originalTextAnalysis) {
                 $textAnalysesToCreate[] = [
@@ -913,26 +926,13 @@ class AnalysisController extends Controller
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
-
-                // Surinkti naudotus modelius
-                $models = $originalTextAnalysis->getAllModelAnnotations();
-                $modelsUsed = array_merge($modelsUsed, array_keys($models));
             }
 
             // Sukurti naujus tekstų analizės įrašus
             TextAnalysis::insert($textAnalysesToCreate);
-            
-            $modelsUsed = array_unique($modelsUsed);
 
-            // Paleisti analizės darbus
-            $createdTextAnalyses = TextAnalysis::where('job_id', $newJobId)->get();
-            
-            foreach ($createdTextAnalyses as $textAnalysis) {
-                foreach ($modelsUsed as $modelName) {
-                    AnalyzeTextJob::dispatch($textAnalysis->id, $modelName, $newJobId)
-                        ->onQueue('analysis');
-                }
-            }
+            // Use new ModelAnalysisJob system for batch processing
+            $this->dispatchAnalysisJobs($newJobId, $originalRequestedModels, $customPrompt);
 
             // Atnaujinti darbo statusą
             $newJob->update(['status' => 'processing']);
@@ -941,7 +941,8 @@ class AnalysisController extends Controller
                 'original_job_id' => $request->reference_job_id,
                 'new_job_id' => $newJobId,
                 'texts_count' => count($textAnalysesToCreate),
-                'models_count' => count($modelsUsed),
+                'models_count' => count($originalRequestedModels),
+                'models' => $originalRequestedModels,
                 'prompt_type' => $request->prompt_type
             ]);
 
@@ -956,6 +957,90 @@ class AnalysisController extends Controller
 
             return redirect()->back()->with('error', 'Įvyko klaida paleidžiant pakartotinę analizę: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Stop an analysis job.
+     */
+    public function stop(Request $request)
+    {
+        $request->validate([
+            'job_id' => 'required|string|exists:analysis_jobs,job_id'
+        ]);
+
+        try {
+            $job = AnalysisJob::where('job_id', $request->job_id)->firstOrFail();
+
+            // Can only stop processing jobs
+            if (!in_array($job->status, ['processing', 'pending'])) {
+                return redirect()->back()->with('error', 'Galima sustabdyti tik vykdomą analizę.');
+            }
+
+            // Update job status to cancelled
+            $job->update(['status' => 'cancelled']);
+
+            // Cancel all pending queue jobs for this analysis
+            $this->cancelQueueJobs($request->job_id);
+
+            Log::info('Analizė sustabdyta', [
+                'job_id' => $request->job_id,
+                'status' => $job->status
+            ]);
+
+            return redirect()->route('analyses.show', $request->job_id)
+                ->with('success', 'Analizė sėkmingai sustabdyta.');
+
+        } catch (\Exception $e) {
+            Log::error('Analizės sustabdymo klaida', [
+                'job_id' => $request->job_id,
+                'error' => $e->getMessage()
+            ]);
+
+            return redirect()->back()->with('error', 'Įvyko klaida sustabdant analizę: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Cancel queue jobs for a specific analysis.
+     */
+    private function cancelQueueJobs(string $jobId): void
+    {
+        // For Laravel queues, we need to handle job cancellation
+        // This is a simplified approach - in production you might want more sophisticated job tracking
+        
+        // Update all pending ModelResult records to cancelled
+        \App\Models\ModelResult::where('job_id', $jobId)
+            ->where('status', 'pending')
+            ->update(['status' => 'cancelled']);
+
+        // Note: For full queue job cancellation, you would need to:
+        // 1. Track job IDs when dispatching jobs
+        // 2. Use queue-specific cancellation methods
+        // 3. Or use packages like laravel-queue-monitor for better job management
+    }
+
+    /**
+     * Dispatch analysis jobs for repeat analysis.
+     */
+    private function dispatchAnalysisJobs(string $jobId, array $models, ?string $customPrompt = null): void
+    {
+        // Get the text analyses for this job
+        $textAnalyses = TextAnalysis::where('job_id', $jobId)->get();
+        
+        // Convert to the format expected by BatchAnalysisJobV4
+        $fileContent = [];
+        foreach ($textAnalyses as $textAnalysis) {
+            $fileContent[] = [
+                'id' => $textAnalysis->text_id,
+                'data' => [
+                    'content' => $textAnalysis->content
+                ],
+                'annotations' => $textAnalysis->expert_annotations ?? []
+            ];
+        }
+        
+        // Dispatch the batch job using the current architecture
+        \App\Jobs\BatchAnalysisJobV4::dispatch($jobId, $fileContent, $models);
     }
 
     /**
@@ -1028,11 +1113,16 @@ class AnalysisController extends Controller
                                 }
                                 $techniqueCount[$technique]++;
                                 
+                                $start = $annotation['value']['start'];
+                                $end = $annotation['value']['end'];
+                                // Extract text from original content to ensure accuracy
+                                $extractedText = substr($originalText, $start, $end - $start);
+                                
                                 $annotations[] = [
-                                    'start' => $annotation['value']['start'],
-                                    'end' => $annotation['value']['end'],
+                                    'start' => $start,
+                                    'end' => $end,
                                     'technique' => $technique,
-                                    'text' => $annotation['value']['text'] ?? ''
+                                    'text' => $extractedText
                                 ];
                             }
                         }
@@ -1045,11 +1135,16 @@ class AnalysisController extends Controller
                                 }
                                 $techniqueCount[$technique]++;
                                 
+                                $start = $annotation['value']['start'];
+                                $end = $annotation['value']['end'];
+                                // Extract text from original content to ensure accuracy
+                                $extractedText = substr($originalText, $start, $end - $start);
+                                
                                 $annotations[] = [
-                                    'start' => $annotation['value']['start'],
-                                    'end' => $annotation['value']['end'],
+                                    'start' => $start,
+                                    'end' => $end,
                                     'technique' => $technique,
-                                    'text' => $annotation['value']['text'] ?? ''
+                                    'text' => $extractedText
                                 ];
                             }
                         }
@@ -1098,11 +1193,16 @@ class AnalysisController extends Controller
                                     $key = $annotation['value']['start'] . '-' . $annotation['value']['end'] . '-' . $technique;
                                     
                                     if (!isset($techniquePositions[$key])) {
+                                        $start = $annotation['value']['start'];
+                                        $end = $annotation['value']['end'];
+                                        // Extract text from original content to ensure accuracy
+                                        $extractedText = substr($originalText, $start, $end - $start);
+                                        
                                         $techniquePositions[$key] = [
-                                            'start' => $annotation['value']['start'],
-                                            'end' => $annotation['value']['end'],
+                                            'start' => $start,
+                                            'end' => $end,
                                             'technique' => $technique,
-                                            'text' => $annotation['value']['text'] ?? '',
+                                            'text' => $extractedText,
                                             'count' => 0,
                                             'models' => []
                                         ];

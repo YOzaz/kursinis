@@ -36,16 +36,27 @@
 
                 <!-- Mission Control Links -->
                 <div class="text-center mb-4">
-                    <a href="{{ route('mission-control') }}?job_id={{ $job->job_id }}" class="btn btn-outline-primary" target="_blank">
-                        <i class="fas fa-satellite-dish me-2"></i>
-                        🤖 Mission Control (Filtered)
-                        <i class="fas fa-external-link-alt ms-2"></i>
-                    </a>
-                    <a href="{{ route('mission-control') }}" class="btn btn-outline-secondary" target="_blank">
-                        <i class="fas fa-chart-line me-2"></i>
-                        System-Wide View
-                    </a>
-                    <div class="text-muted mt-2">
+                    <div class="btn-group mb-3">
+                        <a href="{{ route('mission-control') }}?job_id={{ $job->job_id }}" class="btn btn-outline-primary" target="_blank">
+                            <i class="fas fa-satellite-dish me-2"></i>
+                            🤖 Mission Control (Filtered)
+                            <i class="fas fa-external-link-alt ms-2"></i>
+                        </a>
+                        <a href="{{ route('mission-control') }}" class="btn btn-outline-secondary" target="_blank">
+                            <i class="fas fa-chart-line me-2"></i>
+                            System-Wide View
+                        </a>
+                    </div>
+                    
+                    @if(in_array($job->status, ['processing', 'pending']))
+                        <div class="mb-3">
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#stopAnalysisModal">
+                                <i class="fas fa-stop me-2"></i>Sustabdyti analizę
+                            </button>
+                        </div>
+                    @endif
+                    
+                    <div class="text-muted">
                         <small>Advanced real-time monitoring with technical details and system-wide status</small>
                     </div>
                 </div>
@@ -65,6 +76,9 @@
                         @elseif($job->status === 'failed')
                             <i class="fas fa-times-circle fa-5x text-danger mb-3"></i><br>
                             <span class="badge status-badge bg-danger">Nepavyko</span>
+                        @elseif($job->status === 'cancelled')
+                            <i class="fas fa-stop-circle fa-5x text-warning mb-3"></i><br>
+                            <span class="badge status-badge bg-secondary">Atšaukta</span>
                         @endif
                     </div>
                 </div>
@@ -238,6 +252,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else if (data.status === 'failed') {
                     // Perkrauti puslapį, kad parodytų klaidos pranešimą
                     location.reload();
+                } else if (data.status === 'cancelled') {
+                    // Perkrauti puslapį, kad parodytų atšaukto analizės statusą
+                    location.reload();
                 }
             })
             .catch(error => {
@@ -250,4 +267,51 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endif
+
+<!-- Stop Analysis Modal -->
+@if(in_array($job->status, ['processing', 'pending']))
+<div class="modal fade" id="stopAnalysisModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Sustabdyti analizę</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('analysis.stop') }}" method="POST">
+                @csrf
+                <input type="hidden" name="job_id" value="{{ $job->job_id }}">
+                
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Įspėjimas:</strong> Sustabdžius analizę, ji bus pažymėta kaip atšaukta ir nebegalėsite tęsti.
+                    </div>
+                    
+                    <p>Ar tikrai norite sustabdyti šią analizę?</p>
+                    
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <strong>Analizės ID:</strong> {{ $job->job_id }}<br>
+                            <strong>Pavadinimas:</strong> {{ $job->name ?? 'Nepavadintas' }}<br>
+                            <strong>Dabartinis statusas:</strong> 
+                            <span class="badge bg-{{ $job->status === 'processing' ? 'warning' : 'secondary' }}">
+                                {{ ucfirst($job->status) }}
+                            </span><br>
+                            <strong>Progresas:</strong> {{ $job->processed_texts }}/{{ $job->total_texts }} ({{ round($job->getProgressPercentage(), 1) }}%)
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Atšaukti</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-stop me-2"></i>Sustabdyti analizę
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+
 @endsection
