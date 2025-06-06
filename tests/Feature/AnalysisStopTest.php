@@ -24,7 +24,7 @@ class AnalysisStopTest extends TestCase
     public function it_can_stop_processing_analysis()
     {
         // Create a processing analysis job
-        $jobId = Str::uuid();
+        $jobId = (string) Str::uuid();
         $job = AnalysisJob::create([
             'job_id' => $jobId,
             'status' => AnalysisJob::STATUS_PROCESSING,
@@ -78,7 +78,7 @@ class AnalysisStopTest extends TestCase
     public function it_can_stop_pending_analysis()
     {
         // Create a pending analysis job
-        $jobId = Str::uuid();
+        $jobId = (string) Str::uuid();
         $job = AnalysisJob::create([
             'job_id' => $jobId,
             'status' => AnalysisJob::STATUS_PENDING,
@@ -105,7 +105,7 @@ class AnalysisStopTest extends TestCase
     public function it_cannot_stop_completed_analysis()
     {
         // Create a completed analysis job
-        $jobId = Str::uuid();
+        $jobId = (string) Str::uuid();
         $job = AnalysisJob::create([
             'job_id' => $jobId,
             'status' => AnalysisJob::STATUS_COMPLETED,
@@ -132,7 +132,7 @@ class AnalysisStopTest extends TestCase
     public function it_cannot_stop_failed_analysis()
     {
         // Create a failed analysis job
-        $jobId = Str::uuid();
+        $jobId = (string) Str::uuid();
         $job = AnalysisJob::create([
             'job_id' => $jobId,
             'status' => AnalysisJob::STATUS_FAILED,
@@ -197,7 +197,7 @@ class AnalysisStopTest extends TestCase
     /** @test */
     public function stop_analysis_logs_activity()
     {
-        $jobId = Str::uuid();
+        $jobId = (string) Str::uuid();
         $job = AnalysisJob::create([
             'job_id' => $jobId,
             'status' => AnalysisJob::STATUS_PROCESSING,

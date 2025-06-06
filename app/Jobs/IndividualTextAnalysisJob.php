@@ -68,6 +68,17 @@ class IndividualTextAnalysisJob implements ShouldQueue
                 ]);
                 return;
             }
+            
+            // Check if job has been cancelled
+            if ($job->status === 'cancelled') {
+                Log::info('Skipping individual text analysis - job cancelled', [
+                    'job_id' => $this->jobId,
+                    'text_id' => $this->textId,
+                    'model' => $this->modelKey,
+                    'status' => $job->status
+                ]);
+                return;
+            }
 
             $this->logProgress("Starting individual text analysis", [
                 'text_id' => $this->textId,

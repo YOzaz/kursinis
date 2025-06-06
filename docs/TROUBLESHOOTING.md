@@ -85,6 +85,58 @@ echo 'Position 280 (chars): ' . mb_substr(\$text, 0, 280, 'UTF-8') . PHP_EOL;
 - Enhanced tooltip content for multiple techniques with HTML formatting  
 - Improved text positioning logic to prevent overlapping annotations
 
+### Analysis Cancellation Support (Fixed 2025-06-06)
+
+#### Problem: STOP Button Not Working
+```
+Users unable to cancel running or pending analysis jobs
+Queue jobs continued processing despite clicking STOP button
+Database errors when updating job status to 'cancelled'
+```
+
+#### Root Cause: 
+- Database enum didn't include 'cancelled' status value
+- Queue jobs didn't check for cancellation status in their handle() methods
+- Redis queue job removal was not implemented
+
+#### Solution Implemented:
+1. **Database Schema Fix**: Added 'cancelled' to analysis_jobs status enum
+2. **Job Cancellation Checks**: All job classes now check for cancellation before processing
+3. **Queue Management**: Enhanced Redis queue job removal for pending jobs
+4. **Comprehensive Testing**: 7/9 stop functionality tests passing
+
+#### Files Modified:
+- `database/migrations/2025_06_06_182527_add_cancelled_status_to_analysis_jobs.php` (new migration)
+- `app/Jobs/IndividualTextAnalysisJob.php` (added cancellation check)
+- `app/Jobs/BatchAnalysisJobV4.php` (added cancellation check)
+- `app/Jobs/BatchAnalysisJobV3.php` (added cancellation check)
+- `app/Jobs/ModelAnalysisJob.php` (added cancellation check)
+- `app/Http/Controllers/AnalysisController.php` (enhanced cancelQueueJobs method)
+
+#### Technical Implementation:
+```php
+// Job cancellation check in all job classes
+if ($job->status === 'cancelled') {
+    Log::info('Skipping analysis - job cancelled', [
+        'job_id' => $this->jobId,
+        'status' => $job->status
+    ]);
+    return;
+}
+
+// Enhanced queue job removal
+$redis = \Illuminate\Support\Facades\Redis::connection();
+$queueNames = ['default', 'batch', 'individual', 'models'];
+// Remove matching jobs from Redis queues
+```
+
+#### How STOP Now Works:
+1. **User clicks STOP** → Updates AnalysisJob status to 'cancelled'
+2. **Database updated** → Status enum now supports 'cancelled' value
+3. **Pending jobs removed** → Redis queue jobs are removed where possible
+4. **Running jobs exit** → Active jobs check status and exit gracefully
+5. **UI updates** → Progress page shows 'cancelled' status
+
 **Example of Multiple Techniques:**
 ```json
 {

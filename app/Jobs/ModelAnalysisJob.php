@@ -57,6 +57,16 @@ class ModelAnalysisJob implements ShouldQueue
                 ]);
                 return;
             }
+            
+            // Check if job has been cancelled
+            if ($job->status === 'cancelled') {
+                Log::info('Skipping model analysis - job cancelled', [
+                    'job_id' => $this->jobId,
+                    'model' => $this->modelKey,
+                    'status' => $job->status
+                ]);
+                return;
+            }
 
             $this->logProgress("Starting model processing", [
                 'model' => $this->modelKey,

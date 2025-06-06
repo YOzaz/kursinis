@@ -1005,18 +1005,66 @@ class AnalysisController extends Controller
      */
     private function cancelQueueJobs(string $jobId): void
     {
-        // For Laravel queues, we need to handle job cancellation
-        // This is a simplified approach - in production you might want more sophisticated job tracking
+        Log::info('Attempting to cancel queue jobs', ['job_id' => $jobId]);
         
         // Update all pending ModelResult records to cancelled
-        \App\Models\ModelResult::where('job_id', $jobId)
+        $cancelledResults = \App\Models\ModelResult::where('job_id', $jobId)
             ->where('status', 'pending')
             ->update(['status' => 'cancelled']);
+            
+        Log::info('Updated ModelResult records to cancelled', [
+            'job_id' => $jobId, 
+            'cancelled_count' => $cancelledResults
+        ]);
 
-        // Note: For full queue job cancellation, you would need to:
-        // 1. Track job IDs when dispatching jobs
-        // 2. Use queue-specific cancellation methods
-        // 3. Or use packages like laravel-queue-monitor for better job management
+        // Try to clear pending jobs from Redis queues
+        try {
+            $redis = \Illuminate\Support\Facades\Redis::connection();
+            
+            // Check common queue names used by the system
+            $queueNames = ['default', 'batch', 'individual', 'models'];
+            $removedJobs = 0;
+            
+            foreach ($queueNames as $queueName) {
+                $queueKey = "queues:{$queueName}";
+                
+                // Get all jobs in the queue
+                $jobs = $redis->lrange($queueKey, 0, -1);
+                
+                foreach ($jobs as $index => $job) {
+                    $jobData = json_decode($job, true);
+                    
+                    // Check if this job belongs to our analysis
+                    if (isset($jobData['data']['command'])) {
+                        $command = unserialize($jobData['data']['command']);
+                        
+                        if ((isset($command->jobId) && $command->jobId === $jobId) ||
+                            (isset($command->job_id) && $command->job_id === $jobId)) {
+                            
+                            // Remove this job from the queue
+                            $redis->lrem($queueKey, 1, $job);
+                            $removedJobs++;
+                        }
+                    }
+                }
+            }
+            
+            if ($removedJobs > 0) {
+                Log::info('Removed pending jobs from Redis queues', [
+                    'job_id' => $jobId,
+                    'removed_jobs' => $removedJobs
+                ]);
+            }
+            
+        } catch (\Exception $e) {
+            Log::warning('Could not cancel Redis queue jobs', [
+                'job_id' => $jobId,
+                'error' => $e->getMessage()
+            ]);
+        }
+        
+        // Note: Jobs that are already running will check for cancellation status
+        // in their handle() methods and exit early if the job is cancelled
     }
 
     /**

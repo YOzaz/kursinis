@@ -55,6 +55,15 @@ class BatchAnalysisJobV4 implements ShouldQueue
                 Log::error('Analysis job not found', ['job_id' => $this->jobId]);
                 return;
             }
+            
+            // Check if job has been cancelled before starting
+            if ($job->status === 'cancelled') {
+                Log::info('Batch analysis job cancelled before processing', [
+                    'job_id' => $this->jobId,
+                    'status' => $job->status
+                ]);
+                return;
+            }
 
             $job->status = AnalysisJob::STATUS_PROCESSING;
             $job->save();
