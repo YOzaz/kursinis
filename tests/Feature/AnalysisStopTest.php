@@ -207,13 +207,16 @@ class AnalysisStopTest extends TestCase
             'requested_models' => ['claude-sonnet-4']
         ]);
 
-        // Mock log to verify it's called
-        $this->expectsEvents(\Illuminate\Log\Events\MessageLogged::class);
-
+        // Stop the analysis
         $response = $this->post(route('analysis.stop'), [
             'job_id' => $jobId
         ]);
 
         $response->assertRedirect(route('analyses.show', $jobId));
+        $response->assertSessionHas('success', 'Analizė sėkmingai sustabdyta.');
+        
+        // Verify job was cancelled
+        $job->refresh();
+        $this->assertEquals(AnalysisJob::STATUS_CANCELLED, $job->status);
     }
 }
