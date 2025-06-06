@@ -49,9 +49,10 @@
                 </div>
             </div>
 
-            <div class="row">
+            <!-- Analysis Information & Statistics Row -->
+            <div class="row mb-4">
                 <div class="col-lg-8">
-                    <div class="card mb-4">
+                    <div class="card">
                         <div class="card-header">
                             <h5 class="card-title mb-0">Analizės informacija</h5>
                         </div>
@@ -125,8 +126,71 @@
                             </div>
                         </div>
                     </div>
+                </div>
+                <div class="col-lg-4">
+                    @if(isset($statistics))
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Statistikos</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row text-center">
+                                    <div class="col-12 mb-3">
+                                        <h6 class="text-muted">Bendras F1 balas</h6>
+                                        <h3 class="text-primary">{{ number_format(($statistics['overall_metrics']['avg_f1'] ?? 0) * 100, 2) }}%</h3>
+                                    </div>
+                                </div>
+                                <hr>
+                                <dl class="row mb-0">
+                                    <dt class="col-6">
+                                        Tikslumas 
+                                        <i class="fas fa-question-circle text-muted ms-1" 
+                                           data-bs-toggle="tooltip" 
+                                           data-bs-placement="top" 
+                                           title="Precision - kiek AI rastų propagandos fragmentų iš tikrųjų yra propaganda. Skaičiuojama: Teisingi teigiami / (Teisingi teigiami + Klaidingi teigiami)"></i>
+                                    </dt>
+                                    <dd class="col-6">{{ number_format(($statistics['overall_metrics']['avg_precision'] ?? 0) * 100, 2) }}%</dd>
+                                    <dt class="col-6">
+                                        Atsaukimas
+                                        <i class="fas fa-question-circle text-muted ms-1" 
+                                           data-bs-toggle="tooltip" 
+                                           data-bs-placement="top" 
+                                           title="Recall - kiek ekspertų rastų propagandos fragmentų AI sugebėjo rasti. Skaičiuojama: Teisingi teigiami / (Teisingi teigiami + Klaidingi neigiami)"></i>
+                                    </dt>
+                                    <dd class="col-6">{{ number_format(($statistics['overall_metrics']['avg_recall'] ?? 0) * 100, 2) }}%</dd>
+                                    <dt class="col-6">Tekstų</dt>
+                                    <dd class="col-6">{{ $statistics['total_texts'] ?? 0 }}</dd>
+                                    <dt class="col-6">Su propagandą</dt>
+                                    <dd class="col-6">{{ $statistics['propaganda_texts'] ?? 0 }}</dd>
+                                    <dt class="col-6">Su anotacijomis</dt>
+                                    <dd class="col-6">{{ $statistics['with_expert_annotations'] ?? 0 }}</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </div>
 
-                    @if($analysis->status === 'completed' && $textAnalyses->isNotEmpty())
+            <!-- Error Message if Analysis Failed -->
+            @if($analysis->status === 'failed' && $analysis->error_message)
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card border-danger">
+                            <div class="card-header bg-danger text-white">
+                                <h5 class="card-title mb-0">Klaidos pranešimas</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-0">{{ $analysis->error_message }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Analysis Results Table - Full Width -->
+            @if($analysis->status === 'completed' && $textAnalyses->isNotEmpty())
+                <div class="row">
+                    <div class="col-12">
                         <div class="card">
                             <div class="card-header">
                                 <h5 class="card-title mb-0">Analizės rezultatai</h5>
@@ -342,66 +406,10 @@
                             </div>
                         </div>
                     @endif
-                </div>
-
-                <div class="col-lg-4">
-                    @if(isset($statistics))
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Statistikos</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row text-center">
-                                    <div class="col-12 mb-3">
-                                        <h6 class="text-muted">Bendras F1 balas</h6>
-                                        <h3 class="text-primary">{{ number_format(($statistics['overall_metrics']['avg_f1'] ?? 0) * 100, 2) }}%</h3>
-                                    </div>
-                                </div>
-                                <hr>
-                                <dl class="row mb-0">
-                                    <dt class="col-6">
-                                        Tikslumas 
-                                        <i class="fas fa-question-circle text-muted ms-1" 
-                                           data-bs-toggle="tooltip" 
-                                           data-bs-placement="top" 
-                                           title="Precision - kiek AI rastų propagandos fragmentų iš tikrųjų yra propaganda. Skaičiuojama: Teisingi teigiami / (Teisingi teigiami + Klaidingi teigiami)"></i>
-                                    </dt>
-                                    <dd class="col-6">{{ number_format(($statistics['overall_metrics']['avg_precision'] ?? 0) * 100, 2) }}%</dd>
-                                    <dt class="col-6">
-                                        Atsaukimas 
-                                        <i class="fas fa-question-circle text-muted ms-1" 
-                                           data-bs-toggle="tooltip" 
-                                           data-bs-placement="top" 
-                                           title="Recall - kokią dalį visų propagandos fragmentų AI surado. Skaičiuojama: Teisingi teigiami / (Teisingi teigiami + Klaidingi neigiami)"></i>
-                                    </dt>
-                                    <dd class="col-6">{{ number_format(($statistics['overall_metrics']['avg_recall'] ?? 0) * 100, 2) }}%</dd>
-                                    <dt class="col-6">
-                                        F1 balas 
-                                        <i class="fas fa-question-circle text-muted ms-1" 
-                                           data-bs-toggle="tooltip" 
-                                           data-bs-placement="top" 
-                                           title="F1 Score - bendras AI modelio tikslumas. Suvienija tikslumą ir atsaukimą į vieną skaičių. Pvz.: jei AI rado 80% propagandos fragmentų (atsaukimas) ir 90% rastųjų yra teisingi (tikslumas), F1 = 85%. Aukštesnis F1 = geresnis modelis."></i>
-                                    </dt>
-                                    <dd class="col-6">{{ number_format(($statistics['overall_metrics']['avg_f1'] ?? 0) * 100, 2) }}%</dd>
-                                </dl>
-                            </div>
                         </div>
-                    @endif
-
-                    @if($analysis->status === 'failed' && $analysis->error_message)
-                        <div class="card border-danger">
-                            <div class="card-header bg-danger text-white">
-                                <h5 class="card-title mb-0">Klaidos pranešimas</h5>
-                            </div>
-                            <div class="card-body">
-                                <p class="mb-0">{{ $analysis->error_message }}</p>
-                            </div>
-                        </div>
-                    @endif
+                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
+            @endif
 </div>
 
 @if($analysis->status === 'completed' && $textAnalyses->isNotEmpty())

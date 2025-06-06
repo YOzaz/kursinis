@@ -54,6 +54,9 @@ class StatisticsService
                 return $this->expertFoundPropaganda($textAnalysis->expert_annotations);
             });
             
+            // Calculate confusion matrix for propaganda detection
+            $confusionMatrix = $this->calculatePropagandaConfusionMatrix($modelMetrics);
+            
             // Calculate accuracy for propaganda detection (all texts)
             $accuracy = $this->calculatePropagandaDetectionAccuracy($modelMetrics);
             
@@ -72,12 +75,60 @@ class StatisticsService
                 'avg_f1_score' => round($f1Score, 4),
                 'overall_score' => round($overallScore, 2),
                 'propaganda_detection_accuracy' => round($accuracy, 2),
+                // Confusion matrix for propaganda detection
+                'propaganda_tp' => $confusionMatrix['tp'], // Correctly identified as propaganda
+                'propaganda_fp' => $confusionMatrix['fp'], // Incorrectly identified as propaganda 
+                'propaganda_tn' => $confusionMatrix['tn'], // Correctly identified as non-propaganda
+                'propaganda_fn' => $confusionMatrix['fn'], // Incorrectly identified as non-propaganda
             ];
         }
         
         return $performance;
     }
     
+    /**
+     * Calculate confusion matrix for propaganda detection at text level.
+     * Returns TP, FP, TN, FN for propaganda presence/absence detection.
+     */
+    private function calculatePropagandaConfusionMatrix($modelMetrics): array
+    {
+        $tp = 0; // Expert has propaganda, Model found propaganda
+        $fp = 0; // Expert has no propaganda, Model found propaganda  
+        $tn = 0; // Expert has no propaganda, Model found no propaganda
+        $fn = 0; // Expert has propaganda, Model found no propaganda
+        
+        foreach ($modelMetrics as $metric) {
+            $textAnalysis = $metric->textAnalysis;
+            if (!$textAnalysis || !$textAnalysis->expert_annotations) {
+                continue;
+            }
+            
+            // Check if expert found propaganda
+            $expertFoundPropaganda = $this->expertFoundPropaganda($textAnalysis->expert_annotations);
+            
+            // Check if model found propaganda (has any true or false positives)
+            $modelFoundPropaganda = ($metric->true_positives + $metric->false_positives) > 0;
+            
+            // Classify based on expert vs model predictions
+            if ($expertFoundPropaganda && $modelFoundPropaganda) {
+                $tp++;
+            } elseif (!$expertFoundPropaganda && $modelFoundPropaganda) {
+                $fp++;
+            } elseif (!$expertFoundPropaganda && !$modelFoundPropaganda) {
+                $tn++;
+            } elseif ($expertFoundPropaganda && !$modelFoundPropaganda) {
+                $fn++;
+            }
+        }
+        
+        return [
+            'tp' => $tp,
+            'fp' => $fp, 
+            'tn' => $tn,
+            'fn' => $fn,
+        ];
+    }
+
     /**
      * Calculate accuracy for propaganda detection specifically.
      * Only counts texts where model correctly identified propaganda presence/absence.

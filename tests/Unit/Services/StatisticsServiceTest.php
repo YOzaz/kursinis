@@ -219,4 +219,156 @@ class StatisticsServiceTest extends TestCase
         // Should be empty array when no execution time data exists
         $this->assertEmpty($statistics['avg_execution_times']);
     }
+
+    public function test_calculates_propaganda_confusion_matrix(): void
+    {
+        $job = AnalysisJob::factory()->create();
+        
+        // True Positive: Expert has propaganda, AI found propaganda
+        $textAnalysisTP = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'expert_annotations' => [
+                [
+                    'result' => [
+                        [
+                            'type' => 'labels',
+                            'value' => [
+                                'labels' => ['propaganda']
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ]);
+        ComparisonMetric::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => $textAnalysisTP->text_id,
+            'model_name' => 'claude-opus-4',
+            'true_positives' => 1,
+            'false_positives' => 0,
+            'false_negatives' => 0,
+        ]);
+
+        // False Positive: Expert has no propaganda, AI found propaganda
+        $textAnalysisFP = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'expert_annotations' => [
+                [
+                    'result' => [
+                        [
+                            'type' => 'choices',
+                            'value' => ['choices' => ['no']]
+                        ]
+                    ]
+                ]
+            ]
+        ]);
+        ComparisonMetric::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => $textAnalysisFP->text_id,
+            'model_name' => 'claude-opus-4',
+            'true_positives' => 0,
+            'false_positives' => 1,
+            'false_negatives' => 0,
+        ]);
+
+        // True Negative: Expert has no propaganda, AI found no propaganda
+        $textAnalysisTN = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'expert_annotations' => [
+                [
+                    'result' => [
+                        [
+                            'type' => 'choices',
+                            'value' => ['choices' => ['no']]
+                        ]
+                    ]
+                ]
+            ]
+        ]);
+        ComparisonMetric::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => $textAnalysisTN->text_id,
+            'model_name' => 'claude-opus-4',
+            'true_positives' => 0,
+            'false_positives' => 0,
+            'false_negatives' => 0,
+        ]);
+
+        // False Negative: Expert has propaganda, AI found no propaganda
+        $textAnalysisFN = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'expert_annotations' => [
+                [
+                    'result' => [
+                        [
+                            'type' => 'labels',
+                            'value' => [
+                                'labels' => ['propaganda']
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ]);
+        ComparisonMetric::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => $textAnalysisFN->text_id,
+            'model_name' => 'claude-opus-4',
+            'true_positives' => 0,
+            'false_positives' => 0,
+            'false_negatives' => 1,
+        ]);
+
+        $statistics = $this->service->getGlobalStatistics();
+        
+        $this->assertArrayHasKey('model_performance', $statistics);
+        $this->assertArrayHasKey('claude-opus-4', $statistics['model_performance']);
+        
+        $claudeStats = $statistics['model_performance']['claude-opus-4'];
+        
+        // Check that confusion matrix metrics are included
+        $this->assertArrayHasKey('propaganda_tp', $claudeStats);
+        $this->assertArrayHasKey('propaganda_fp', $claudeStats);
+        $this->assertArrayHasKey('propaganda_tn', $claudeStats);
+        $this->assertArrayHasKey('propaganda_fn', $claudeStats);
+        
+        // Verify counts
+        $this->assertEquals(1, $claudeStats['propaganda_tp']);
+        $this->assertEquals(1, $claudeStats['propaganda_fp']); 
+        $this->assertEquals(1, $claudeStats['propaganda_tn']);
+        $this->assertEquals(1, $claudeStats['propaganda_fn']);
+    }
+
+    public function test_confusion_matrix_handles_missing_expert_annotations(): void
+    {
+        $job = AnalysisJob::factory()->create();
+        
+        // Text without expert annotations should be ignored
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'expert_annotations' => []
+        ]);
+        ComparisonMetric::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => $textAnalysis->text_id,
+            'model_name' => 'claude-opus-4',
+            'true_positives' => 1,
+            'false_positives' => 0,
+            'false_negatives' => 0,
+        ]);
+
+        $statistics = $this->service->getGlobalStatistics();
+        
+        $this->assertArrayHasKey('model_performance', $statistics);
+        $this->assertArrayHasKey('claude-opus-4', $statistics['model_performance']);
+        
+        $claudeStats = $statistics['model_performance']['claude-opus-4'];
+        
+        // All confusion matrix values should be 0 since text was ignored
+        $this->assertEquals(0, $claudeStats['propaganda_tp']);
+        $this->assertEquals(0, $claudeStats['propaganda_fp']);
+        $this->assertEquals(0, $claudeStats['propaganda_tn']);
+        $this->assertEquals(0, $claudeStats['propaganda_fn']);
+    }
 }

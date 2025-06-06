@@ -62,3 +62,6 @@ Thumbs.db
 
 # Custom
 cookies.txt
+
+# Local configuration
+CLAUDE.local.md

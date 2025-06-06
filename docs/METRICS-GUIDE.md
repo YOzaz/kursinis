@@ -145,21 +145,61 @@ The new region-based evaluation shows significantly improved and more realistic 
 
 ## 🔢 Confusion Matrix Components
 
-### True Positives (TP) - Teisingi Teigiami
+### Fragment-Level Classification (Traditional)
+
+#### True Positives (TP) - Teisingi Teigiami
 - **Definition**: Propaganda correctly identified by both AI and experts
 - **Example**: AI identifies "emotional appeal" at positions 50-80, expert agrees
 
-### False Positives (FP) - Klaidingi Teigiami  
+#### False Positives (FP) - Klaidingi Teigiami  
 - **Definition**: AI identifies propaganda where experts found none
 - **Example**: AI identifies "fear appeal" but expert marked it as neutral text
 
-### False Negatives (FN) - Klaidingi Neigiami
+#### False Negatives (FN) - Klaidingi Neigiami
 - **Definition**: Expert identified propaganda that AI missed
 - **Example**: Expert found "whataboutism" but AI didn't detect it
 
-### True Negatives (TN) - Teisingi Neigiami
+#### True Negatives (TN) - Teisingi Neigiami
 - **Definition**: Non-propaganda correctly identified as non-propaganda by both
 - **Note**: Less relevant in span-based annotation tasks
+
+### Text-Level Propaganda Detection (NEW - 2025-06-06)
+
+The system now provides **deeper propaganda detection statistics** at the text level, answering the question: "How well does the AI detect the presence/absence of propaganda in entire texts?"
+
+#### Propaganda Detection Confusion Matrix
+
+**TP (True Positive) - Correctly Identified as Propaganda**
+- **Definition**: Expert annotations contain propaganda AND AI found propaganda
+- **Interpretation**: AI successfully detected propaganda presence in the text
+- **Dashboard Display**: Green badge showing count
+
+**FP (False Positive) - Incorrectly Identified as Propaganda**
+- **Definition**: Expert annotations contain NO propaganda BUT AI found propaganda
+- **Interpretation**: AI incorrectly flagged clean text as containing propaganda
+- **Dashboard Display**: Red badge showing count
+
+**TN (True Negative) - Correctly Identified as Non-Propaganda**
+- **Definition**: Expert annotations contain NO propaganda AND AI found no propaganda
+- **Interpretation**: AI correctly identified clean text as non-propaganda
+- **Dashboard Display**: Blue badge showing count
+
+**FN (False Negative) - Incorrectly Identified as Non-Propaganda**
+- **Definition**: Expert annotations contain propaganda BUT AI found no propaganda
+- **Interpretation**: AI missed propaganda that experts identified
+- **Dashboard Display**: Yellow badge showing count
+
+#### Practical Example
+
+**Scenario**: Analysis of 100 texts by Claude Opus 4
+- **TP: 15** - Correctly found propaganda in 15 texts that experts also marked
+- **FP: 3** - Incorrectly flagged 3 clean texts as containing propaganda  
+- **TN: 75** - Correctly identified 75 clean texts as non-propaganda
+- **FN: 7** - Missed propaganda in 7 texts that experts identified
+
+**Text-Level Accuracy**: (15 + 75) / 100 = 90%
+**Text-Level Precision**: 15 / (15 + 3) = 83.3%
+**Text-Level Recall**: 15 / (15 + 7) = 68.2%
 
 ## 🧠 Advanced Methodology
 

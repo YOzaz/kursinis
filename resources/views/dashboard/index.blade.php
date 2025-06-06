@@ -177,10 +177,10 @@
                                             <i class="fas fa-robot me-1"></i>Modelis
                                         </th>
                                         <th class="text-center">
-                                            <i class="fas fa-chart-line me-1"></i>Tekstų
+                                            <i class="fas fa-chart-line me-1"></i>Propagandos aptikimas
                                             <i class="fas fa-question-circle text-muted ms-1" 
                                                data-bs-toggle="tooltip" 
-                                               title="Propagandos / iš viso tekstų analizuotų šiuo modeliu"></i>
+                                               title="Teisingai rasta / Klaidingai rasta / Teisingai nerasta / Klaidingai nerasta. TP: tikrai propaganda ir rasta; FP: ne propaganda bet rasta; TN: ne propaganda ir nerasta; FN: tikrai propaganda bet nerasta"></i>
                                         </th>
                                         <th class="text-center">
                                             <i class="fas fa-bullseye me-1"></i>F1 balas
@@ -245,9 +245,23 @@
                                                 </div>
                                             </td>
                                             <td class="text-center">
-                                                <span class="badge bg-success">{{ $stats['total_propaganda_texts'] ?? 0 }}</span>
-                                                <span class="text-muted">/</span>
-                                                <span class="badge bg-secondary">{{ $stats['total_analyses'] }}</span>
+                                                <div class="d-flex flex-wrap justify-content-center gap-1">
+                                                    <span class="badge bg-success" data-bs-toggle="tooltip" title="Teisingai rasta propaganda">
+                                                        TP: {{ $stats['propaganda_tp'] ?? 0 }}
+                                                    </span>
+                                                    <span class="badge bg-danger" data-bs-toggle="tooltip" title="Klaidingai rasta propaganda">
+                                                        FP: {{ $stats['propaganda_fp'] ?? 0 }}
+                                                    </span>
+                                                    <span class="badge bg-info" data-bs-toggle="tooltip" title="Teisingai nerasta propaganda">
+                                                        TN: {{ $stats['propaganda_tn'] ?? 0 }}
+                                                    </span>
+                                                    <span class="badge bg-warning" data-bs-toggle="tooltip" title="Klaidingai nerasta propaganda">
+                                                        FN: {{ $stats['propaganda_fn'] ?? 0 }}
+                                                    </span>
+                                                </div>
+                                                <small class="text-muted d-block mt-1">
+                                                    {{ $stats['total_propaganda_texts'] ?? 0 }}/{{ $stats['total_analyses'] }} tekstų
+                                                </small>
                                             </td>
                                             <td class="text-center">
                                                 <div class="d-flex align-items-center justify-content-center">
