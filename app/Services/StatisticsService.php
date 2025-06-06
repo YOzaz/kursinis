@@ -112,8 +112,8 @@ class StatisticsService
             // Check if expert found propaganda
             $expertFoundPropaganda = $this->expertFoundPropaganda($textAnalysis->expert_annotations);
             
-            // Check if model found propaganda (has any true or false positives)
-            $modelFoundPropaganda = ($metric->true_positives + $metric->false_positives) > 0;
+            // Check if model found propaganda at document level (primary choice)
+            $modelFoundPropaganda = $this->modelFoundPropagandaAtDocumentLevel($textAnalysis, $metric->model_name);
             
             // Classify based on expert vs model predictions
             if ($expertFoundPropaganda && $modelFoundPropaganda) {
@@ -204,8 +204,8 @@ class StatisticsService
             // Check if expert found propaganda
             $expertFoundPropaganda = $this->expertFoundPropaganda($textAnalysis->expert_annotations);
             
-            // Check if model found propaganda (has any true or false positives)
-            $modelFoundPropaganda = ($metric->true_positives + $metric->false_positives) > 0;
+            // Check if model found propaganda at document level (primary choice)
+            $modelFoundPropaganda = $this->modelFoundPropagandaAtDocumentLevel($textAnalysis, $metric->model_name);
             
             // Count as correct if both agree on propaganda presence/absence
             if ($expertFoundPropaganda === $modelFoundPropaganda) {
@@ -216,6 +216,37 @@ class StatisticsService
         }
         
         return $totalTexts > 0 ? $correctDetections / $totalTexts : 0;
+    }
+    
+    /**
+     * Check if a model found propaganda at the document level (primary choice).
+     * Uses the model's primary choice annotation, not fragment-level metrics.
+     * 
+     * @param TextAnalysis $textAnalysis
+     * @param string $modelName
+     * @return bool
+     */
+    private function modelFoundPropagandaAtDocumentLevel(TextAnalysis $textAnalysis, string $modelName): bool
+    {
+        // First check new ModelResult table (preferred approach)
+        $modelResult = $textAnalysis->modelResults()->where('model_key', $modelName)->first();
+        if ($modelResult) {
+            return $modelResult->detectedPropaganda();
+        }
+        
+        // Fallback to legacy annotation structure
+        $annotations = $textAnalysis->getModelAnnotations($modelName);
+        if (empty($annotations)) {
+            return false;
+        }
+        
+        // Check primary choice in annotations
+        if (isset($annotations['primaryChoice']['choices']) && 
+            in_array('yes', $annotations['primaryChoice']['choices'])) {
+            return true;
+        }
+        
+        return false;
     }
     
     /**

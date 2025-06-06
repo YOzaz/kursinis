@@ -238,6 +238,15 @@ class StatisticsServiceTest extends TestCase
                         ]
                     ]
                 ]
+            ],
+            'claude_annotations' => [
+                'primaryChoice' => ['choices' => ['yes']], // AI says YES to propaganda
+                'annotations' => [
+                    [
+                        'type' => 'labels',
+                        'value' => ['labels' => ['propaganda']]
+                    ]
+                ]
             ]
         ]);
         ComparisonMetric::factory()->create([
@@ -259,6 +268,15 @@ class StatisticsServiceTest extends TestCase
                             'type' => 'choices',
                             'value' => ['choices' => ['no']]
                         ]
+                    ]
+                ]
+            ],
+            'claude_annotations' => [
+                'primaryChoice' => ['choices' => ['yes']], // AI says YES (wrong)
+                'annotations' => [
+                    [
+                        'type' => 'labels',
+                        'value' => ['labels' => ['propaganda']]
                     ]
                 ]
             ]
@@ -284,6 +302,10 @@ class StatisticsServiceTest extends TestCase
                         ]
                     ]
                 ]
+            ],
+            'claude_annotations' => [
+                'primaryChoice' => ['choices' => ['no']], // AI says NO (correct)
+                'annotations' => [] // No fragments found
             ]
         ]);
         ComparisonMetric::factory()->create([
@@ -309,6 +331,10 @@ class StatisticsServiceTest extends TestCase
                         ]
                     ]
                 ]
+            ],
+            'claude_annotations' => [
+                'primaryChoice' => ['choices' => ['no']], // AI says NO (wrong)
+                'annotations' => [] // No fragments found
             ]
         ]);
         ComparisonMetric::factory()->create([
@@ -420,7 +446,15 @@ class StatisticsServiceTest extends TestCase
                 ]
             ],
             'claude_error' => null, // No error
-            'claude_annotations' => ['annotations' => []], // Model ran successfully
+            'claude_annotations' => [
+                'primaryChoice' => ['choices' => ['yes']], // AI says YES
+                'annotations' => [
+                    [
+                        'type' => 'labels',
+                        'value' => ['labels' => ['propaganda']]
+                    ]
+                ]
+            ], // Model ran successfully
         ]);
         
         ComparisonMetric::factory()->create([
@@ -497,5 +531,57 @@ class StatisticsServiceTest extends TestCase
         $this->assertEquals(0, $claudeStats['propaganda_fp']);
         $this->assertEquals(0, $claudeStats['propaganda_tn']);
         $this->assertEquals(0, $claudeStats['propaganda_fn']);
+    }
+    
+    public function test_document_level_propaganda_detection_fixes_false_positives(): void
+    {
+        $job = AnalysisJob::factory()->create();
+        
+        // Expert marks text as propaganda
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'expert_annotations' => [
+                [
+                    'result' => [
+                        [
+                            'type' => 'choices',
+                            'value' => ['choices' => ['yes']] // Expert says yes to propaganda
+                        ]
+                    ]
+                ]
+            ]
+        ]);
+        
+        // Model result says NO propaganda at document level
+        \App\Models\ModelResult::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => $textAnalysis->text_id,
+            'model_key' => 'claude-opus-4',
+            'status' => \App\Models\ModelResult::STATUS_COMPLETED,
+            'annotations' => [
+                'primaryChoice' => ['choices' => ['no']], // Model says NO
+                'annotations' => [] // No fragments found
+            ],
+        ]);
+        
+        // ComparisonMetric might have fragment-level metrics that would confuse old logic
+        ComparisonMetric::factory()->create([
+            'job_id' => $job->job_id,
+            'text_id' => $textAnalysis->text_id,
+            'model_name' => 'claude-opus-4',
+            'true_positives' => 1, // Old logic would incorrectly count this
+            'false_positives' => 0,
+            'false_negatives' => 0,
+        ]);
+
+        $statistics = $this->service->getGlobalStatistics();
+        $claudeStats = $statistics['model_performance']['claude-opus-4'];
+        
+        // This should be classified as FN (False Negative), not FP
+        // Expert: YES, Model: NO = FN (expert found propaganda, model missed it)
+        $this->assertEquals(0, $claudeStats['propaganda_tp']);
+        $this->assertEquals(0, $claudeStats['propaganda_fp']); // Should be 0, not 1
+        $this->assertEquals(0, $claudeStats['propaganda_tn']);
+        $this->assertEquals(1, $claudeStats['propaganda_fn']); // Should be 1
     }
 }

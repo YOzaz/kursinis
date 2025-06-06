@@ -180,7 +180,7 @@
                                             <i class="fas fa-chart-line me-1"></i>Propagandos aptikimas
                                             <i class="fas fa-question-circle text-muted ms-1" 
                                                data-bs-toggle="tooltip" 
-                                               title="Teisingai rasta / Klaidingai rasta / Teisingai nerasta / Klaidingai nerasta. TP: tikrai propaganda ir rasta; FP: ne propaganda bet rasta; TN: ne propaganda ir nerasta; FN: tikrai propaganda bet nerasta. SVARBU: Tekstai, kurių modelis neanalizavo dėl timeout/error, iš skaičiavimų pašalinti."></i>
+                                               title="Teisingai rasta / Klaidingai rasta / Teisingai nerasta / Klaidingai nerasta. TP: ekspertas=TAIP, modelis=TAIP; FP: ekspertas=NE, modelis=TAIP; TN: ekspertas=NE, modelis=NE; FN: ekspertas=TAIP, modelis=NE. Naudoja modelio pagrindinį sprendimą (primaryChoice), ne fragmentų metrikas. SVARBU: Tekstai su timeout/error pašalinti."></i>
                                         </th>
                                         <th class="text-center">
                                             <i class="fas fa-bullseye me-1"></i>F1 balas

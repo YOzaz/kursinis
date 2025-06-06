@@ -222,6 +222,34 @@ The system now provides **deeper propaganda detection statistics** at the text l
 - **TP**: 15, **FP**: 3, **TN**: 65, **FN**: 7
 - **Accuracy**: (15 + 65) / 90 = 88.9% (calculated on 90 texts, not 100)
 
+#### Critical Fix: Document-Level Propaganda Detection (2025-06-06)
+
+**MAJOR IMPROVEMENT**: The confusion matrix now uses **document-level** propaganda detection instead of fragment-level metrics.
+
+**Previous Issue:**
+- System used fragment-level metrics (`true_positives + false_positives > 0`) to determine if model found propaganda
+- This caused incorrect classifications when expert marked text as propaganda but AI model's primary choice was "no"
+- Led to inflated False Positive counts even when all expert texts were marked as propaganda
+
+**New Approach:**
+- Uses AI model's **primary choice** (`primaryChoice.choices = ['yes'/'no']`) for document-level detection
+- Correctly classifies Expert:YES + Model:NO as **False Negative** (not False Positive)
+- More accurate representation of actual AI performance at text classification level
+
+**Technical Implementation:**
+```php
+// OLD (fragment-level, less accurate):
+$modelFoundPropaganda = ($metric->true_positives + $metric->false_positives) > 0;
+
+// NEW (document-level, accurate):
+$modelFoundPropaganda = $this->modelFoundPropagandaAtDocumentLevel($textAnalysis, $modelName);
+```
+
+**Why This Matters:**
+- **Accurate Classifications**: Expert says "propaganda" but AI says "no" → correctly classified as FN
+- **Realistic Metrics**: Reflects actual AI decision-making at document level
+- **Eliminates Confusion**: Resolves cases where FP appeared even with all propaganda texts
+
 ## 🧠 Advanced Methodology
 
 ### Category Mapping Intelligence
