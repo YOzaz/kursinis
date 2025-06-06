@@ -1,0 +1,67 @@
+[
+  {
+    "id": 12345,
+    "annotations": [
+      {
+        "id": 1001,
+        "completed_by": 1,
+        "result": [
+          {
+            "id": "no_propaganda_choice",
+            "type": "choices",
+            "value": {
+              "choices": [
+                "no"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "primaryChoice"
+          }
+        ],
+        "was_cancelled": false,
+        "ground_truth": true,
+        "created_at": "2025-06-06T00:00:00.000000Z",
+        "updated_at": "2025-06-06T00:00:00.000000Z",
+        "draft_created_at": null,
+        "lead_time": 120.0,
+        "prediction": {},
+        "result_count": 0,
+        "unique_id": "neutral-text-annotation-001",
+        "import_id": 1001,
+        "last_action": null,
+        "bulk_created": false,
+        "task": 12345,
+        "project": 1,
+        "updated_by": null,
+        "parent_prediction": null,
+        "parent_annotation": null,
+        "last_created_by": null
+      }
+    ],
+    "drafts": [],
+    "predictions": [],
+    "data": {
+      "content": "Vilniaus universiteto Matematikos ir informatikos fakultetas organizuoja tarptautinę konferenciją \"Dirbtinio intelekto sprendimai šiuolaikinėse informacinėse sistemose\". Renginys vyks 2025 metų rugsėjo 15-17 dienomis universiteto rūmuose Naugarduko gatvėje.\n\nKonferencijoje dalyvaus mokslininkai iš įvairių šalių, kurie pristatys savo tyrimus dirbtinio intelekto, mašininio mokymosi ir duomenų analizės srityse. Pagrindinės temos apims natūralios kalbos apdorojimą, kompiuterinio matymo algoritmus bei automatinio sprendimų priėmimo sistemas.\n\nProfesė Rūta Stonkienė, konferencijos organizatorė, pabrėžia, kad šis renginys suteiks galimybę jauniems mokslininkams pristatyti savo darbus ir užmegzti ryšius su tarptautinės bendruomenės atstovais. \"Mūsų tikslas yra skatinti inovacijas ir mokslinio bendradarbiavimo plėtrą\", - teigia profesorė.\n\nRegistracija konferencijai prasidės liepos mėnesį. Dalyvavimo mokestis studentams ir doktorantams bus 50 eurų, o kitiems dalyviams - 150 eurų. Mokestis apims konferencijos medžiagas, kavos pertraukas ir iškilmingą banketą.\n\nKonferencijos programoje numatytos plenuminės paskaitos, sekcijų darbo prezentacijos ir plakatų sesija. Taip pat organizuojama ekskursija po Vilniaus senamiestį ir susitikimas su vietinės IT bendruomenės atstovais.\n\nDaugiau informacijos galima rasti universiteto svetainėje arba kreipiantis el. paštu konferencija@mif.vu.lt. Pranešimų santraukų pateikimo terminas - rugpjūčio 1 diena.",
+      "heading": "VU MIF organizuoja tarptautinę dirbtinio intelekto konferenciją"
+    },
+    "meta": {
+      "url": "https://www.mif.vu.lt/naujienos/konferencija-ai-2025",
+      "author": "VU MIF",
+      "column": "Naujienos",
+      "datePublished": "2025-06-06 10:00:00"
+    },
+    "created_at": "2025-06-06T00:00:00.000000Z",
+    "updated_at": "2025-06-06T00:00:00.000000Z",
+    "inner_id": 1,
+    "total_annotations": 1,
+    "cancelled_annotations": 0,
+    "total_predictions": 0,
+    "comment_count": 0,
+    "unresolved_comment_count": 0,
+    "last_comment_updated_at": null,
+    "project": 1,
+    "updated_by": null,
+    "comment_authors": []
+  }
+]

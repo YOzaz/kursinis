@@ -1,0 +1,1376 @@
+[
+  {
+    "id": 37735,
+    "annotations": [
+      {
+        "id": 828,
+        "completed_by": 14,
+        "result": [
+          {
+            "id": "jNnP69mzrh",
+            "type": "choices",
+            "value": {
+              "choices": [
+                "yes"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "primaryChoice"
+          },
+          {
+            "id": "id0yi0Cbh5",
+            "type": "labels",
+            "value": {
+              "end": 360,
+              "text": "Visų pirma nusiimkim spalvotus vaikiškus akinėlius, kuriuos mums kasdien uždeda ekranai iš visų pasaulio šalių, tada taip greit viską suprasim, kad ilgai stebėsimės, kaip anksčiau to nesupratom. Elementari tiesa, kurią nuo mūsų slepia – globalioje politikoje nėra jokių vertybių ir jokios tiesos, išskyrus kovą dėl įtakų, resursų, pelnų, valdžios ir teritorijų",
+              "start": 0,
+              "labels": [
+                "simplification"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "rlMofTiARM",
+            "type": "labels",
+            "value": {
+              "end": 1088,
+              "text": "O ji labai paprasta – po J.Bideno ir V.Putino susitikimo pasaulis pasikeitė, nes, pasikeitus galių santykiui tas faktas pagaliau pripažintas ir įvyko esminis įtakų persiskirstymas.",
+              "start": 908,
+              "labels": [
+                "simplification"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "Oqd6n1Sfk2",
+            "type": "labels",
+            "value": {
+              "end": 1454,
+              "text": "Amerikos Leonidas Iljičius pasidavė. Kadaise buvusi galingiausia pasaulio valstybė po joje nugalėjusios neomarksistinės revoliucijos grimzta į chaosą. Ir, nebeįstengdama dominuoti visuose pasaulio regionuose, faktiškai nusišalina nuo aktyvios politikos dėl Europos likimo, palikdama čia tikslu esamų įtakų stabilumo išsaugojimą, kas realu tik trumpoje perspektyvoje",
+              "start": 1089,
+              "labels": [
+                "emotionalExpression"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "wnqjx7O_nA",
+            "type": "labels",
+            "value": {
+              "end": 1950,
+              "text": "tuščių trilijonų spausdinimo mašinėlės savininkė neturi itin daug šansų. Nei karinių, nei ekonominių, nei politinių, nei finansinių. Jokių. Todėl pagrindinis Leonido Iljičiaus Baideno tikslas užsitikrinti, kad Rusija kiek įmanoma liktų neutrali šioje paskutinėje, sprendžiamojoje Amerikos kovoje.",
+              "start": 1654,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "toJm0SE2qR",
+            "type": "labels",
+            "value": {
+              "end": 2416,
+              "text": "Tam iš anksto atsisakyta vienintelio turėto tikrai strategiškai svarbaus įrankio – Nordstream-2 blokados, kas sužlugdys Ukrainą galutinai ir be jokių įsipareigojimų iš Rusijos pusės. V.Putinas gavo praktiškai viską dykai, išskyrus kelis bejėgiškus Leonido Iljičiaus pagrūmojimus piršteliu dėl “žmogaus teisių“ ir tai keičia situaciją Europoje iš esmės. Rusija įgyja teisę tvarkytis buvusiose TSRS teritorijose, dar netapusiose Vakarų imperijos dalimi, kaip tinkama.",
+              "start": 1951,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "J69X8nZdqh",
+            "type": "labels",
+            "value": {
+              "end": 2901,
+              "text": "Ir viskas bus padaryta iki 2024-jų, galime ruoštis",
+              "start": 2851,
+              "labels": [
+                "emotionalExpression"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "RRQsUeYkD7",
+            "type": "labels",
+            "value": {
+              "end": 2650,
+              "text": "atsižvelgiant į Berlyno-Paryžiaus ašies strategines nuostatas, išskyrus smarkų lojimą dėl kokių nors nepriimtinų įvykių, išprotėjusių ir bejėgių eurobiurokratų politinį neutralumą užsitikrinti nebus sunku",
+              "start": 2446,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "2SXWPCuLCX",
+            "type": "choices",
+            "value": {
+              "choices": [
+                "distrustOfLithuanianInstitutions",
+                "Pasitikėjimo NATO mažinimas"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "desinformationTechnique"
+          },
+          {
+            "id": "rBCjMN5FcY",
+            "type": "labels",
+            "value": {
+              "end": 3387,
+              "text": "Kada bus nutrauktas dujų eksportas per Ukrainą ir prarastas esminis šalies biudžeto šaltinis – tik laiko klausimas. Tai sukels dideles socialines įtampas ir nestabilumą, nes valstybė praktiškai palikta viena akistatoje su Rusija. O visi vakarykščių globėjų patarimai susiveda į vieną – “vykdykite Minsko susitarimus“, kas faktiškai reikštų suverenios valstybės pabaigą ir galutinį virsmą priklausoma nuo užsienio teritorija, kokia jau tapo Lietuva, tik be jokių Vakarų įsipareigojimų.",
+              "start": 2903,
+              "labels": [
+                "emotionalExpression"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "VULfH7Ueje",
+            "type": "labels",
+            "value": {
+              "end": 3418,
+              "text": "Scenarijų daug ir visi blogi. ",
+              "start": 3388,
+              "labels": [
+                "emotionalExpression"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "eNupZn-ZBB",
+            "type": "labels",
+            "value": {
+              "end": 3416,
+              "text": "Scenarijų daug ir visi blogi",
+              "start": 3388,
+              "labels": [
+                "simplification"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "6J5zfnvLAB",
+            "type": "labels",
+            "value": {
+              "end": 4926,
+              "text": "Ir tada ateis tas svarbiausias, Berlyno-Paryžiaus ir Tarptautinio valiutos fondo laukiamas momentas, kada galutinai nustekentą valstybę bus galima už sunkią valandą paskolintą brolišką pagalbą perimti į brolišką glėbį – joje juk tiek skanių kąsnelių, kuriuos galima privatizuoti už eurą, čia tau ne kokia Lietuvėlė su Mažeikiais!",
+              "start": 4597,
+              "labels": [
+                "emotionalExpression"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "urw0nLuiIf",
+            "type": "labels",
+            "value": {
+              "end": 5968,
+              "text": "Tragikomiška, bet šį Baltarusijos inkorporavimo į Rusiją projektą remia bei finansuoja Briuselio bepročiai ir savo planuojamomis sankcijomis esminiams Baltarusijos ekonomikos sektoriams tikrai gali tą paspartinti. Sunku čia įžvelgti interesą, nes bet kokiu atveju Baltarusijos kąsnelį privatizuos ne jie, o Kremliaus oligarchai. Ir mūsų vadinamieji “politikai“, žodžiais “kovodami“ su Rusija, darbais lenktyniauja ir net imasi naudingų idiotų iniciatyvų, kaip kuo geriau įgyvendinti Briuselio šeimininkų ir Maskvos pageidavimus.",
+              "start": 5440,
+              "labels": [
+                "emotionalExpression"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "3m5liCYpeh",
+            "type": "labels",
+            "value": {
+              "end": 5653,
+              "text": "šį Baltarusijos inkorporavimo į Rusiją projektą remia bei finansuoja Briuselio bepročiai ir savo planuojamomis sankcijomis esminiams Baltarusijos ekonomikos sektoriams tikrai gali tą paspartinti.",
+              "start": 5458,
+              "labels": [
+                "doubt"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "M4MSLJyiw3",
+            "type": "labels",
+            "value": {
+              "end": 6091,
+              "text": "Toks Lietuvos politinio elito elgesys antikonstituciškas ir antiįstatymiškas, nes pažeidžia esminius valstybės interesus. ",
+              "start": 5969,
+              "labels": [
+                "doubt"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "GRD5W2ULhZ",
+            "type": "labels",
+            "value": {
+              "end": 6089,
+              "text": "pažeidžia esminius valstybės interesus",
+              "start": 6051,
+              "labels": [
+                "wavingTheFlag"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "lr5E9zncd4",
+            "type": "labels",
+            "value": {
+              "end": 6589,
+              "text": "Tiesioginės, finansinės naudos sau asmeniškai nebėra, nes aukso amžius, kada grynaisiais vežiojom milijonus baltarusiškai opozicijai finansuoti, kurių didelė dalis pradingdavo vežiotojų kišenėse, po tyliai užgniaužto skandalo ir V.Pociūno skrydžio pro Bresto viešbučio langą – nebepasikartos. Liko vienintelis kolonijų diktatūrų interesas – įtikti metropolijai, užsitikrinti politinę paramą ir ateitį, išorės grėsmėmis užmaskuoti vidinius savo darbelius. Gyvenama principu “po mūsų nors ir tvanas“.",
+              "start": 6091,
+              "labels": [
+                "emotionalExpression"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "I4kJGaJFHP",
+            "type": "labels",
+            "value": {
+              "end": 6791,
+              "text": "didžiausia grėsme Lietuvos nacionaliniam saugumui buvo ir išlieka jos valdžia, garsiai klykianti apie grėsmes nacionaliniam saugumui ir tuo pretekstu šalinanti politinius oponentus",
+              "start": 6611,
+              "labels": [
+                "wavingTheFlag"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "vLFAFB8wB2",
+            "type": "labels",
+            "value": {
+              "end": 6831,
+              "text": "Tą dauguma piliečių jau seniai suprato",
+              "start": 6793,
+              "labels": [
+                "simplification"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "sM-b7rtxFB",
+            "type": "labels",
+            "value": {
+              "end": 7619,
+              "text": "tokių politiškai ir finansiškai pelningų, bet valstybės išlikimui tiesiogiai nepavojingų intrigėlių laikas baigėsi. Po Leonido Iljičiaus Bideno ir Vladimiro Vladimirovičiaus Putino pakto prasideda rimtas, didysis žaidimas, kur mažųjų niekas nepasigailės ir į jokias liokajiškas ištikimybes neatsižvelgs.\\n\\nBent kiek save gerbiančioje valstybėje tokia itin pavojinga padėtis būtų viešai aptariama, kalbėtų politologai, ginčytųsi politikai, partijos siūlytų sprendimus. Imitacinėje, protektorato teisėmis faktiškai egzistuojančioje teritorijoje grupuotės, šeimos ir asmenys, užvaldžiusios valstybę, to tiesiog nedarys. Ir tai tiesus kelias į susinaikinimą prasidedančioje pasaulio perdalijimo epochoje. Vienintelė jėga, dar galinti pakeisti situaciją iš esmės, yra visuomenė.",
+              "start": 6848,
+              "labels": [
+                "emotionalExpression"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "Q_qM_seizI",
+            "type": "labels",
+            "value": {
+              "end": 1115,
+              "text": "Amerikos Leonidas Iljičius",
+              "start": 1089,
+              "labels": [
+                "reductioAdHitlerum"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "GlS0zL6wmK",
+            "type": "labels",
+            "value": {
+              "end": 6991,
+              "text": "Leonido Iljičiaus Bideno",
+              "start": 6967,
+              "labels": [
+                "repetition"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "AF6TtSdo_7",
+            "type": "labels",
+            "value": {
+              "end": 1115,
+              "text": "Leonidas Iljičius",
+              "start": 1098,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "WwUOYbOQ6T",
+            "type": "labels",
+            "value": {
+              "end": 906,
+              "text": "Leistinos absoliučiai visos, pačios nežmoniškiausios priemonės ir visi iki vieno slapta jas naudoja. Visa žodinė ir vaizdinė ekranų tryda skirta masiniam vartojimui ir primityviam tinginių mąstymui, trokštančiam kaltųjų, teisiųjų ir paprastučių, patogių klišių. Propaganda tarnauja išimtinai tik tų tikslų įgyvendinimui ir skirta valdžių ir valstybių stabilumui išlaikyti.\\n\\nSavaitės įvykių apžvalga tokia paprasta, kad net nepatogu būtų apie tai rašyti, jei nesuvokčiau, kad totalios propagandos išskyrų bangose didžioji dauguma esmės nepastebės",
+              "start": 362,
+              "labels": [
+                "emotionalExpression"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "2pvk5tOuXu",
+            "type": "labels",
+            "value": {
+              "end": 1837,
+              "text": "Leonido Iljičiaus Baideno",
+              "start": 1812,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "VY33tAta1T",
+            "type": "labels",
+            "value": {
+              "end": 2216,
+              "text": "Leonido Iljičiaus",
+              "start": 2199,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "EfoE4rgDmP",
+            "type": "labels",
+            "value": {
+              "end": 1115,
+              "text": "Amerikos Leonidas Iljičius",
+              "start": 1089,
+              "labels": [
+                "repetition"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "PYvw75xa4S",
+            "type": "labels",
+            "value": {
+              "end": 3416,
+              "text": "Scenarijų daug ir visi blogi",
+              "start": 3388,
+              "labels": [
+                "repetition"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "BYXfLQskmA",
+            "type": "labels",
+            "value": {
+              "end": 3416,
+              "text": "Scenarijų daug ir visi blogi",
+              "start": 3388,
+              "labels": [
+                "simplification"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "66m5SAHVkp",
+            "type": "labels",
+            "value": {
+              "end": 1837,
+              "text": "Leonido Iljičiaus Baideno",
+              "start": 1812,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "OUrgIAK7Bg",
+            "type": "labels",
+            "value": {
+              "end": 2216,
+              "text": "Leonido Iljičiaus",
+              "start": 2199,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "gfPEQ-Dox3",
+            "type": "labels",
+            "value": {
+              "end": 2216,
+              "text": "Leonido Iljičiaus",
+              "start": 2199,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "tR-RVUR1MT",
+            "type": "labels",
+            "value": {
+              "end": 1837,
+              "text": "Leonido Iljičiaus Baideno",
+              "start": 1812,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "XbN1c9LIRQ",
+            "type": "labels",
+            "value": {
+              "end": 1837,
+              "text": "Leonido Iljičiaus Baideno",
+              "start": 1812,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "Bxqxaz-uUV",
+            "type": "labels",
+            "value": {
+              "end": 2216,
+              "text": "Leonido Iljičiaus",
+              "start": 2199,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "oE5GxU9wbm",
+            "type": "labels",
+            "value": {
+              "end": 6991,
+              "text": "Leonido Iljičiaus Bideno",
+              "start": 6967,
+              "labels": [
+                "reductioAdHitlerum"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "jO1K4UwtF9",
+            "type": "labels",
+            "value": {
+              "end": 6831,
+              "text": "Tą dauguma piliečių jau seniai suprato",
+              "start": 6793,
+              "labels": [
+                "simplification"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "I7FTZl_ANk",
+            "type": "labels",
+            "value": {
+              "end": 2652,
+              "text": "Ir kovoje su kita, senojo marksizmo galybe Kinijoje, kur jokiu amerikietišku chaosu net nekvepia, tuščių trilijonų spausdinimo mašinėlės savininkė neturi itin daug šansų. Nei karinių, nei ekonominių, nei politinių, nei finansinių. Jokių. Todėl pagrindinis Leonido Iljičiaus Baideno tikslas užsitikrinti, kad Rusija kiek įmanoma liktų neutrali šioje paskutinėje, sprendžiamojoje Amerikos kovoje.\\n\\nTam iš anksto atsisakyta vienintelio turėto tikrai strategiškai svarbaus įrankio – Nordstream-2 blokados, kas sužlugdys Ukrainą galutinai ir be jokių įsipareigojimų iš Rusijos pusės. V.Putinas gavo praktiškai viską dykai, išskyrus kelis bejėgiškus Leonido Iljičiaus pagrūmojimus piršteliu dėl “žmogaus teisių“ ir tai keičia situaciją Europoje iš esmės. Rusija įgyja teisę tvarkytis buvusiose TSRS teritorijose, dar netapusiose Vakarų imperijos dalimi, kaip tinkama.\\n\\nTam galių turi pakankamai, o atsižvelgiant į Berlyno-Paryžiaus ašies strategines nuostatas, išskyrus smarkų lojimą dėl kokių nors nepriimtinų įvykių, išprotėjusių ir bejėgių eurobiurokratų politinį neutralumą užsitikrinti nebus sunku. ",
+              "start": 1556,
+              "labels": [
+                "emotionalExpression"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "h301FG0WAi",
+            "type": "labels",
+            "value": {
+              "end": 3387,
+              "text": "faktiškai reikštų suverenios valstybės pabaigą ir galutinį virsmą priklausoma nuo užsienio teritorija, kokia jau tapo Lietuva, tik be jokių Vakarų įsipareigojimų.",
+              "start": 3225,
+              "labels": [
+                "emotionalExpression"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "iSseVeBxto",
+            "type": "labels",
+            "value": {
+              "end": 3387,
+              "text": "faktiškai reikštų suverenios valstybės pabaigą ir galutinį virsmą priklausoma nuo užsienio teritorija, kokia jau tapo Lietuva, tik be jokių Vakarų įsipareigojimų.",
+              "start": 3225,
+              "labels": [
+                "doubt"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "D9qx2ZGpUt",
+            "type": "labels",
+            "value": {
+              "end": 5439,
+              "text": "Baltarusijoje irgi atėjo laikas globaliems sprendimams, kolūkio pirmininko Aliaksandro laikas iškapsėjo, tik ten nėra jokios proeuropietiškos opozicijos ir apie Europos Sąjungą nesvaigstama. Tikrieji opozicionieriai prorusiški arba Kremliaus statytiniai, jokių “euromaidanų“ nenusimato ir nebus. Kitų variantų paprasčiausiai nėra, galutinai destabilizavus valstybę ES finansuojami “demokratiniai judėjimai“ atvestų šalį į Rusijos glėbį ir turėtume už mūsų pinigus Rusiją už pusvalandžio tankų žygio nuo sostinės.",
+              "start": 4927,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "type": "relation",
+            "to_id": "2pvk5tOuXu",
+            "from_id": "Q_qM_seizI",
+            "direction": "right"
+          },
+          {
+            "type": "relation",
+            "to_id": "VY33tAta1T",
+            "from_id": "2pvk5tOuXu",
+            "direction": "right"
+          },
+          {
+            "type": "relation",
+            "to_id": "GlS0zL6wmK",
+            "from_id": "VY33tAta1T",
+            "direction": "right"
+          }
+        ],
+        "was_cancelled": false,
+        "ground_truth": false,
+        "created_at": "2024-01-11T10:50:03.931836Z",
+        "updated_at": "2024-01-11T10:50:03.931849Z",
+        "draft_created_at": null,
+        "lead_time": 13048.712,
+        "prediction": {
+
+        },
+        "result_count": 0,
+        "unique_id": "28adcefb-da66-4537-83a7-97f0d00134d3",
+        "import_id": 269,
+        "last_action": null,
+        "bulk_created": false,
+        "task": 37735,
+        "project": 47,
+        "updated_by": null,
+        "parent_prediction": null,
+        "parent_annotation": null,
+        "last_created_by": null
+      }
+    ],
+    "drafts": [
+      {
+        "id": 1297,
+        "user": "paulius.zaranka@mif.vu.lt",
+        "created_username": "Paulius Zaranka paulius.zaranka@mif.vu.lt, 1",
+        "created_ago": "1 year, 1 month",
+        "result": [
+          {
+            "id": "jNnP69mzrh",
+            "type": "choices",
+            "value": {
+              "choices": [
+                "yes"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "primaryChoice"
+          },
+          {
+            "id": "id0yi0Cbh5",
+            "type": "labels",
+            "value": {
+              "end": 360,
+              "text": "Visų pirma nusiimkim spalvotus vaikiškus akinėlius, kuriuos mums kasdien uždeda ekranai iš visų pasaulio šalių, tada taip greit viską suprasim, kad ilgai stebėsimės, kaip anksčiau to nesupratom. Elementari tiesa, kurią nuo mūsų slepia – globalioje politikoje nėra jokių vertybių ir jokios tiesos, išskyrus kovą dėl įtakų, resursų, pelnų, valdžios ir teritorijų",
+              "start": 0,
+              "labels": [
+                "simplification"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "rlMofTiARM",
+            "type": "labels",
+            "value": {
+              "end": 1088,
+              "text": "O ji labai paprasta – po J.Bideno ir V.Putino susitikimo pasaulis pasikeitė, nes, pasikeitus galių santykiui tas faktas pagaliau pripažintas ir įvyko esminis įtakų persiskirstymas.",
+              "start": 908,
+              "labels": [
+                "simplification"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "Oqd6n1Sfk2",
+            "type": "labels",
+            "value": {
+              "end": 1454,
+              "text": "Amerikos Leonidas Iljičius pasidavė. Kadaise buvusi galingiausia pasaulio valstybė po joje nugalėjusios neomarksistinės revoliucijos grimzta į chaosą. Ir, nebeįstengdama dominuoti visuose pasaulio regionuose, faktiškai nusišalina nuo aktyvios politikos dėl Europos likimo, palikdama čia tikslu esamų įtakų stabilumo išsaugojimą, kas realu tik trumpoje perspektyvoje",
+              "start": 1089,
+              "labels": [
+                "emotionalExpression"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "wnqjx7O_nA",
+            "type": "labels",
+            "value": {
+              "end": 1950,
+              "text": "tuščių trilijonų spausdinimo mašinėlės savininkė neturi itin daug šansų. Nei karinių, nei ekonominių, nei politinių, nei finansinių. Jokių. Todėl pagrindinis Leonido Iljičiaus Baideno tikslas užsitikrinti, kad Rusija kiek įmanoma liktų neutrali šioje paskutinėje, sprendžiamojoje Amerikos kovoje.",
+              "start": 1654,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "toJm0SE2qR",
+            "type": "labels",
+            "value": {
+              "end": 2416,
+              "text": "Tam iš anksto atsisakyta vienintelio turėto tikrai strategiškai svarbaus įrankio – Nordstream-2 blokados, kas sužlugdys Ukrainą galutinai ir be jokių įsipareigojimų iš Rusijos pusės. V.Putinas gavo praktiškai viską dykai, išskyrus kelis bejėgiškus Leonido Iljičiaus pagrūmojimus piršteliu dėl “žmogaus teisių“ ir tai keičia situaciją Europoje iš esmės. Rusija įgyja teisę tvarkytis buvusiose TSRS teritorijose, dar netapusiose Vakarų imperijos dalimi, kaip tinkama.",
+              "start": 1951,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "J69X8nZdqh",
+            "type": "labels",
+            "value": {
+              "end": 2901,
+              "text": "Ir viskas bus padaryta iki 2024-jų, galime ruoštis",
+              "start": 2851,
+              "labels": [
+                "emotionalExpression"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "RRQsUeYkD7",
+            "type": "labels",
+            "value": {
+              "end": 2650,
+              "text": "atsižvelgiant į Berlyno-Paryžiaus ašies strategines nuostatas, išskyrus smarkų lojimą dėl kokių nors nepriimtinų įvykių, išprotėjusių ir bejėgių eurobiurokratų politinį neutralumą užsitikrinti nebus sunku",
+              "start": 2446,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "rBCjMN5FcY",
+            "type": "labels",
+            "value": {
+              "end": 3387,
+              "text": "Kada bus nutrauktas dujų eksportas per Ukrainą ir prarastas esminis šalies biudžeto šaltinis – tik laiko klausimas. Tai sukels dideles socialines įtampas ir nestabilumą, nes valstybė praktiškai palikta viena akistatoje su Rusija. O visi vakarykščių globėjų patarimai susiveda į vieną – “vykdykite Minsko susitarimus“, kas faktiškai reikštų suverenios valstybės pabaigą ir galutinį virsmą priklausoma nuo užsienio teritorija, kokia jau tapo Lietuva, tik be jokių Vakarų įsipareigojimų.",
+              "start": 2903,
+              "labels": [
+                "emotionalExpression"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "VULfH7Ueje",
+            "type": "labels",
+            "value": {
+              "end": 3418,
+              "text": "Scenarijų daug ir visi blogi. ",
+              "start": 3388,
+              "labels": [
+                "emotionalExpression"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "eNupZn-ZBB",
+            "type": "labels",
+            "value": {
+              "end": 3416,
+              "text": "Scenarijų daug ir visi blogi",
+              "start": 3388,
+              "labels": [
+                "simplification"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "6J5zfnvLAB",
+            "type": "labels",
+            "value": {
+              "end": 4926,
+              "text": "Ir tada ateis tas svarbiausias, Berlyno-Paryžiaus ir Tarptautinio valiutos fondo laukiamas momentas, kada galutinai nustekentą valstybę bus galima už sunkią valandą paskolintą brolišką pagalbą perimti į brolišką glėbį – joje juk tiek skanių kąsnelių, kuriuos galima privatizuoti už eurą, čia tau ne kokia Lietuvėlė su Mažeikiais!",
+              "start": 4597,
+              "labels": [
+                "emotionalExpression"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "urw0nLuiIf",
+            "type": "labels",
+            "value": {
+              "end": 5968,
+              "text": "Tragikomiška, bet šį Baltarusijos inkorporavimo į Rusiją projektą remia bei finansuoja Briuselio bepročiai ir savo planuojamomis sankcijomis esminiams Baltarusijos ekonomikos sektoriams tikrai gali tą paspartinti. Sunku čia įžvelgti interesą, nes bet kokiu atveju Baltarusijos kąsnelį privatizuos ne jie, o Kremliaus oligarchai. Ir mūsų vadinamieji “politikai“, žodžiais “kovodami“ su Rusija, darbais lenktyniauja ir net imasi naudingų idiotų iniciatyvų, kaip kuo geriau įgyvendinti Briuselio šeimininkų ir Maskvos pageidavimus.",
+              "start": 5440,
+              "labels": [
+                "emotionalExpression"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "3m5liCYpeh",
+            "type": "labels",
+            "value": {
+              "end": 5653,
+              "text": "šį Baltarusijos inkorporavimo į Rusiją projektą remia bei finansuoja Briuselio bepročiai ir savo planuojamomis sankcijomis esminiams Baltarusijos ekonomikos sektoriams tikrai gali tą paspartinti.",
+              "start": 5458,
+              "labels": [
+                "doubt"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "M4MSLJyiw3",
+            "type": "labels",
+            "value": {
+              "end": 6091,
+              "text": "Toks Lietuvos politinio elito elgesys antikonstituciškas ir antiįstatymiškas, nes pažeidžia esminius valstybės interesus. ",
+              "start": 5969,
+              "labels": [
+                "doubt"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "GRD5W2ULhZ",
+            "type": "labels",
+            "value": {
+              "end": 6089,
+              "text": "pažeidžia esminius valstybės interesus",
+              "start": 6051,
+              "labels": [
+                "wavingTheFlag"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "lr5E9zncd4",
+            "type": "labels",
+            "value": {
+              "end": 6589,
+              "text": "Tiesioginės, finansinės naudos sau asmeniškai nebėra, nes aukso amžius, kada grynaisiais vežiojom milijonus baltarusiškai opozicijai finansuoti, kurių didelė dalis pradingdavo vežiotojų kišenėse, po tyliai užgniaužto skandalo ir V.Pociūno skrydžio pro Bresto viešbučio langą – nebepasikartos. Liko vienintelis kolonijų diktatūrų interesas – įtikti metropolijai, užsitikrinti politinę paramą ir ateitį, išorės grėsmėmis užmaskuoti vidinius savo darbelius. Gyvenama principu “po mūsų nors ir tvanas“.",
+              "start": 6091,
+              "labels": [
+                "emotionalExpression"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "I4kJGaJFHP",
+            "type": "labels",
+            "value": {
+              "end": 6791,
+              "text": "didžiausia grėsme Lietuvos nacionaliniam saugumui buvo ir išlieka jos valdžia, garsiai klykianti apie grėsmes nacionaliniam saugumui ir tuo pretekstu šalinanti politinius oponentus",
+              "start": 6611,
+              "labels": [
+                "wavingTheFlag"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "vLFAFB8wB2",
+            "type": "labels",
+            "value": {
+              "end": 6831,
+              "text": "Tą dauguma piliečių jau seniai suprato",
+              "start": 6793,
+              "labels": [
+                "simplification"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "sM-b7rtxFB",
+            "type": "labels",
+            "value": {
+              "end": 7619,
+              "text": "tokių politiškai ir finansiškai pelningų, bet valstybės išlikimui tiesiogiai nepavojingų intrigėlių laikas baigėsi. Po Leonido Iljičiaus Bideno ir Vladimiro Vladimirovičiaus Putino pakto prasideda rimtas, didysis žaidimas, kur mažųjų niekas nepasigailės ir į jokias liokajiškas ištikimybes neatsižvelgs.\\nBent kiek save gerbiančioje valstybėje tokia itin pavojinga padėtis būtų viešai aptariama, kalbėtų politologai, ginčytųsi politikai, partijos siūlytų sprendimus. Imitacinėje, protektorato teisėmis faktiškai egzistuojančioje teritorijoje grupuotės, šeimos ir asmenys, užvaldžiusios valstybę, to tiesiog nedarys. Ir tai tiesus kelias į susinaikinimą prasidedančioje pasaulio perdalijimo epochoje. Vienintelė jėga, dar galinti pakeisti situaciją iš esmės, yra visuomenė.",
+              "start": 6848,
+              "labels": [
+                "emotionalExpression"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "Q_qM_seizI",
+            "type": "labels",
+            "value": {
+              "end": 1115,
+              "text": "Amerikos Leonidas Iljičius",
+              "start": 1089,
+              "labels": [
+                "reductioAdHitlerum"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "GlS0zL6wmK",
+            "type": "labels",
+            "value": {
+              "end": 6991,
+              "text": "Leonido Iljičiaus Bideno",
+              "start": 6967,
+              "labels": [
+                "repetition"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "AF6TtSdo_7",
+            "type": "labels",
+            "value": {
+              "end": 1115,
+              "text": "Leonidas Iljičius",
+              "start": 1098,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "WwUOYbOQ6T",
+            "type": "labels",
+            "value": {
+              "end": 906,
+              "text": "Leistinos absoliučiai visos, pačios nežmoniškiausios priemonės ir visi iki vieno slapta jas naudoja. Visa žodinė ir vaizdinė ekranų tryda skirta masiniam vartojimui ir primityviam tinginių mąstymui, trokštančiam kaltųjų, teisiųjų ir paprastučių, patogių klišių. Propaganda tarnauja išimtinai tik tų tikslų įgyvendinimui ir skirta valdžių ir valstybių stabilumui išlaikyti.\\nSavaitės įvykių apžvalga tokia paprasta, kad net nepatogu būtų apie tai rašyti, jei nesuvokčiau, kad totalios propagandos išskyrų bangose didžioji dauguma esmės nepastebės",
+              "start": 362,
+              "labels": [
+                "emotionalExpression"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "2pvk5tOuXu",
+            "type": "labels",
+            "value": {
+              "end": 1837,
+              "text": "Leonido Iljičiaus Baideno",
+              "start": 1812,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "VY33tAta1T",
+            "type": "labels",
+            "value": {
+              "end": 2216,
+              "text": "Leonido Iljičiaus",
+              "start": 2199,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "EfoE4rgDmP",
+            "type": "labels",
+            "value": {
+              "end": 1115,
+              "text": "Amerikos Leonidas Iljičius",
+              "start": 1089,
+              "labels": [
+                "repetition"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "PYvw75xa4S",
+            "type": "labels",
+            "value": {
+              "end": 3416,
+              "text": "Scenarijų daug ir visi blogi",
+              "start": 3388,
+              "labels": [
+                "repetition"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "BYXfLQskmA",
+            "type": "labels",
+            "value": {
+              "end": 3416,
+              "text": "Scenarijų daug ir visi blogi",
+              "start": 3388,
+              "labels": [
+                "simplification"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "66m5SAHVkp",
+            "type": "labels",
+            "value": {
+              "end": 1837,
+              "text": "Leonido Iljičiaus Baideno",
+              "start": 1812,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "OUrgIAK7Bg",
+            "type": "labels",
+            "value": {
+              "end": 2216,
+              "text": "Leonido Iljičiaus",
+              "start": 2199,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "gfPEQ-Dox3",
+            "type": "labels",
+            "value": {
+              "end": 2216,
+              "text": "Leonido Iljičiaus",
+              "start": 2199,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "tR-RVUR1MT",
+            "type": "labels",
+            "value": {
+              "end": 1837,
+              "text": "Leonido Iljičiaus Baideno",
+              "start": 1812,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "XbN1c9LIRQ",
+            "type": "labels",
+            "value": {
+              "end": 1837,
+              "text": "Leonido Iljičiaus Baideno",
+              "start": 1812,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "Bxqxaz-uUV",
+            "type": "labels",
+            "value": {
+              "end": 2216,
+              "text": "Leonido Iljičiaus",
+              "start": 2199,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "oE5GxU9wbm",
+            "type": "labels",
+            "value": {
+              "end": 6991,
+              "text": "Leonido Iljičiaus Bideno",
+              "start": 6967,
+              "labels": [
+                "reductioAdHitlerum"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "jO1K4UwtF9",
+            "type": "labels",
+            "value": {
+              "end": 6831,
+              "text": "Tą dauguma piliečių jau seniai suprato",
+              "start": 6793,
+              "labels": [
+                "simplification"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "I7FTZl_ANk",
+            "type": "labels",
+            "value": {
+              "end": 2652,
+              "text": "Ir kovoje su kita, senojo marksizmo galybe Kinijoje, kur jokiu amerikietišku chaosu net nekvepia, tuščių trilijonų spausdinimo mašinėlės savininkė neturi itin daug šansų. Nei karinių, nei ekonominių, nei politinių, nei finansinių. Jokių. Todėl pagrindinis Leonido Iljičiaus Baideno tikslas užsitikrinti, kad Rusija kiek įmanoma liktų neutrali šioje paskutinėje, sprendžiamojoje Amerikos kovoje.\\nTam iš anksto atsisakyta vienintelio turėto tikrai strategiškai svarbaus įrankio – Nordstream-2 blokados, kas sužlugdys Ukrainą galutinai ir be jokių įsipareigojimų iš Rusijos pusės. V.Putinas gavo praktiškai viską dykai, išskyrus kelis bejėgiškus Leonido Iljičiaus pagrūmojimus piršteliu dėl “žmogaus teisių“ ir tai keičia situaciją Europoje iš esmės. Rusija įgyja teisę tvarkytis buvusiose TSRS teritorijose, dar netapusiose Vakarų imperijos dalimi, kaip tinkama.\\nTam galių turi pakankamai, o atsižvelgiant į Berlyno-Paryžiaus ašies strategines nuostatas, išskyrus smarkų lojimą dėl kokių nors nepriimtinų įvykių, išprotėjusių ir bejėgių eurobiurokratų politinį neutralumą užsitikrinti nebus sunku. ",
+              "start": 1556,
+              "labels": [
+                "emotionalExpression"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "h301FG0WAi",
+            "type": "labels",
+            "value": {
+              "end": 3387,
+              "text": "faktiškai reikštų suverenios valstybės pabaigą ir galutinį virsmą priklausoma nuo užsienio teritorija, kokia jau tapo Lietuva, tik be jokių Vakarų įsipareigojimų.",
+              "start": 3225,
+              "labels": [
+                "emotionalExpression"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "iSseVeBxto",
+            "type": "labels",
+            "value": {
+              "end": 3387,
+              "text": "faktiškai reikštų suverenios valstybės pabaigą ir galutinį virsmą priklausoma nuo užsienio teritorija, kokia jau tapo Lietuva, tik be jokių Vakarų įsipareigojimų.",
+              "start": 3225,
+              "labels": [
+                "doubt"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "D9qx2ZGpUt",
+            "type": "labels",
+            "value": {
+              "end": 5439,
+              "text": "Baltarusijoje irgi atėjo laikas globaliems sprendimams, kolūkio pirmininko Aliaksandro laikas iškapsėjo, tik ten nėra jokios proeuropietiškos opozicijos ir apie Europos Sąjungą nesvaigstama. Tikrieji opozicionieriai prorusiški arba Kremliaus statytiniai, jokių “euromaidanų“ nenusimato ir nebus. Kitų variantų paprasčiausiai nėra, galutinai destabilizavus valstybę ES finansuojami “demokratiniai judėjimai“ atvestų šalį į Rusijos glėbį ir turėtume už mūsų pinigus Rusiją už pusvalandžio tankų žygio nuo sostinės.",
+              "start": 4927,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "7qgCXJ8Q9P",
+            "type": "labels",
+            "value": {
+              "end": 6198,
+              "text": "antikonstituciškas ir antiįstatymiškas, nes pažeidžia esminius valstybės interesus. Tiesioginės, finansinės naudos sau asmeniškai nebėra, nes aukso amžius, kada grynaisiais vežiojom milijonus",
+              "start": 6007,
+              "labels": [
+                "uncertainty"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "id": "mj-BqKRy-h",
+            "type": "labels",
+            "value": {
+              "end": 1016,
+              "text": "santykiui",
+              "start": 1007,
+              "labels": [
+                "simplification"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "content",
+            "from_name": "label"
+          },
+          {
+            "type": "relation",
+            "to_id": "2pvk5tOuXu",
+            "from_id": "Q_qM_seizI",
+            "direction": "right"
+          },
+          {
+            "type": "relation",
+            "to_id": "VY33tAta1T",
+            "from_id": "2pvk5tOuXu",
+            "direction": "right"
+          },
+          {
+            "type": "relation",
+            "to_id": "GlS0zL6wmK",
+            "from_id": "VY33tAta1T",
+            "direction": "right"
+          }
+        ],
+        "lead_time": 26123.446,
+        "was_postponed": false,
+        "import_id": null,
+        "created_at": "2024-03-29T10:22:02.294920Z",
+        "updated_at": "2025-05-23T08:20:22.577605Z",
+        "task": 37735,
+        "annotation": 828
+      }
+    ],
+    "predictions": [],
+    "data": {
+      "content": "Visų pirma nusiimkim spalvotus vaikiškus akinėlius, kuriuos mums kasdien uždeda ekranai iš visų pasaulio šalių, tada taip greit viską suprasim, kad ilgai stebėsimės, kaip anksčiau to nesupratom. Elementari tiesa, kurią nuo mūsų slepia – globalioje politikoje nėra jokių vertybių ir jokios tiesos, išskyrus kovą dėl įtakų, resursų, pelnų, valdžios ir teritorijų.\nLeistinos absoliučiai visos, pačios nežmoniškiausios priemonės ir visi iki vieno slapta jas naudoja. Visa žodinė ir vaizdinė ekranų tryda skirta masiniam vartojimui ir primityviam tinginių mąstymui, trokštančiam kaltųjų, teisiųjų ir paprastučių, patogių klišių. Propaganda tarnauja išimtinai tik tų tikslų įgyvendinimui ir skirta valdžių ir valstybių stabilumui išlaikyti.\nSavaitės įvykių apžvalga tokia paprasta, kad net nepatogu būtų apie tai rašyti, jei nesuvokčiau, kad totalios propagandos išskyrų bangose didžioji dauguma esmės nepastebės. O ji labai paprasta – po J.Bideno ir V.Putino susitikimo pasaulis pasikeitė, nes, pasikeitus galių santykiui tas faktas pagaliau pripažintas ir įvyko esminis įtakų persiskirstymas.\nAmerikos Leonidas Iljičius pasidavė. Kadaise buvusi galingiausia pasaulio valstybė po joje nugalėjusios neomarksistinės revoliucijos grimzta į chaosą. Ir, nebeįstengdama dominuoti visuose pasaulio regionuose, faktiškai nusišalina nuo aktyvios politikos dėl Europos likimo, palikdama čia tikslu esamų įtakų stabilumo išsaugojimą, kas realu tik trumpoje perspektyvoje. Visa galia ir dėmesys perkeliami į Aziją, kur artimiausiais dešimtmečiais spręsis pasaulio ateitis.\nIr kovoje su kita, senojo marksizmo galybe Kinijoje, kur jokiu amerikietišku chaosu net nekvepia, tuščių trilijonų spausdinimo mašinėlės savininkė neturi itin daug šansų. Nei karinių, nei ekonominių, nei politinių, nei finansinių. Jokių. Todėl pagrindinis Leonido Iljičiaus Baideno tikslas užsitikrinti, kad Rusija kiek įmanoma liktų neutrali šioje paskutinėje, sprendžiamojoje Amerikos kovoje.\nTam iš anksto atsisakyta vienintelio turėto tikrai strategiškai svarbaus įrankio – Nordstream-2 blokados, kas sužlugdys Ukrainą galutinai ir be jokių įsipareigojimų iš Rusijos pusės. V.Putinas gavo praktiškai viską dykai, išskyrus kelis bejėgiškus Leonido Iljičiaus pagrūmojimus piršteliu dėl “žmogaus teisių“ ir tai keičia situaciją Europoje iš esmės. Rusija įgyja teisę tvarkytis buvusiose TSRS teritorijose, dar netapusiose Vakarų imperijos dalimi, kaip tinkama.\nTam galių turi pakankamai, o atsižvelgiant į Berlyno-Paryžiaus ašies strategines nuostatas, išskyrus smarkų lojimą dėl kokių nors nepriimtinų įvykių, išprotėjusių ir bejėgių eurobiurokratų politinį neutralumą užsitikrinti nebus sunku. Artėja rudeniniai Rusijos Dūmos, o po trejų metų – ir prezidento rinkimai, reikia įvykių ir pergalių, todėl jų tikrai bus. Aišku, pirmiausia Ukrainoje, kurioje įšaldytas karas negali tęstis amžinai. Ir viskas bus padaryta iki 2024-jų, galime ruoštis.\nKada bus nutrauktas dujų eksportas per Ukrainą ir prarastas esminis šalies biudžeto šaltinis – tik laiko klausimas. Tai sukels dideles socialines įtampas ir nestabilumą, nes valstybė praktiškai palikta viena akistatoje su Rusija. O visi vakarykščių globėjų patarimai susiveda į vieną – “vykdykite Minsko susitarimus“, kas faktiškai reikštų suverenios valstybės pabaigą ir galutinį virsmą priklausoma nuo užsienio teritorija, kokia jau tapo Lietuva, tik be jokių Vakarų įsipareigojimų.\nScenarijų daug ir visi blogi. Įvykdysi Minsko susitarimus ir surengsi rinkimus Luhansko ir Donbaso srityse – atsiras federacinės, faktiškai nepriklausomos nuo Kijevo, marionetinės Kremliaus “respublikos“ Ukrainos sudėtyje, kelsiančios nuolatinę grėsmę valstybei. Nes jų gyventojai dalyvaus Ukrainos Rados ir Prezidento rinkimuose, o tas sugriautas ir sulaukėjusias teritorijas dar turėsi atstatyti, išlaikyti, mokėti jiems pensijas ir nuolat spręsti absoliučiai priešiškų “piliečių“ pretenzijas, tikras ir išgalvotas problemas.\nNeįvykdysi Minsko susitarimų – Rusija ir separatistai darys ką norės ir Kijevas liks kaltu, kurio niekas neremia. Bet kokių neramumų ir maištų atveju, kurių galima susilaukti, o galima ir išprovokuoti – irgi viskas jau parengta. Senas triukas – pratybos prie valstybės sienų, po kurių kariai išvyksta, o sunkioji technika lieka. Pakanka slaptai, mažomis grupėmis atvežti civilinėmis priemonėmis personalą, nereikia lengvai pastebimų ir ilgų technikos perkėlimų, netikėtumas garantuotas.\nBet kokio scenarijaus atveju Rusijai pakanka koridoriaus į Krymą ir, idealiu atveju – į Padniestrę, jai visos Ukrainos nereikia, nes jos neišlaikys, o Ukraina pati be Europos irgi neišsilaikys. Ir tada ateis tas svarbiausias, Berlyno-Paryžiaus ir Tarptautinio valiutos fondo laukiamas momentas, kada galutinai nustekentą valstybę bus galima už sunkią valandą paskolintą brolišką pagalbą perimti į brolišką glėbį – joje juk tiek skanių kąsnelių, kuriuos galima privatizuoti už eurą, čia tau ne kokia Lietuvėlė su Mažeikiais!\nBaltarusijoje irgi atėjo laikas globaliems sprendimams, kolūkio pirmininko Aliaksandro laikas iškapsėjo, tik ten nėra jokios proeuropietiškos opozicijos ir apie Europos Sąjungą nesvaigstama. Tikrieji opozicionieriai prorusiški arba Kremliaus statytiniai, jokių “euromaidanų“ nenusimato ir nebus. Kitų variantų paprasčiausiai nėra, galutinai destabilizavus valstybę ES finansuojami “demokratiniai judėjimai“ atvestų šalį į Rusijos glėbį ir turėtume už mūsų pinigus Rusiją už pusvalandžio tankų žygio nuo sostinės.\nTragikomiška, bet šį Baltarusijos inkorporavimo į Rusiją projektą remia bei finansuoja Briuselio bepročiai ir savo planuojamomis sankcijomis esminiams Baltarusijos ekonomikos sektoriams tikrai gali tą paspartinti. Sunku čia įžvelgti interesą, nes bet kokiu atveju Baltarusijos kąsnelį privatizuos ne jie, o Kremliaus oligarchai. Ir mūsų vadinamieji “politikai“, žodžiais “kovodami“ su Rusija, darbais lenktyniauja ir net imasi naudingų idiotų iniciatyvų, kaip kuo geriau įgyvendinti Briuselio šeimininkų ir Maskvos pageidavimus.\nToks Lietuvos politinio elito elgesys antikonstituciškas ir antiįstatymiškas, nes pažeidžia esminius valstybės interesus. Tiesioginės, finansinės naudos sau asmeniškai nebėra, nes aukso amžius, kada grynaisiais vežiojom milijonus baltarusiškai opozicijai finansuoti, kurių didelė dalis pradingdavo vežiotojų kišenėse, po tyliai užgniaužto skandalo ir V.Pociūno skrydžio pro Bresto viešbučio langą – nebepasikartos. Liko vienintelis kolonijų diktatūrų interesas – įtikti metropolijai, užsitikrinti politinę paramą ir ateitį, išorės grėsmėmis užmaskuoti vidinius savo darbelius. Gyvenama principu “po mūsų nors ir tvanas“.\nKaip ir nieko naujo, didžiausia grėsme Lietuvos nacionaliniam saugumui buvo ir išlieka jos valdžia, garsiai klykianti apie grėsmes nacionaliniam saugumui ir tuo pretekstu šalinanti politinius oponentus. Tą dauguma piliečių jau seniai suprato. Nauja tai, kad tokių politiškai ir finansiškai pelningų, bet valstybės išlikimui tiesiogiai nepavojingų intrigėlių laikas baigėsi. Po Leonido Iljičiaus Bideno ir Vladimiro Vladimirovičiaus Putino pakto prasideda rimtas, didysis žaidimas, kur mažųjų niekas nepasigailės ir į jokias liokajiškas ištikimybes neatsižvelgs.\nBent kiek save gerbiančioje valstybėje tokia itin pavojinga padėtis būtų viešai aptariama, kalbėtų politologai, ginčytųsi politikai, partijos siūlytų sprendimus. Imitacinėje, protektorato teisėmis faktiškai egzistuojančioje teritorijoje grupuotės, šeimos ir asmenys, užvaldžiusios valstybę, to tiesiog nedarys. Ir tai tiesus kelias į susinaikinimą prasidedančioje pasaulio perdalijimo epochoje. Vienintelė jėga, dar galinti pakeisti situaciją iš esmės, yra visuomenė. Kiek ji pajėgi tą padaryti ir ką konkrečiai reikėtų daryti – kito straipsnio tema.\n",
+      "heading": "Algimantas Rusteika. Paktas"
+    },
+    "meta": {
+      "url": "https://www.minfo.lt/pasaulis/straipsnis/algimantas-rusteika-paktas",
+      "author": "Algimantas Rusteika, kaunoforumas.com",
+      "column": "Pasaulis",
+      "datePublished": "2021-06-21 09:00:00"
+    },
+    "created_at": "2024-01-11T10:50:03.929107Z",
+    "updated_at": "2024-01-11T10:50:03.929126Z",
+    "inner_id": 16,
+    "total_annotations": 1,
+    "cancelled_annotations": 0,
+    "total_predictions": 0,
+    "comment_count": 0,
+    "unresolved_comment_count": 0,
+    "last_comment_updated_at": null,
+    "project": 47,
+    "updated_by": null,
+    "comment_authors": []
+  }
+]

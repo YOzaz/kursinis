@@ -61,5 +61,4 @@ Thumbs.db
 /coverage/
 
 # Custom
-docs/*.json
 cookies.txt
