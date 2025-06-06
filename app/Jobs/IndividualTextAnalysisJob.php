@@ -148,7 +148,26 @@ class IndividualTextAnalysisJob implements ShouldQueue
                 $this->updateJobProgress($job);
             }
 
-            throw $e;
+            // Only rethrow if it's a critical error that should fail the job
+            if ($e instanceof \App\Services\Exceptions\LLMException) {
+                if ($e->shouldFailBatch()) {
+                    throw $e;
+                } else {
+                    // Log graceful failure for quota/rate limit errors
+                    $this->logProgress("Individual text analysis failed gracefully (quota/rate limit)", [
+                        'text_id' => $this->textId,
+                        'model' => $this->modelKey,
+                        'error_type' => $e->getErrorType(),
+                        'is_quota_related' => $e->isQuotaRelated(),
+                        'is_retryable' => $e->isRetryable(),
+                        'status' => 'graceful_failure'
+                    ], 'warning');
+                    return; // Exit gracefully without rethrowing
+                }
+            } else {
+                // For non-LLM exceptions, still throw to maintain retry behavior
+                throw $e;
+            }
         }
     }
 
