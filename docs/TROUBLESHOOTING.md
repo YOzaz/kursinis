@@ -37,11 +37,24 @@ $text = substr($originalText, $start, $end - $start);
 $finalText = !empty($providedText) ? $providedText : mb_substr($originalText, $start, $end - $start, 'UTF-8');
 ```
 
-#### Prompt Improvements:
+#### Prompt Improvements (Enhanced 2025-06-06):
 ```
-4) SVARBU: Naudok UNICODE SIMBOLIŲ pozicijas (ne baitų), skaičiuok lietuviškus simbolius ą,č,ę,ė,į,š,ų,ū,ž kaip po 1 simbolį
-- KRITIŠKAI SVARBU: Naudok UNICODE simbolių pozicijas (ne baitų)!
-- Lietuviški simboliai ą,č,ę,ė,į,š,ų,ū,ž skaičiuojami kaip po 1 simbolį
+**TEKSTO IŠGAVIMO TAISYKLĖS (KRITIŠKAI SVARBU)**:
+Kai išgauni teksto fragmentą, VISADA:
+- Skaičiuok "simbolius" kaip Unicode kodo taškus (kaip Python len() funkcija)
+- Start pozicija įskaitoma, end pozicija neįskaitoma (Python stiliaus text[start:end])
+- Grąžink: fragmentą, start ir end indeksus, simbolių skaičių (naudodamas savo skaičiavimo metodą)
+- PAVYZDYS: tekstui="AąBčD", text[0:3] turėtų būti "AąB" (3 simboliai)
+- Patikrink rezultatą išvedant ilgį naudodamas savo skaičiavimo metodą
+- Lietuviški simboliai ą,č,ę,ė,į,š,ų,ū,ž = po 1 Unicode simbolį, ne 2-3 baitus
+- NIEKADA nenaudok baitų pozicijų - tik Unicode simbolių pozicijas!
+
+**UNICODE SIMBOLIŲ POZICIJŲ VALIDACIJA**:
+Prieš grąžindamas JSON atsakymą, PRIVALAI patikrinti:
+- Ar tavo skaičiuojamas teksto ilgis sutampa su Unicode simbolių skaičiumi
+- Ar start/end pozicijos tiksliai atitinka pateiktą text fragmentą
+- Ar lietuviški simboliai (ą,č,ę,ė,į,š,ų,ū,ž) skaičiuojami kaip po 1 simbolį
+- PAVYZDYS tikrinimo: jei text="Aąžė", tai end-start turėtų būti 4, ne 7
 ```
 
 #### How to Verify Fix Works:
@@ -63,12 +76,14 @@ echo 'Position 280 (chars): ' . mb_substr(\$text, 0, 280, 'UTF-8') . PHP_EOL;
 - Fixed metrics calculation to correctly handle multiple techniques (uses `array_intersect`)
 - Added proper color selection for primary technique
 
-**JavaScript Improvements:**
+**JavaScript Improvements (Enhanced 2025-06-06):**
 - Fixed "trust provided text" approach in JavaScript display functions
 - **CRITICAL FIX**: Eliminated text duplication when AI provides full text that doesn't match coordinates
+- **ENHANCED DUPLICATION PREVENTION**: Added advanced overlap detection with console warnings
+- **INTELLIGENT TEXT SEARCH**: Progressive search strategy (current position → near coordinates → fallback)
+- **OVERLAP PROTECTION**: Automatic skipping of annotations that would create duplication
 - Enhanced tooltip content for multiple techniques with HTML formatting  
 - Improved text positioning logic to prevent overlapping annotations
-- Added intelligent text search to find actual AI text position in content
 
 **Example of Multiple Techniques:**
 ```json

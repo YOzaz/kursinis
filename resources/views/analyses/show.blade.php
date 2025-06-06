@@ -1664,30 +1664,59 @@ function displayModalHighlightedText(textAnalysisId, content, annotations, legen
         let actualStart, actualEnd, annotationText;
         
         if (annotation.text && annotation.text.length > 0) {
-            // Trust AI-provided text completely
+            // Trust AI-provided text completely - this is the core principle
             annotationText = annotation.text;
             
-            // Find where this text actually appears in the content
-            const searchStart = Math.max(lastIndex, annotation.start - 50); // Search from last position
-            const foundPosition = content.indexOf(annotationText, searchStart);
+            // Search for the AI text in the content starting from our current position
+            const searchFromCurrent = content.indexOf(annotationText, lastIndex);
             
-            if (foundPosition !== -1 && foundPosition >= lastIndex) {
-                actualStart = foundPosition;
-                actualEnd = foundPosition + annotationText.length;
+            if (searchFromCurrent !== -1) {
+                // Found the AI text at or after our current position - perfect!
+                actualStart = searchFromCurrent;
+                actualEnd = searchFromCurrent + annotationText.length;
             } else {
-                // Fallback: use provided coordinates  
-                actualStart = Math.max(annotation.start, lastIndex);
-                actualEnd = actualStart + annotationText.length;
+                // AI text not found from current position - search from beginning near coordinates
+                const searchNearCoords = content.indexOf(annotationText, Math.max(0, annotation.start - 100));
+                
+                if (searchNearCoords !== -1) {
+                    actualStart = searchNearCoords;
+                    actualEnd = searchNearCoords + annotationText.length;
+                    
+                    // If this creates a gap, we'll handle it by adding the gap text
+                    if (actualStart < lastIndex) {
+                        // This means we found the text before our current position
+                        // Skip this annotation to avoid duplication
+                        console.warn('Skipping annotation to avoid duplication:', annotation);
+                        return;
+                    }
+                } else {
+                    // AI text not found anywhere - fall back to coordinates
+                    console.warn('AI text not found in content, using coordinates:', annotation);
+                    actualStart = Math.max(annotation.start, lastIndex);
+                    actualEnd = Math.min(annotation.end, content.length);
+                    annotationText = content.substring(actualStart, actualEnd);
+                }
             }
         } else {
             // No AI text provided, use coordinate extraction
             actualStart = Math.max(annotation.start, lastIndex);
-            actualEnd = Math.max(annotation.end, actualStart);
+            actualEnd = Math.min(annotation.end, content.length);
             annotationText = content.substring(actualStart, actualEnd);
         }
         
-        // Add text before annotation
-        highlightedContent += escapeHtml(content.substring(lastIndex, actualStart));
+        // Ensure no overlap with previous annotation
+        if (actualStart < lastIndex) {
+            actualStart = lastIndex;
+        }
+        if (actualEnd <= actualStart) {
+            // Skip invalid annotation
+            return;
+        }
+        
+        // Add text before annotation (ensure no duplication)
+        if (actualStart > lastIndex) {
+            highlightedContent += escapeHtml(content.substring(lastIndex, actualStart));
+        }
         
         // Add highlighted annotation with tooltip for multiple techniques
         const labels = Array.isArray(annotation.labels) ? annotation.labels : [annotation.technique];

@@ -154,8 +154,9 @@ class UTF8PositioningTest extends TestCase
         // Test public method for prompt generation
         $fullPrompt = $promptService->generateAnalysisPrompt('Test text');
         
-        $this->assertStringContainsString('UNICODE simbolių pozicijas', $fullPrompt);
-        $this->assertStringContainsString('Lietuviški simboliai (ą,č,ę,ė,į,š,ų,ū,ž)', $fullPrompt);
+        $this->assertStringContainsString('Unicode kodo taškus', $fullPrompt);
+        $this->assertStringContainsString('UNICODE SIMBOLIŲ pozicijas', $fullPrompt);
+        $this->assertStringContainsString('ą,č,ę,ė,į,š,ų,ū,ž = po 1 Unicode simbolį', $fullPrompt);
     }
 
     public function test_metrics_service_position_accuracy()
@@ -256,5 +257,45 @@ class UTF8PositioningTest extends TestCase
         $textAfter = mb_substr($originalText, $afterPosition, 20, 'UTF-8');
         $this->assertEquals(', išskyrus kovą dėl ', $textAfter);
         $this->assertStringNotContainsString('jokios tiesos', $textAfter); // No duplication
+    }
+    
+    public function test_overlapping_annotations_no_duplication()
+    {
+        // Test the specific case from the user's example where "Elementari tiesa" appears twice
+        $annotations = [
+            [
+                'start' => 0,
+                'end' => 258,
+                'text' => 'Visų pirma nusiimkim spalvotus vaikiškus akinėlius, kuriuos mums kasdien uždeda ekranai iš visų pasaulio šalių, tada taip greit viską suprasim, kad ilgai stebėsimės, kaip anksčiau to nesupratom.',
+                'labels' => ['emotionalExpression', 'simplification']
+            ],
+            [
+                'start' => 259,
+                'end' => 446,
+                'text' => 'Elementari tiesa, kurią nuo mūsų slepia – globalioje politikoje nėra jokių vertybių ir jokios tiesos, išskyrus kovą dėl įtakų, resursų, pelnų, valdžios ir teritorijų.',
+                'labels' => ['simplification', 'emotionalExpression']
+            ]
+        ];
+        
+        $originalText = 'Visų pirma nusiimkim spalvotus vaikiškus akinėlius, kuriuos mums kasdien uždeda ekranai iš visų pasaulio šalių, tada taip greit viską suprasim, kad ilgai stebėsimės, kaip anksčiau to nesupratom. Elementari tiesa, kurią nuo mūsų slepia – globalioje politikoje nėra jokių vertybių ir jokios tiesos, išskyrus kovą dėl įtakų, resursų, pelnų, valdžios ir teritorijų.';
+        
+        // Verify both texts exist in the original
+        $this->assertStringContainsString($annotations[0]['text'], $originalText);
+        $this->assertStringContainsString($annotations[1]['text'], $originalText);
+        
+        // Find their positions
+        $pos1 = mb_strpos($originalText, $annotations[0]['text'], 0, 'UTF-8');
+        $pos2 = mb_strpos($originalText, $annotations[1]['text'], 0, 'UTF-8');
+        
+        $this->assertEquals(0, $pos1); // First annotation starts at beginning
+        $this->assertGreaterThan($pos1 + mb_strlen($annotations[0]['text'], 'UTF-8'), $pos2); // Second annotation starts after first ends
+        
+        // Verify there's a space/punctuation between them (not immediate continuation)
+        $endPos1 = $pos1 + mb_strlen($annotations[0]['text'], 'UTF-8');
+        $gapText = mb_substr($originalText, $endPos1, $pos2 - $endPos1, 'UTF-8');
+        $this->assertEquals(' ', $gapText); // Should be " " between the sentences
+        
+        // The key test: "Elementari tiesa" should not appear twice in any rendering
+        $this->assertStringNotContainsString('Elementari tiesaElementari tiesa', $originalText);
     }
 }

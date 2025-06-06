@@ -86,10 +86,16 @@ class PromptService
         $prompt .= "- Anotacijos turi sudaryti 15-60% teksto (ne mažiau 50 simbolių)\n";
         $prompt .= "- Vengti per smulkių (<10 simbolių) fragmentų\n";
         $prompt .= "- Prioritetas - Zarankos ir ATSPARA metodologijos tikslumui\n";
-        $prompt .= "- KRITIŠKAI SVARBU: Naudok UNICODE simbolių pozicijas (ne baitų)!\n";
-        $prompt .= "- Lietuviški simboliai ą,č,ę,ė,į,š,ų,ū,ž skaičiuojami kaip po 1 simbolį\n";
-        $prompt .= "- Tiksliai nurodyti pozicijas (start/end) pagal realų tekstą\n";
-        $prompt .= "- Patikrink kad 'text' laukas atitinka start/end pozicijas\n";
+        
+        $prompt .= "\n**TEKSTO IŠGAVIMO TAISYKLĖS (KRITIŠKAI SVARBU)**:\n";
+        $prompt .= "Kai išgauni teksto fragmentą, VISADA:\n";
+        $prompt .= "- Skaičiuok \"simbolius\" kaip Unicode kodo taškus (kaip Python len() funkcija)\n";
+        $prompt .= "- Start pozicija įskaitoma, end pozicija neįskaitoma (Python stiliaus text[start:end])\n";
+        $prompt .= "- Grąžink: fragmentą, start ir end indeksus, simbolių skaičių (naudodamas savo skaičiavimo metodą)\n";
+        $prompt .= "- PAVYZDYS: tekstui=\"AąBčD\", text[0:3] turėtų būti \"AąB\" (3 simboliai)\n";
+        $prompt .= "- Patikrink rezultatą išvedant ilgį naudodamas savo skaičiavimo metodą\n";
+        $prompt .= "- Lietuviški simboliai ą,č,ę,ė,į,š,ų,ū,ž = po 1 Unicode simbolį, ne 2-3 baitus\n";
+        $prompt .= "- NIEKADA nenaudok baitų pozicijų - tik Unicode simbolių pozicijas!\n";
         
         $prompt .= "\n**NEEDLE**: {$parts['needle']}\n\n";
         $prompt .= $this->getJsonFormat();
@@ -126,12 +132,16 @@ class PromptService
 
 **ANALIZĖS KOKYBĖS REIKALAVIMAI**:
 1. Būk konservatyvus - žymi tik aiškiai identifikuojamas propaganda technikas
-2. KRITIŠKAI SVARBU - UTF-8/UNICODE pozicijos: skaičiuok simbolius, ne baitus!
-3. Lietuviški simboliai (ą,č,ę,ė,į,š,ų,ū,ž) = po 1 simbolį, ne 2-3 baitus
-4. Tiksliai nurodyti teksto pozicijas (start/end) - patikrink, kad atitinka realų tekstą
-5. Anotacijos turi sudaryti 15-60% teksto, ne mažiau nei 50 simbolių
-6. Vengti mikroskopinių fragmentų (<10 simbolių) ar viso teksto žymėjimo
-7. Prioritetas - Zarankos ir ATSPARA metodologijos tikslumui
+2. Anotacijos turi sudaryti 15-60% teksto, ne mažiau nei 50 simbolių
+3. Vengti mikroskopinių fragmentų (<10 simbolių) ar viso teksto žymėjimo
+4. Prioritetas - Zarankos ir ATSPARA metodologijos tikslumui
+
+**UNICODE SIMBOLIŲ POZICIJŲ VALIDACIJA**:
+Prieš grąžindamas JSON atsakymą, PRIVALAI patikrinti:
+- Ar tavo skaičiuojamas teksto ilgis sutampa su Unicode simbolių skaičiumi
+- Ar start/end pozicijos tiksliai atitinka pateiktą text fragmentą
+- Ar lietuviški simboliai (ą,č,ę,ė,į,š,ų,ū,ž) skaičiuojami kaip po 1 simbolį
+- PAVYZDYS tikrinimo: jei text="Aąžė", tai end-start turėtų būti 4, ne 7
 
 **SVARBU**: Analizuojamas tekstas lietuvių kalba. NAUDOK UNICODE SIMBOLIŲ pozicijas! Atsakyk TIK JSON formatu.';
     }
