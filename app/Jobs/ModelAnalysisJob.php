@@ -528,24 +528,65 @@ class ModelAnalysisJob implements ShouldQueue
      */
     private function parseFileResponse(string $responseContent, array $texts): array
     {
+        // Log the response content for debugging (truncated to avoid huge logs)
+        $truncatedResponse = strlen($responseContent) > 1000 
+            ? substr($responseContent, 0, 500) . '...[truncated]...' . substr($responseContent, -500)
+            : $responseContent;
+            
+        $this->logProgress("Parsing response content", [
+            'response_length' => strlen($responseContent),
+            'response_preview' => $truncatedResponse,
+            'status' => 'parsing'
+        ], 'info');
+        
         // First try to decode directly (for already valid JSON)
         $decoded = json_decode($responseContent, true);
         
         // If direct decode fails, try to extract JSON from response
         if (json_last_error() !== JSON_ERROR_NONE) {
+            $this->logProgress("Direct JSON decode failed, trying extraction", [
+                'json_error' => json_last_error_msg(),
+                'status' => 'extracting'
+            ], 'info');
+            
+            // Try multiple extraction patterns
+            $jsonString = null;
+            
+            // Pattern 1: ```json ... ```
             if (preg_match('/```json\s*(.*?)\s*```/s', $responseContent, $matches)) {
                 $jsonString = $matches[1];
-            } elseif (preg_match('/\[.*\]/s', $responseContent, $matches)) {
+                $this->logProgress("Found JSON in code block", ['status' => 'extraction_success'], 'info');
+            }
+            // Pattern 2: Look for array starting with [ and ending with ]
+            elseif (preg_match('/\[[\s\S]*\]/s', $responseContent, $matches)) {
                 $jsonString = $matches[0];
-            } else {
-                $jsonString = $responseContent;
+                $this->logProgress("Found JSON array pattern", ['status' => 'extraction_success'], 'info');
+            }
+            // Pattern 3: Look for any valid JSON structure
+            elseif (preg_match('/[\[\{][\s\S]*[\]\}]/s', $responseContent, $matches)) {
+                $jsonString = $matches[0];
+                $this->logProgress("Found generic JSON pattern", ['status' => 'extraction_success'], 'info');
+            }
+            else {
+                // Try cleaning the response
+                $jsonString = trim($responseContent);
+                // Remove common prefixes/suffixes that models sometimes add
+                $jsonString = preg_replace('/^[^[\{]*/', '', $jsonString);
+                $jsonString = preg_replace('/[^}\]]*$/', '', $jsonString);
+                $this->logProgress("Using cleaned response", ['status' => 'fallback_cleaning'], 'info');
             }
             
             $jsonString = trim($jsonString);
             $decoded = json_decode($jsonString, true);
             
             if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new \Exception('Failed to parse file response JSON: ' . json_last_error_msg());
+                $this->logProgress("All JSON parsing attempts failed", [
+                    'json_error' => json_last_error_msg(),
+                    'cleaned_content_preview' => substr($jsonString, 0, 200),
+                    'status' => 'parse_failed'
+                ], 'error');
+                
+                throw new \Exception('Failed to parse file response JSON: ' . json_last_error_msg() . '. Content preview: ' . substr($jsonString, 0, 200));
             }
         }
         
