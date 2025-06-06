@@ -194,12 +194,20 @@
                             
                             <p><strong>Technikos:</strong> Ženklels (badges) rodo aptiktas propagandos technikas.</p>
                             
-                            <p><strong>Metrikos:</strong></p>
+                            <p><strong>Metrikos (atnaujinta 2025-06-06):</strong></p>
                             <ul>
-                                <li><strong>P:</strong> Precision (tikslumas)</li>
-                                <li><strong>R:</strong> Recall (atsaukimas)</li>
-                                <li><strong>F1:</strong> F1 balas</li>
+                                <li><strong>P (Precision):</strong> Kiek AI regionų yra teisingi (validūs AI regionai / visi AI regionai)</li>
+                                <li><strong>R (Recall):</strong> Kiek ekspertų regionų turi AI padengimą (padengti ekspertų regionai / visi ekspertų regionai)</li>
+                                <li><strong>F1:</strong> Subalansuotas precision ir recall vidurkis</li>
                             </ul>
+                            <div class="alert alert-info mt-3">
+                                <strong>Regionų lygio vertinimas:</strong> Sistema naudoja pažangų regionų vertinimą su padengimo logika:
+                                <ul class="mt-2 mb-0">
+                                    <li><strong>Precision:</strong> Jei AI per daug fragmentuoja (2 AI regionai vietoj 1 ekspertų), tai baudžiama</li>
+                                    <li><strong>Recall:</strong> Jei AI regionas patenka bent iš dalies į ekspertų regioną, tai skaičiuojama kaip aptikta</li>
+                                    <li><strong>Pavyzdys:</strong> Ekspertas pažymėjo 100-500, AI rado 120-200 ir 250-350 → Precision: 50%, Recall: 100%</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>

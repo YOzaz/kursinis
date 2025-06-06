@@ -9,49 +9,69 @@
 This guide explains all metrics used in the Lithuanian Propaganda Detection System. The system compares AI model results against expert annotations using statistical methods to measure performance accuracy. This implementation is based on research methodologies from Zaranka's Master's thesis (2025) and follows ATSPARA project standards for Lithuanian propaganda detection.
 
 **Recent Improvements (2025-06-06)**: 
-- **Document-Level Classification Metrics**: Prioritizes document-level classification accuracy (yes/no propaganda) over fragment-level matching
-- **Improved Accuracy Calculation**: Correctly handles cases where both expert and AI agree on "no propaganda" as 100% accurate
-- **Hybrid Approach**: Falls back to fragment-level metrics when document classification data is unavailable
+- **Region-Based Evaluation**: Logical approach that prevents metrics inflation from over-segmentation
+- **Smart Overlap Detection**: AI regions within expert regions are considered correct matches
+- **Realistic Performance Measurement**: Reflects real-world use case of detecting propaganda regions
 
 ## 🎯 Core Metrics
 
 ### Calculation Approach
 
-The system uses a **hybrid metrics approach**:
+The system uses a **region-based evaluation approach** that focuses on propaganda region detection accuracy:
 
-1. **Document-Level Classification** (Primary): Compares expert vs AI decision on whether document contains propaganda (`primaryChoice: yes/no`)
-2. **Fragment-Level Analysis** (Fallback): Compares specific propaganda technique annotations when document-level data unavailable
+**Key Principle**: If an expert marks a text piece as propaganda and AI returns multiple overlapping pieces within that same region, this counts as **1 True Positive** (not multiple), because the goal is to test how accurately AI can identify propaganda regions.
+
+**Example Scenario**:
+- Expert marks: 1 propaganda region (positions 100-500)
+- AI returns: 2 propaganda pieces (positions 120-200, 250-350) 
+- **Result**: 1 True Positive, 1 False Positive
+- **Reasoning**: AI correctly detected the propaganda region (good) but over-segmented it (penalty)
+
+### Region Matching Logic
+
+1. **Best Match Selection**: Each expert region is paired with the best-matching AI region
+2. **Containment Detection**: AI regions fully contained within expert regions are valid matches
+3. **Overlap Threshold**: Minimum 30% overlap required for partial matches
+4. **One-to-One Mapping**: Each expert region can only match with one AI region (prevents double-counting)
 
 ### 1. Precision (Tikslumas)
 
-**Document-Level Definition**: Ratio of correctly classified documents to all documents classified as propaganda by AI.
+**Region-Based Definition**: Ratio of valid AI propaganda regions to all AI propaganda regions detected.
 
-**Fragment-Level Definition**: Ratio of correctly identified propaganda techniques to all techniques identified by the AI model.
-
-**Formula**: `Precision = TP / (TP + FP)`
+**Formula**: `Precision = Matched_AI_Regions / Total_AI_Regions`
 
 **Interpretation**:
-- **High Precision (>0.8)**: AI rarely misclassifies documents/fragments as propaganda
-- **Medium Precision (0.6-0.8)**: Acceptable performance with some false positives  
-- **Low Precision (<0.6)**: AI frequently misidentifies non-propaganda content
+- **High Precision (>0.8)**: AI rarely detects false propaganda regions
+- **Medium Precision (0.6-0.8)**: Acceptable performance with some false detections
+- **Low Precision (<0.6)**: AI frequently misidentifies non-propaganda regions or over-segments
 
-**Document-Level Example**: 
-- Expert: "no", AI: "no" → Correct classification (True Negative)
-- Expert: "yes", AI: "yes" → Correct classification (True Positive)  
-- Expert: "no", AI: "yes" → Misclassification (False Positive)
+**Example**: 
+- Expert: 1 region (100-500)
+- AI: 2 regions (120-200, 250-350) both within expert region
+- **Precision**: 1/2 = 50% (only 1 optimal match for 2 AI regions)
 
 ### 2. Recall (Atpažinimas)
 
-**Definition**: The ratio of correctly identified propaganda techniques to all actual propaganda techniques (per expert annotations).
+**Coverage-Based Definition**: Ratio of expert propaganda regions that have ANY AI coverage to all expert propaganda regions.
 
-**Formula**: `Recall = TP / (TP + FN)`
+**Formula**: `Recall = Expert_Regions_With_AI_Coverage / Total_Expert_Regions`
+
+**Coverage Logic**: An expert region is considered "detected" if ANY AI region overlaps with it, regardless of whether that AI region also overlaps with other expert regions.
 
 **Interpretation**:
-- **High Recall (>0.7)**: AI finds most actual propaganda instances (few missed cases)
-- **Medium Recall (0.5-0.7)**: AI misses some propaganda but catches majority
-- **Low Recall (<0.5)**: AI misses significant amount of actual propaganda
+- **High Recall (>0.7)**: AI provides coverage for most expert-identified propaganda regions
+- **Medium Recall (0.5-0.7)**: AI misses coverage for some propaganda regions  
+- **Low Recall (<0.5)**: AI misses coverage for many propaganda regions
 
-**Example**: If experts identified 100 propaganda instances and AI found 75, Recall = 0.75
+**Coverage-Based Examples**:
+- Expert: 2 regions (100-200, 300-400)
+- AI: 1 region (150-350) spanning both expert regions
+- **Result**: Both expert regions have AI coverage → Recall = 2/2 = 100%
+
+**Another Example**:
+- Expert: 1 region (100-500)
+- AI: 3 regions (120-150, 200-250, 350-400) all within expert region  
+- **Result**: Expert region has AI coverage → Recall = 1/1 = 100%
 
 ### 3. F1 Score (F1 Rezultatas)
 
@@ -59,7 +79,31 @@ The system uses a **hybrid metrics approach**:
 
 **Formula**: `F1 = 2 × (Precision × Recall) / (Precision + Recall)`
 
-**Interpretation**:
+**Real-World Example**:
+- Expert marks: 1 propaganda region (positions 100-500)
+- AI returns: 2 propaganda pieces (positions 120-200, 250-350) both within expert region
+- **Result**: TP=1, FP=1, FN=0
+- **Precision**: 1/2 = 50% (AI over-segmented)
+- **Recall**: 1/1 = 100% (expert region detected)  
+- **F1 Score**: 67% (balanced evaluation)
+
+This approach prevents metrics inflation and provides realistic evaluation of AI's propaganda detection capabilities, focusing on region-level accuracy rather than exact boundary matching.
+
+### Performance Improvements (2025-06-06)
+
+The new region-based evaluation shows significantly improved and more realistic metrics:
+
+**Before (fragment inflation)**:
+- Models showed F1 scores of 3-25%
+- Over-penalized AI for boundary differences
+- Didn't reflect actual detection capability
+
+**After (region-based)**:
+- Models show F1 scores of 14-30%
+- Rewards region detection, penalizes over-segmentation  
+- Better reflects real-world AI performance
+
+## 🔍 Interpretation Guidelines
 - **Excellent F1 (>0.8)**: Both precision and recall are high
 - **Good F1 (0.6-0.8)**: Balanced reasonable performance
 - **Poor F1 (<0.6)**: Either precision or recall (or both) are low

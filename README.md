@@ -36,7 +36,7 @@ Universali propagandos analizės platforma, kuri veikia dviem pagrindiniais rež
 
 ### 🔬 Tyrimų režimas (Research Mode)
 - **Su ekspertų anotacijomis**: Palygina LLM rezultatus su ATSPARA ekspertų anotacijomis
-- Apskaičiuoja tikslumo metrikas (Precision, Recall, F1, Cohen's Kappa)
+- Apskaičiuoja regionų lygio metrikas (Precision, Recall, F1, Cohen's Kappa)
 - Generuoja detalizuotas palyginimo ataskaitas mokslo tyrimams
 
 ### 🛠️ Praktinio naudojimo režimas (Practical Mode)  
@@ -82,7 +82,7 @@ Universali propagandos analizės platforma, kuri veikia dviem pagrindiniais rež
 - **Analizių valdymas**: Galimybė paleisti, stebėti ir eksportuoti analizių rezultatus
 - **Mission Control**: Real-time sistemos monitoringas su log'ų stebėjimu
 - **Eksportavimas**: JSON/CSV formatuose su detaliais metrikų duomenimis
-- **Metrikų skaičiavimas**: Precision, Recall, F1 Score, Cohen's Kappa
+- **Regionų lygio metrikų skaičiavimas**: Precision, Recall, F1 Score, Cohen's Kappa (atnaujinta 2025-06-06)
 
 ### 🎨 Vartotojo sąsaja
 - **Responsive dizainas**: Optimizuota peržiūra visuose įrenginiuose
@@ -213,14 +213,23 @@ Sistema palaiko ATSPARA anotavimo formatą:
 - **docs/atspara-excerpt.json** - Pavyzdys su propaganda anotacijomis
 - **docs/lithuanian-neutral-text.json** - Lietuviškas tekstas be propagandos
 
-## 📊 Metrikų interpretacija
+## 📊 Regionų lygio metrikų interpretacija (atnaujinta 2025-06-06)
+
+**Sistema naudoja pažangų regionų lygio vertinimą**, kuris atsižvelgia į realų propagandos aptikimo tikslą.
 
 | Metrika | Aprašymas | Geros reikšmės |
 |---------|-----------|----------------|
-| **Precision** | Kiek LLM rastų anotacijų yra teisingos | > 0.8 |
-| **Recall** | Kiek ekspertų anotacijų LLM atpažino | > 0.7 |
-| **F1 Score** | Bendras tikslumo įvertis | > 0.75 |
-| **Cohen's Kappa** | Sutarimo lygis tarp LLM ir ekspertų | > 0.6 |
+| **Precision** | Kiek AI regionų yra validūs (validūs AI regionai / visi AI regionai) | > 0.6 |
+| **Recall** | Kiek ekspertų regionų aptiko AI (aptikti ekspertų regionai / visi ekspertų regionai) | > 0.5 |
+| **F1 Score** | Subalansuotas precision ir recall vidurkis | > 0.4 |
+| **Cohen's Kappa** | Sutarimo lygis tarp AI ir ekspertų | > 0.4 |
+
+**Pavyzdys**: Jei ekspertas pažymėjo 1 propagandos regioną, o AI rado 2 fragmentus tame pačiame regione, tai skaičiuojama kaip:
+- **1 True Positive** (regionas aptiktas) 
+- **1 False Positive** (per daug fragmentų)  
+- **Precision**: 50%, **Recall**: 100%, **F1**: 67%
+
+Tai atsispindi realų AI veikimo kokybės vertinimą - ar AI teisingai identifikuoja propagandos regionus.
 
 ## 🐛 Klaidų sprendimas
 

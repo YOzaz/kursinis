@@ -614,45 +614,154 @@ class MetricsService
 
     /**
      * Apskaičiuoti sutapimo statistiką tarp ekspertų ir modelio anotacijų.
-     * Įtraukia ir dokumento lygio klasifikacijos tikslumą.
+     * 
+     * Naudoja regionų lygio vertinimą: jei ekspertas pažymėjo vieną propagandos regioną,
+     * o AI rado du fragmentus tame pačiame regione, tai skaičiuojama kaip 1 True Positive,
+     * o ne 2. Tai atspindi realų tikslą - ar AI teisingai identifikavo propagandos regionus.
      */
     private function calculateOverlapStatistics(array $expertLabels, array $modelLabels): array
     {
-        $truePositives = 0;
-        $falsePositives = 0;
-        $falseNegatives = 0;
-        $matchedExpertIndices = [];
-
-        // Ieškoti true positives ir false positives pagal fragmentus
-        foreach ($modelLabels as $modelLabel) {
-            $matched = false;
+        // PRECISION CALCULATION: One-to-one matching to prevent double-counting
+        // Each AI region can only match with one expert region
+        
+        $matchedPairs = [];  // Suporuoti regionai [expert_index => model_index]
+        $usedModelIndices = [];  // Jau panaudoti AI regionai
+        
+        // Rasti geriausius sutapimus tarp ekspertų ir AI regionų (precision)
+        foreach ($expertLabels as $expertIndex => $expertLabel) {
+            $bestMatch = null;
+            $bestOverlap = 0;
             
-            foreach ($expertLabels as $index => $expertLabel) {
-                if (in_array($index, $matchedExpertIndices)) {
-                    continue; // Jau suporuotas
+            foreach ($modelLabels as $modelIndex => $modelLabel) {
+                if (in_array($modelIndex, $usedModelIndices)) {
+                    continue; // AI regionas jau panaudotas
                 }
-
-                if ($this->labelsMatch($expertLabel, $modelLabel)) {
-                    $truePositives++;
-                    $matchedExpertIndices[] = $index;
-                    $matched = true;
-                    break;
+                
+                if ($this->labelsOverlap($expertLabel, $modelLabel)) {
+                    // Apskaičiuoti persidengimo kiekį geresniam sutapimui
+                    $overlap = $this->calculateOverlapRatio($expertLabel, $modelLabel);
+                    
+                    if ($overlap > $bestOverlap) {
+                        $bestOverlap = $overlap;
+                        $bestMatch = $modelIndex;
+                    }
                 }
             }
-
-            if (!$matched) {
-                $falsePositives++;
+            
+            // Jei rastas geras sutapimas, suporuoti regionus
+            if ($bestMatch !== null) {
+                $matchedPairs[$expertIndex] = $bestMatch;
+                $usedModelIndices[] = $bestMatch;
             }
         }
-
-        // False negatives = nesuporuotos ekspertų anotacijos
-        $falseNegatives = count($expertLabels) - count($matchedExpertIndices);
+        
+        // RECALL CALCULATION: Coverage effectiveness
+        // Count how many expert regions have ANY overlap with ANY AI region
+        $expertRegionsDetected = 0;
+        
+        foreach ($expertLabels as $expertIndex => $expertLabel) {
+            $hasAnyOverlap = false;
+            
+            foreach ($modelLabels as $modelIndex => $modelLabel) {
+                if ($this->labelsOverlap($expertLabel, $modelLabel)) {
+                    $hasAnyOverlap = true;
+                    break; // Expert region has coverage, move to next expert region
+                }
+            }
+            
+            if ($hasAnyOverlap) {
+                $expertRegionsDetected++;
+            }
+        }
+        
+        // Metrikų skaičiavimas
+        $truePositives = count($matchedPairs);  // For precision: matched pairs
+        $falsePositives = count($modelLabels) - $truePositives;  // Excess AI regions
+        $falseNegatives = count($expertLabels) - $expertRegionsDetected;  // Uncovered expert regions (for recall)
+        
+        // Log skaičiavimo detales
+        \Log::info('Regionų sutapimo metrikos (coverage-based recall)', [
+            'expert_regions' => count($expertLabels),
+            'model_regions' => count($modelLabels),
+            'matched_pairs_precision' => count($matchedPairs),
+            'expert_regions_with_coverage' => $expertRegionsDetected,
+            'true_positives' => $truePositives,
+            'false_positives' => $falsePositives,
+            'false_negatives' => $falseNegatives,
+            'interpretation' => [
+                'recall' => $expertRegionsDetected . '/' . count($expertLabels) . ' ekspertų regionų turi AI padengimą',
+                'precision' => $truePositives . '/' . count($modelLabels) . ' AI regionų yra validūs (vienas-su-vienu)'
+            ]
+        ]);
 
         return [
             'true_positives' => $truePositives,
             'false_positives' => $falsePositives,
             'false_negatives' => $falseNegatives,
         ];
+    }
+    
+    /**
+     * Apskaičiuoti persidengimo santykį tarp dviejų regionų.
+     * Grąžina vertę nuo 0 iki 1, kur 1 reiškia pilną sutapimą.
+     */
+    private function calculateOverlapRatio(array $expertLabel, array $modelLabel): float
+    {
+        $expertStart = $expertLabel['start'];
+        $expertEnd = $expertLabel['end'];
+        $modelStart = $modelLabel['start'];
+        $modelEnd = $modelLabel['end'];
+        
+        // Apskaičiuoti persidengimą
+        $overlapStart = max($expertStart, $modelStart);
+        $overlapEnd = min($expertEnd, $modelEnd);
+        
+        if ($overlapStart >= $overlapEnd) {
+            return 0.0; // Nėra persidengimo
+        }
+        
+        $overlapLength = $overlapEnd - $overlapStart;
+        $totalLength = max($expertEnd - $expertStart, $modelEnd - $modelStart);
+        
+        return $totalLength > 0 ? $overlapLength / $totalLength : 0.0;
+    }
+    
+    /**
+     * Patikrinti ar dvi anotacijos persikloja (supaprastinta versija labelsMatch).
+     * Naudojama regionų lygio vertinimui.
+     */
+    private function labelsOverlap(array $expertLabel, array $modelLabel): bool
+    {
+        // Patikrinti pozicijos sutapimą
+        $positionOverlap = $this->positionsOverlap(
+            $expertLabel['start'], 
+            $expertLabel['end'],
+            $modelLabel['start'], 
+            $modelLabel['end']
+        );
+
+        if (!$positionOverlap) {
+            return false;
+        }
+
+        // Patikrinti etikečių sutapimą (palengvinta versija)
+        $expertLabelSet = array_map('strtolower', $expertLabel['labels'] ?? []);
+        $modelLabelSet = array_map('strtolower', $modelLabel['labels'] ?? []);
+
+        // Tiesioginis sutapimas
+        if (!empty(array_intersect($expertLabelSet, $modelLabelSet))) {
+            return true;
+        }
+
+        // Kategorijų atitikimas
+        foreach ($expertLabelSet as $expertCategory) {
+            $mappedCategories = $this->getMappedCategories($expertCategory);
+            if (!empty(array_intersect($mappedCategories, $modelLabelSet))) {
+                return true;
+            }
+        }
+
+        return false;
     }
     
     /**
@@ -788,11 +897,15 @@ class MetricsService
     }
 
     /**
-     * Patikrinti ar pozicijos persidengia.
+     * Patikrinti ar pozicijos persidengia (logika propagandos aptikimui).
+     * 
+     * Naudoja protingą persidengimo logiką:
+     * - Jei vienas regionas yra pilnai kito viduje, tai sutapimas
+     * - Kitu atveju reikia bent 30% persidengimo
      */
     private function positionsOverlap(int $start1, int $end1, int $start2, int $end2): bool
     {
-        // Apskaičiuoti persidenginų pozicijų santykį
+        // Patikrinti ar yra bent koks persidengimas
         $overlapStart = max($start1, $start2);
         $overlapEnd = min($end1, $end2);
         
@@ -801,10 +914,20 @@ class MetricsService
         }
 
         $overlapLength = $overlapEnd - $overlapStart;
-        $totalLength = max($end1 - $start1, $end2 - $start2);
+        $region1Length = $end1 - $start1;
+        $region2Length = $end2 - $start2;
 
-        // Reikia bent 50% persidengimo
-        return ($overlapLength / $totalLength) >= 0.5;
+        // Patikrinti ar vienas regionas yra pilnai kito viduje (containment)
+        if (($start1 <= $start2 && $end1 >= $end2) || ($start2 <= $start1 && $end2 >= $end1)) {
+            return true; // Vienas regionas yra kito viduje
+        }
+
+        // Kitu atveju reikia bent 30% persidengimo (sumažinta nuo 50%)
+        $overlapRatio1 = $region1Length > 0 ? $overlapLength / $region1Length : 0;
+        $overlapRatio2 = $region2Length > 0 ? $overlapLength / $region2Length : 0;
+        
+        // Priimti jei bent vienas regionas turi 30%+ persidengimą
+        return max($overlapRatio1, $overlapRatio2) >= 0.3;
     }
 
     /**

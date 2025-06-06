@@ -196,6 +196,200 @@ class MetricsServiceTest extends TestCase
         $this->assertGreaterThan('0.0000', $metric->position_accuracy);
     }
 
+    public function test_region_based_evaluation_prevents_metrics_inflation(): void
+    {
+        // This test verifies the core improvement: region-based evaluation
+        // Scenario: Expert marks 1 region, AI finds 2 overlapping pieces within it
+        // Expected: 1 TP (region detected) + 1 FP (over-segmentation penalty)
+        
+        $analysisJob = AnalysisJob::factory()->create();
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $analysisJob->job_id,
+            'expert_annotations' => [
+                ['result' => [
+                    // Expert marks one large propaganda region
+                    ['type' => 'labels', 'value' => [
+                        'start' => 100, 
+                        'end' => 500, 
+                        'text' => 'Expert marked propaganda region', 
+                        'labels' => ['simplification']
+                    ]]
+                ]]
+            ],
+            'claude_annotations' => [
+                'annotations' => [
+                    // AI finds two smaller regions within the expert region
+                    ['type' => 'labels', 'value' => [
+                        'start' => 120, 
+                        'end' => 200, 
+                        'text' => 'AI region 1', 
+                        'labels' => ['simplification']
+                    ]],
+                    ['type' => 'labels', 'value' => [
+                        'start' => 250, 
+                        'end' => 350, 
+                        'text' => 'AI region 2', 
+                        'labels' => ['simplification']
+                    ]]
+                ]
+            ]
+        ]);
+
+        $metric = $this->service->calculateMetricsForText($textAnalysis, 'claude', $analysisJob->job_id);
+
+        // Region-based evaluation: 1 expert region matched, 1 AI region excess
+        $this->assertEquals(1, $metric->true_positives, 'Should detect the expert region once');
+        $this->assertEquals(1, $metric->false_positives, 'Should penalize over-segmentation');
+        $this->assertEquals(0, $metric->false_negatives, 'Expert region was detected');
+        
+        // Verify calculated metrics
+        $this->assertEquals(0.5, $metric->precision, 'Precision: 1 valid AI region out of 2 total');
+        $this->assertEquals(1.0, $metric->recall, 'Recall: 1 expert region detected out of 1 total');
+        $this->assertEqualsWithDelta(0.6667, $metric->f1_score, 0.001, 'F1 should be harmonic mean');
+    }
+
+    public function test_region_containment_logic(): void
+    {
+        // Test that AI regions fully contained within expert regions are valid matches
+        
+        $analysisJob = AnalysisJob::factory()->create();
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $analysisJob->job_id,
+            'expert_annotations' => [
+                ['result' => [
+                    ['type' => 'labels', 'value' => [
+                        'start' => 0, 
+                        'end' => 1000, 
+                        'text' => 'Very large expert region', 
+                        'labels' => ['emotionalexpression']
+                    ]]
+                ]]
+            ],
+            'claude_annotations' => [
+                'annotations' => [
+                    // Small AI region completely within expert region
+                    ['type' => 'labels', 'value' => [
+                        'start' => 200, 
+                        'end' => 300, 
+                        'text' => 'Small AI detection', 
+                        'labels' => ['emotionalexpression']
+                    ]]
+                ]
+            ]
+        ]);
+
+        $metric = $this->service->calculateMetricsForText($textAnalysis, 'claude', $analysisJob->job_id);
+
+        $this->assertEquals(1, $metric->true_positives, 'Contained region should be valid match');
+        $this->assertEquals(0, $metric->false_positives, 'No false detections');
+        $this->assertEquals(0, $metric->false_negatives, 'Expert region was detected');
+    }
+
+    public function test_no_double_counting_in_region_matching(): void
+    {
+        // Test that each expert region can only match with one AI region
+        
+        $analysisJob = AnalysisJob::factory()->create();
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $analysisJob->job_id,
+            'expert_annotations' => [
+                ['result' => [
+                    ['type' => 'labels', 'value' => [
+                        'start' => 100, 
+                        'end' => 200, 
+                        'text' => 'Expert region 1', 
+                        'labels' => ['doubt']
+                    ]],
+                    ['type' => 'labels', 'value' => [
+                        'start' => 300, 
+                        'end' => 400, 
+                        'text' => 'Expert region 2', 
+                        'labels' => ['doubt']
+                    ]]
+                ]]
+            ],
+            'claude_annotations' => [
+                'annotations' => [
+                    // AI finds regions that match both expert regions
+                    ['type' => 'labels', 'value' => [
+                        'start' => 110, 
+                        'end' => 190, 
+                        'text' => 'AI matches expert 1', 
+                        'labels' => ['doubt']
+                    ]],
+                    ['type' => 'labels', 'value' => [
+                        'start' => 310, 
+                        'end' => 390, 
+                        'text' => 'AI matches expert 2', 
+                        'labels' => ['doubt']
+                    ]]
+                ]
+            ]
+        ]);
+
+        $metric = $this->service->calculateMetricsForText($textAnalysis, 'claude', $analysisJob->job_id);
+
+        $this->assertEquals(2, $metric->true_positives, 'Both expert regions matched');
+        $this->assertEquals(0, $metric->false_positives, 'Perfect matching');
+        $this->assertEquals(0, $metric->false_negatives, 'All expert regions detected');
+        
+        $this->assertEquals(1.0, $metric->precision, 'Perfect precision');
+        $this->assertEquals(1.0, $metric->recall, 'Perfect recall');
+        $this->assertEquals(1.0, $metric->f1_score, 'Perfect F1');
+    }
+
+    public function test_coverage_based_recall_with_spanning_ai_region(): void
+    {
+        // Test the improved coverage-based recall logic
+        // Scenario: AI region spans multiple expert regions
+        // Expected: All expert regions should count as detected for recall
+        
+        $analysisJob = AnalysisJob::factory()->create();
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $analysisJob->job_id,
+            'expert_annotations' => [
+                ['result' => [
+                    // Two separate expert regions
+                    ['type' => 'labels', 'value' => [
+                        'start' => 100, 
+                        'end' => 200, 
+                        'text' => 'Expert region 1', 
+                        'labels' => ['emotionalexpression']
+                    ]],
+                    ['type' => 'labels', 'value' => [
+                        'start' => 300, 
+                        'end' => 400, 
+                        'text' => 'Expert region 2', 
+                        'labels' => ['emotionalexpression']
+                    ]]
+                ]]
+            ],
+            'claude_annotations' => [
+                'annotations' => [
+                    // AI finds one large region that spans both expert regions
+                    ['type' => 'labels', 'value' => [
+                        'start' => 150, 
+                        'end' => 350, 
+                        'text' => 'Large AI region spanning both expert regions', 
+                        'labels' => ['emotionalexpression']
+                    ]]
+                ]
+            ]
+        ]);
+
+        $metric = $this->service->calculateMetricsForText($textAnalysis, 'claude', $analysisJob->job_id);
+
+        // With coverage-based recall: Both expert regions have coverage
+        $this->assertEquals(1, $metric->true_positives, 'One AI region can only match with one expert region (precision)');
+        $this->assertEquals(0, $metric->false_positives, 'No excess AI regions');
+        $this->assertEquals(0, $metric->false_negatives, 'Both expert regions have coverage (coverage-based recall)');
+        
+        // Metrics should reflect coverage effectiveness
+        $this->assertEquals(1.0, $metric->precision, 'Precision: 1 valid AI region out of 1 total');
+        $this->assertEquals(1.0, $metric->recall, 'Recall: Both expert regions have AI coverage');
+        $this->assertEquals(1.0, $metric->f1_score, 'Perfect F1 due to full coverage');
+    }
+
     public function test_calculates_cohens_kappa(): void
     {
         $analysisJob = AnalysisJob::factory()->create();

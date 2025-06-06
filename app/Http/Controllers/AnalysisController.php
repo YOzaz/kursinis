@@ -1067,10 +1067,11 @@ class AnalysisController extends Controller
             
             // If annotations are disabled, return plain text
             if (!$annotationsEnabled) {
+                $cleanedText = mb_convert_encoding($originalText, 'UTF-8', 'UTF-8');
                 return response()->json([
                     'success' => true,
-                    'content' => $originalText,
-                    'text' => $originalText,
+                    'content' => $cleanedText,
+                    'text' => $cleanedText,
                     'annotations' => [],
                     'legend' => [],
                     'view_type' => $viewType
@@ -1169,10 +1170,11 @@ class AnalysisController extends Controller
                         $allAttemptedModels = $textAnalysis->getAllAttemptedModels();
                         if (isset($allAttemptedModels[$selectedModel])) {
                             // Model exists but failed, return empty annotations with success message
+                            $cleanedText = mb_convert_encoding($originalText, 'UTF-8', 'UTF-8');
                             return response()->json([
                                 'success' => true,
-                                'content' => $originalText,
-                                'text' => $originalText,
+                                'content' => $cleanedText,
+                                'text' => $cleanedText,
                                 'annotations' => [],
                                 'legend' => [],
                                 'view_type' => $viewType,
@@ -1233,12 +1235,17 @@ class AnalysisController extends Controller
                 $legend = $this->createLegend(array_keys($allTechniques));
             }
             
+            // Clean up UTF-8 encoding issues before returning
+            $cleanedText = mb_convert_encoding($originalText, 'UTF-8', 'UTF-8');
+            $cleanedAnnotations = $this->cleanUtf8InArray($annotations);
+            $cleanedLegend = $this->cleanUtf8InArray($legend);
+            
             return response()->json([
                 'success' => true,
-                'content' => $originalText,
-                'text' => $originalText,
-                'annotations' => $annotations,
-                'legend' => $legend,
+                'content' => $cleanedText,
+                'text' => $cleanedText,
+                'annotations' => $cleanedAnnotations,
+                'legend' => $cleanedLegend,
                 'view_type' => $viewType
             ]);
             
@@ -1688,5 +1695,25 @@ class AnalysisController extends Controller
                     'error' => 'Unsupported provider for query reconstruction'
                 ];
         }
+    }
+
+    /**
+     * Clean UTF-8 encoding issues in arrays recursively.
+     */
+    private function cleanUtf8InArray(array $data): array
+    {
+        $cleaned = [];
+        
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $cleaned[$key] = $this->cleanUtf8InArray($value);
+            } elseif (is_string($value)) {
+                $cleaned[$key] = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+            } else {
+                $cleaned[$key] = $value;
+            }
+        }
+        
+        return $cleaned;
     }
 }

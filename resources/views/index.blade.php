@@ -24,7 +24,7 @@
                                 <div class="col-md-6">
                                     <p class="mb-1"><strong>1. Duomenų tipai:</strong></p>
                                     <ul class="mb-2 small">
-                                        <li><strong>Su ekspertų anotacijomis</strong> - skaičiuoja tikslumas metrikas</li>
+                                        <li><strong>Su ekspertų anotacijomis</strong> - skaičiuoja regionų lygio metrikas (precision, recall, F1)</li>
                                         <li><strong>Be anotacijų</strong> - tik AI analizė</li>
                                     </ul>
                                 </div>

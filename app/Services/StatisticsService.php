@@ -205,7 +205,7 @@ class StatisticsService
     {
         $executionTimes = [];
         
-        // Get execution times from comparison metrics
+        // First try to get execution times from comparison metrics
         $metrics = ComparisonMetric::whereNotNull('analysis_execution_time_ms')
             ->get()
             ->groupBy('model_name');
@@ -215,19 +215,26 @@ class StatisticsService
             $executionTimes[$model] = round($avgTime, 0);
         }
         
-        // If no execution time data, provide estimated times for configured models
+        // If no execution time data in comparison metrics, try model_results table
+        if (empty($executionTimes)) {
+            $modelResults = \App\Models\ModelResult::whereNotNull('execution_time_ms')
+                ->where('status', 'completed')
+                ->get()
+                ->groupBy('model_key');
+                
+            foreach ($modelResults as $modelKey => $results) {
+                $avgTime = $results->avg('execution_time_ms');
+                if ($avgTime > 0) {
+                    $executionTimes[$modelKey] = round($avgTime, 0);
+                }
+            }
+        }
+        
+        // If still no execution time data, provide placeholder for configured models
         if (empty($executionTimes)) {
             $configuredModels = config('llm.models', []);
             foreach ($configuredModels as $modelKey => $config) {
-                $modelName = $config['model'] ?? $modelKey;
-                // Provide estimated execution times based on model type
-                if (str_contains($modelKey, 'claude')) {
-                    $executionTimes[$modelName] = 0; // Will show "Nėra duomenų"
-                } elseif (str_contains($modelKey, 'gpt')) {
-                    $executionTimes[$modelName] = 0;
-                } elseif (str_contains($modelKey, 'gemini')) {
-                    $executionTimes[$modelName] = 0;
-                }
+                $executionTimes[$modelKey] = 0; // Will show "Nėra duomenų"
             }
         }
         
