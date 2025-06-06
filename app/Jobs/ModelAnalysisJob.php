@@ -811,8 +811,8 @@ class ModelAnalysisJob implements ShouldQueue
         $jsonData = json_decode(file_get_contents($tempFile), true);
         $results = [];
         
-        // Split into chunks of ~50 texts each to stay under API limits
-        $chunkSize = 50;
+        // Calculate optimal chunk size based on token limits
+        $chunkSize = $this->calculateOptimalChunkSize($jsonData, $modelKey, $customPrompt);
         $chunks = array_chunk($jsonData, $chunkSize);
         
         $this->logProgress("Processing in chunks", [
@@ -911,8 +911,8 @@ class ModelAnalysisJob implements ShouldQueue
         $jsonData = json_decode(file_get_contents($tempFile), true);
         $results = [];
         
-        // Split into chunks of ~50 texts each to stay under API limits
-        $chunkSize = 50;
+        // Calculate optimal chunk size based on token limits
+        $chunkSize = $this->calculateOptimalChunkSize($jsonData, $modelKey, $customPrompt);
         $chunks = array_chunk($jsonData, $chunkSize);
         
         $this->logProgress("Processing in chunks", [
@@ -1001,4 +1001,75 @@ class ModelAnalysisJob implements ShouldQueue
         
         return $results;
     }
+
+    /**
+     * Calculate optimal chunk size to stay within token limits.
+     */
+    private function calculateOptimalChunkSize(array $jsonData, string $modelKey, ?string $customPrompt = null): int
+    {
+        // Get provider-specific token limits
+        $allModels = config('llm.models');
+        $modelConfig = $allModels[$modelKey] ?? [];
+        $provider = $modelConfig['provider'] ?? 'unknown';
+        
+        // Token limits by provider (conservative estimates)
+        $tokenLimits = [
+            'anthropic' => 180000, // Claude: 200k limit, use 180k for safety
+            'openai' => 120000,    // OpenAI: varies, use conservative 120k
+            'google' => 1000000,   // Gemini: 2M limit, use 1M for safety
+        ];
+        
+        $maxTokens = $tokenLimits[$provider] ?? 100000;
+        
+        // Sample a few texts to estimate average token count per text
+        $sampleSize = min(5, count($jsonData));
+        $totalSampleTokens = 0;
+        
+        for ($i = 0; $i < $sampleSize; $i++) {
+            $text = $jsonData[$i]['data']['content'] ?? '';
+            // Rough token estimation: ~4 characters per token
+            $estimatedTokens = strlen($text) / 4;
+            $totalSampleTokens += $estimatedTokens;
+        }
+        
+        $averageTokensPerText = $sampleSize > 0 ? ($totalSampleTokens / $sampleSize) : 1000;
+        
+        // Add overhead for prompt and JSON structure (estimate 20% overhead)
+        $promptOverhead = $this->estimatePromptTokens($customPrompt);
+        $jsonOverhead = $averageTokensPerText * 0.2; // 20% overhead for JSON structure
+        $totalOverhead = $promptOverhead + $jsonOverhead;
+        
+        // Calculate how many texts can fit in the limit
+        $availableTokens = $maxTokens - $totalOverhead;
+        $textsPerChunk = max(1, floor($availableTokens / ($averageTokensPerText + $jsonOverhead)));
+        
+        // Ensure chunk size is reasonable (between 1 and 100)
+        $chunkSize = max(1, min(100, $textsPerChunk));
+        
+        $this->logProgress("Calculated optimal chunk size", [
+            'model' => $modelKey,
+            'provider' => $provider,
+            'max_tokens' => $maxTokens,
+            'avg_tokens_per_text' => round($averageTokensPerText),
+            'prompt_overhead' => $promptOverhead,
+            'calculated_chunk_size' => $chunkSize,
+            'status' => 'chunk_calculation'
+        ]);
+        
+        return (int) $chunkSize;
+    }
+
+    /**
+     * Estimate token count for prompt overhead.
+     */
+    private function estimatePromptTokens(?string $customPrompt = null): int
+    {
+        $systemMessage = app(\App\Services\PromptService::class)->getSystemMessage();
+        $basePrompt = $this->createFileAnalysisPrompt($customPrompt);
+        
+        // Rough estimation: ~4 characters per token
+        $totalPromptLength = strlen($systemMessage) + strlen($basePrompt);
+        return (int) ($totalPromptLength / 4);
+    }
+
 }

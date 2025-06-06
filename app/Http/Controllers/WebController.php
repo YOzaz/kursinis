@@ -416,6 +416,29 @@ class WebController extends Controller
             return "📄 " . $message . " (JSON in message)";
         } elseif (stripos($message, 'openai') !== false && stripos($message, 'structured') !== false) {
             return "📊 " . $message . " (full JSON)";
+        } elseif (stripos($message, 'chunk failed') !== false) {
+            $chunkInfo = "";
+            if (isset($context['chunk'])) {
+                $chunkInfo = " (Chunk {$context['chunk']})";
+            }
+            if (isset($context['error']) && stripos($context['error'], 'quota') !== false) {
+                return "💳 Chunk processing failed - API quota exceeded{$chunkInfo}";
+            } elseif (isset($context['error']) && stripos($context['error'], 'auth') !== false) {
+                return "🔐 Chunk processing failed - Authentication error{$chunkInfo}";
+            } elseif (isset($context['error']) && stripos($context['error'], 'prompt is too long') !== false) {
+                // Extract token information if available
+                if (preg_match('/(\d+) tokens > (\d+) maximum/', $context['error'], $matches)) {
+                    $used = number_format($matches[1]);
+                    $limit = number_format($matches[2]);
+                    return "📏 Chunk too large - {$used} tokens > {$limit} limit{$chunkInfo}";
+                } else {
+                    return "📏 Chunk too large - Exceeds token limit{$chunkInfo}";
+                }
+            } elseif (isset($context['error']) && stripos($context['error'], 'Syntax error') !== false) {
+                return "🔧 Chunk processing failed - JSON parsing error{$chunkInfo}";
+            } else {
+                return "⚠️ " . $message . $chunkInfo . " - Check API status";
+            }
         }
         
         return $message;

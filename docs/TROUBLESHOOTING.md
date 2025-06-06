@@ -391,16 +391,18 @@ $statistics = $this->metricsService->calculateJobStatistics($analysis);
 ```
 Claude API error: too many total text bytes: 18688637 > 9000000
 OpenAI API error: string too long. Expected a string with maximum length 10485760
+Claude API error: prompt is too long: 211369 tokens > 200000 maximum
 ```
 
 #### Solutions:
 
-**Automatic Chunking (Default Behavior):**
+**Automatic Dynamic Chunking (Default Behavior):**
 The system automatically handles these errors through intelligent chunking:
 
-- **Claude**: Files >8MB automatically split into 50-text chunks
-- **OpenAI**: Files >9MB automatically split into 50-text chunks  
+- **Claude**: Files >8MB split into optimal-sized chunks (typically 10-30 texts based on content)
+- **OpenAI**: Files >9MB split into optimal-sized chunks (typically 20-40 texts based on content)
 - **Gemini**: Uses individual text processing for long content
+- **Smart Sizing**: Chunk size automatically calculated based on text length and token limits
 
 **Monitor Chunking Logs:**
 ```bash
@@ -414,9 +416,10 @@ grep -E "File too large|Processing in chunks|Chunk [0-9]+ completed" storage/log
 **Expected Chunking Log Output:**
 ```
 [INFO] File too large for single Claude API call, using chunking
-[INFO] Processing in chunks: 1000 texts → 20 chunks (50 texts each)
-[INFO] Processing chunk 1/20: 50 texts, 180KB
-[INFO] Chunk 1 completed: 45 successful, 5 failed
+[INFO] Calculated optimal chunk size: provider=anthropic, max_tokens=180000, avg_tokens_per_text=4283, calculated_chunk_size=15
+[INFO] Processing in chunks: 1000 texts → 67 chunks (15 texts each)
+[INFO] Processing chunk 1/67: 15 texts, 180KB
+[INFO] Chunk 1 completed: 15 successful, 0 failed
 [INFO] All chunks completed: 950 successful, 50 failed
 ```
 
