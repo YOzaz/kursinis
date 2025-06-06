@@ -67,7 +67,7 @@ class SettingsWorkflowTest extends TestCase
             'google' => 'gemini-2.5-flash'
         ]);
 
-        $response = $this->post('/settings/reset-defaults');
+        $response = $this->post('/settings/reset');
 
         $response->assertRedirect('/settings')
                 ->assertSessionHas('success');
@@ -175,7 +175,7 @@ class SettingsWorkflowTest extends TestCase
 
         $response->assertStatus(200)
                 ->assertSee("Anthropic's most advanced coding model")
-                ->assertSee("OpenAI's latest flagship model")
+                ->assertSee("OpenAI's multimodal flagship model")
                 ->assertSee("Google's most advanced model")
                 ->assertSee('Premium')
                 ->assertSee('Standard');

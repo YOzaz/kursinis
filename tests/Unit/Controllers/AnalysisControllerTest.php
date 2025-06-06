@@ -69,9 +69,10 @@ class AnalysisControllerTest extends TestCase
         
         $this->assertNotNull($constructor);
         $parameters = $constructor->getParameters();
-        $this->assertCount(2, $parameters);
+        $this->assertCount(3, $parameters);
         $this->assertEquals('App\Services\MetricsService', $parameters[0]->getType()->getName());
         $this->assertEquals('App\Services\ExportService', $parameters[1]->getType()->getName());
+        $this->assertEquals('App\Services\ModelStatusService', $parameters[2]->getType()->getName());
     }
 
     public function test_controller_instantiation_with_dependencies()

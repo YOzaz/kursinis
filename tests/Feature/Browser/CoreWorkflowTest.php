@@ -131,7 +131,7 @@ class CoreWorkflowTest extends TestCase
     {
         $this->withSession(['authenticated' => true, 'username' => 'admin']);
         
-        $response = $this->get('/');
+        $response = $this->get('/create');
 
         $response->assertStatus(200)
                 ->assertSee('claude-opus-4')

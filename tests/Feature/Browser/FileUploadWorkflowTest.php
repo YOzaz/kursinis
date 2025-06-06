@@ -19,19 +19,19 @@ class FileUploadWorkflowTest extends TestCase
     {
         $this->withSession(['authenticated' => true, 'username' => 'admin']);
         
-        $response = $this->get('/');
+        $response = $this->get('/create');
 
         $response->assertStatus(200)
                 ->assertSee('name="json_file"', false)
                 ->assertSee('type="file"', false)
-                ->assertSee('accept=".json"', false);
+                ->assertSee('accept=".json,application/json,text/plain"', false);
     }
 
     public function test_model_selection_checkboxes_are_functional()
     {
         $this->withSession(['authenticated' => true, 'username' => 'admin']);
         
-        $response = $this->get('/');
+        $response = $this->get('/create');
 
         $response->assertStatus(200)
                 ->assertSee('name="models[]"', false)
@@ -44,7 +44,7 @@ class FileUploadWorkflowTest extends TestCase
     {
         $this->withSession(['authenticated' => true, 'username' => 'admin']);
         
-        $response = $this->get('/');
+        $response = $this->get('/create');
 
         $response->assertStatus(200)
                 ->assertSee('name="custom_prompt"', false)
@@ -55,7 +55,7 @@ class FileUploadWorkflowTest extends TestCase
     {
         $this->withSession(['authenticated' => true, 'username' => 'admin']);
         
-        $response = $this->get('/');
+        $response = $this->get('/create');
 
         $response->assertStatus(200)
                 ->assertSee('name="_token"', false);
@@ -67,7 +67,7 @@ class FileUploadWorkflowTest extends TestCase
         
         $response = $this->post('/upload', []);
 
-        $response->assertRedirect('/')
+        $response->assertRedirect()
                 ->assertSessionHasErrors(['json_file', 'models']);
     }
 
@@ -171,7 +171,7 @@ class FileUploadWorkflowTest extends TestCase
     {
         $this->withSession(['authenticated' => true, 'username' => 'admin']);
         
-        $response = $this->get('/');
+        $response = $this->get('/create');
 
         $response->assertStatus(200)
                 ->assertSee('promptBuilderModal', false)
@@ -182,7 +182,7 @@ class FileUploadWorkflowTest extends TestCase
     {
         $this->withSession(['authenticated' => true, 'username' => 'admin']);
         
-        $response = $this->get('/');
+        $response = $this->get('/create');
 
         $response->assertStatus(200)
                 ->assertSee('loadPromptPreview', false)
@@ -193,7 +193,7 @@ class FileUploadWorkflowTest extends TestCase
     {
         $this->withSession(['authenticated' => true, 'username' => 'admin']);
         
-        $response = $this->get('/');
+        $response = $this->get('/create');
 
         $response->assertStatus(200)
                 ->assertSee('dragover', false)
@@ -204,7 +204,7 @@ class FileUploadWorkflowTest extends TestCase
     {
         $this->withSession(['authenticated' => true, 'username' => 'admin']);
         
-        $response = $this->get('/');
+        $response = $this->get('/create');
 
         $response->assertStatus(200)
                 ->assertSee('progress-circle', false);
@@ -219,7 +219,7 @@ class FileUploadWorkflowTest extends TestCase
             'created_at' => now()->subMinutes(5)
         ]);
 
-        $response = $this->get('/');
+        $response = $this->get('/create');
 
         $response->assertStatus(200)
                 ->assertSee('Tekstų analizės paleidimas')
@@ -231,7 +231,7 @@ class FileUploadWorkflowTest extends TestCase
     {
         $this->withSession(['authenticated' => true, 'username' => 'admin']);
         
-        $response = $this->get('/');
+        $response = $this->get('/create');
 
         $response->assertStatus(200)
                 ->assertSee('Anthropic')

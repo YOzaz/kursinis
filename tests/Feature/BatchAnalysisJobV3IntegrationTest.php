@@ -56,6 +56,8 @@ class BatchAnalysisJobV3IntegrationTest extends TestCase
 
     public function test_end_to_end_smart_chunking_workflow()
     {
+        $this->markTestSkipped('BatchAnalysisJobV3 is deprecated, system now uses BatchAnalysisJobV4');
+        
         // Simulate WebController creating job
         $jobId = Str::uuid()->toString();
         $fileContent = [

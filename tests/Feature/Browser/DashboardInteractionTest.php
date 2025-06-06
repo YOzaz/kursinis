@@ -102,7 +102,7 @@ class DashboardInteractionTest extends TestCase
         $response = $this->get('/dashboard');
 
         $response->assertStatus(200)
-                ->assertSee('Eksportuoti statistikas')
+                ->assertSee('Eksportuoti duomenis')
                 ->assertSee('Dashboard');
     }
 

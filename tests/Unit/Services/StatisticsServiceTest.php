@@ -46,7 +46,28 @@ class StatisticsServiceTest extends TestCase
     public function test_calculates_job_statistics(): void
     {
         $job = AnalysisJob::factory()->create();
-        $textAnalysis = TextAnalysis::factory()->create(['job_id' => $job->job_id]);
+        $textAnalysis = TextAnalysis::factory()->create([
+            'job_id' => $job->job_id,
+            'expert_annotations' => [
+                [
+                    'result' => [
+                        [
+                            'type' => 'choices',
+                            'value' => ['choices' => ['yes']]
+                        ],
+                        [
+                            'type' => 'labels',
+                            'value' => [
+                                'start' => 0,
+                                'end' => 10,
+                                'text' => 'propaganda',
+                                'labels' => ['propaganda']
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ]);
         ComparisonMetric::factory()->create([
             'job_id' => $job->job_id,
             'text_id' => $textAnalysis->text_id,

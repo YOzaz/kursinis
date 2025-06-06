@@ -7,6 +7,7 @@ use App\Models\TextAnalysis;
 use App\Models\ComparisonMetric;
 use App\Jobs\AnalyzeTextJob;
 use App\Jobs\BatchAnalysisJob;
+use App\Jobs\BatchAnalysisJobV4;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
@@ -105,7 +106,7 @@ class AnalysisControllerTest extends TestCase
         $responseData = $response->json();
         $this->assertEquals(2, $responseData['total_texts']);
 
-        Queue::assertPushed(BatchAnalysisJob::class);
+        Queue::assertPushed(BatchAnalysisJobV4::class);
     }
 
     public function test_batch_analyze_validation_fails(): void

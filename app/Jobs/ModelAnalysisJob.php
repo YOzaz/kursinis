@@ -1012,47 +1012,72 @@ class ModelAnalysisJob implements ShouldQueue
         $modelConfig = $allModels[$modelKey] ?? [];
         $provider = $modelConfig['provider'] ?? 'unknown';
         
-        // Token limits by provider (conservative estimates)
+        // Token limits by provider (very conservative estimates based on real errors)
         $tokenLimits = [
-            'anthropic' => 180000, // Claude: 200k limit, use 180k for safety
-            'openai' => 120000,    // OpenAI: varies, use conservative 120k
-            'google' => 1000000,   // Gemini: 2M limit, use 1M for safety
+            'anthropic' => 120000, // Claude: 200k limit, use 120k for safety (was getting 203k+ with 150k)
+            'openai' => 80000,     // OpenAI: varies, use very conservative 80k
+            'google' => 600000,    // Gemini: 2M limit, use 600k for safety
         ];
         
-        $maxTokens = $tokenLimits[$provider] ?? 100000;
+        $maxTokens = $tokenLimits[$provider] ?? 80000;
         
-        // Sample a few texts to estimate average token count per text
-        $sampleSize = min(5, count($jsonData));
+        // Sample more texts to get better average
+        $sampleSize = min(10, count($jsonData));
         $totalSampleTokens = 0;
+        $totalContentLength = 0;
         
         for ($i = 0; $i < $sampleSize; $i++) {
             $text = $jsonData[$i]['data']['content'] ?? '';
-            // Rough token estimation: ~4 characters per token
-            $estimatedTokens = strlen($text) / 4;
+            $contentLength = strlen($text);
+            $totalContentLength += $contentLength;
+            
+            // Very conservative token estimation: ~2.5 characters per token for safety
+            $estimatedTokens = $contentLength / 2.5;
             $totalSampleTokens += $estimatedTokens;
         }
         
         $averageTokensPerText = $sampleSize > 0 ? ($totalSampleTokens / $sampleSize) : 1000;
+        $averageContentLength = $sampleSize > 0 ? ($totalContentLength / $sampleSize) : 3000;
         
-        // Add overhead for prompt and JSON structure (estimate 20% overhead)
+        // Calculate JSON overhead very conservatively
+        // Each text in JSON adds: {"text_id":"ID","data":{"content":"TEXT"},"annotations":[...]}
+        // Plus response structure overhead per text
+        $jsonStructurePerText = strlen('{"text_id":"","data":{"content":""},"annotations":[]}') / 2.5; // ~48 tokens
+        $responseStructurePerText = strlen('{"text_id":"","primaryChoice":{"choices":["yes"]},"annotations":[],"desinformationTechnique":{"choices":[]}}') / 2.5; // ~78 tokens
+        $additionalSafetyBuffer = 50; // Additional safety buffer per text
+        $totalOverheadPerText = $jsonStructurePerText + $responseStructurePerText + $additionalSafetyBuffer; // ~176 tokens per text
+        
         $promptOverhead = $this->estimatePromptTokens($customPrompt);
-        $jsonOverhead = $averageTokensPerText * 0.2; // 20% overhead for JSON structure
-        $totalOverhead = $promptOverhead + $jsonOverhead;
         
-        // Calculate how many texts can fit in the limit
-        $availableTokens = $maxTokens - $totalOverhead;
-        $textsPerChunk = max(1, floor($availableTokens / ($averageTokensPerText + $jsonOverhead)));
+        // Total tokens per text = content + JSON structure + response structure
+        $totalTokensPerText = $averageTokensPerText + $totalOverheadPerText;
         
-        // Ensure chunk size is reasonable (between 1 and 100)
-        $chunkSize = max(1, min(100, $textsPerChunk));
+        // Calculate how many texts can fit
+        $availableTokens = $maxTokens - $promptOverhead;
+        $textsPerChunk = max(1, floor($availableTokens / $totalTokensPerText));
+        
+        // Cap chunk size very conservatively based on provider
+        $maxChunkSizes = [
+            'anthropic' => 15, // Claude chunks were failing at 25, try 15
+            'openai' => 20,    // OpenAI was getting JSON parsing errors, try smaller chunks
+            'google' => 30
+        ];
+        $maxChunkSize = $maxChunkSizes[$provider] ?? 10;
+        
+        $chunkSize = max(1, min($maxChunkSize, $textsPerChunk));
         
         $this->logProgress("Calculated optimal chunk size", [
             'model' => $modelKey,
             'provider' => $provider,
             'max_tokens' => $maxTokens,
             'avg_tokens_per_text' => round($averageTokensPerText),
+            'avg_content_length' => round($averageContentLength),
+            'total_tokens_per_text' => round($totalTokensPerText),
             'prompt_overhead' => $promptOverhead,
-            'calculated_chunk_size' => $chunkSize,
+            'available_tokens' => $availableTokens,
+            'calculated_texts_per_chunk' => $textsPerChunk,
+            'final_chunk_size' => $chunkSize,
+            'max_chunk_size_cap' => $maxChunkSize,
             'status' => 'chunk_calculation'
         ]);
         
@@ -1067,9 +1092,12 @@ class ModelAnalysisJob implements ShouldQueue
         $systemMessage = app(\App\Services\PromptService::class)->getSystemMessage();
         $basePrompt = $this->createFileAnalysisPrompt($customPrompt);
         
-        // Rough estimation: ~4 characters per token
+        // Very conservative estimation for multilingual content: ~2.5 characters per token
         $totalPromptLength = strlen($systemMessage) + strlen($basePrompt);
-        return (int) ($totalPromptLength / 4);
+        $estimatedTokens = (int) ($totalPromptLength / 2.5);
+        
+        // Add larger buffer for potential prompt variations and safety
+        return $estimatedTokens + 1000; // Add 1000 token buffer
     }
 
 }

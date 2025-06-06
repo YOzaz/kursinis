@@ -34,7 +34,7 @@ class WebControllerTest extends TestCase
         $response = $this->get('/');
 
         $response->assertStatus(200)
-                ->assertViewIs('index')
+                ->assertViewIs('dashboard.index')
                 ->assertViewHas('recentJobs')
                 ->assertViewHas('standardPrompt');
     }
