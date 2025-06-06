@@ -2,6 +2,90 @@
 
 ## 🚨 Common Issues & Solutions
 
+### UTF-8 Character Positioning Issues (Fixed 2025-06-06)
+
+#### Problem: AI Model Annotations Don't Match Text Boundaries
+```
+Highlighted text appears truncated or misaligned
+Claude response shows different text than what's highlighted
+Position coordinates don't match displayed content
+```
+
+#### Root Cause: 
+- AI models provide Unicode character positions (0-280)
+- PHP `substr()` uses byte positions in UTF-8 encoding  
+- Lithuanian characters (ą,č,ę,ė,į,š,ų,ū,ž) use 2-3 bytes but count as 1 character
+- Text length: 8229 bytes vs 7703 characters for Lithuanian content
+
+#### Solution Implemented:
+1. **Code Fix**: Replaced `substr()` with `mb_substr()` in `AnalysisController.php`
+2. **Prompt Enhancement**: Added explicit UTF-8 character positioning instructions
+3. **Trust Provided Text**: System now prioritizes AI-provided text over coordinate extraction
+4. **Metrics Verification**: Confirmed MetricsService uses correct positioning
+
+#### Files Modified:
+- `app/Http/Controllers/AnalysisController.php` (lines 1117-1123, 1142-1148, 1204-1210)
+- `app/Services/PromptService.php` (prompt instructions with UTF-8 guidance)
+- `docs/METRICS-GUIDE.md` (documentation update)
+
+#### Technical Details:
+```php
+// Before (incorrect for UTF-8)
+$text = substr($originalText, $start, $end - $start);
+
+// After (correct for UTF-8)  
+$finalText = !empty($providedText) ? $providedText : mb_substr($originalText, $start, $end - $start, 'UTF-8');
+```
+
+#### Prompt Improvements:
+```
+4) SVARBU: Naudok UNICODE SIMBOLIŲ pozicijas (ne baitų), skaičiuok lietuviškus simbolius ą,č,ę,ė,į,š,ų,ū,ž kaip po 1 simbolį
+- KRITIŠKAI SVARBU: Naudok UNICODE simbolių pozicijas (ne baitų)!
+- Lietuviški simboliai ą,č,ę,ė,į,š,ų,ū,ž skaičiuojami kaip po 1 simbolį
+```
+
+#### How to Verify Fix Works:
+```bash
+# Test UTF-8 positioning
+php artisan tinker --execute="
+\$text = 'Visų pirma nusiimkim spalvotus vaikiškus akinėlius...';
+echo 'Bytes: ' . strlen(\$text) . PHP_EOL;
+echo 'Characters: ' . mb_strlen(\$text, 'UTF-8') . PHP_EOL;
+echo 'Position 280 (bytes): ' . substr(\$text, 0, 280) . PHP_EOL;
+echo 'Position 280 (chars): ' . mb_substr(\$text, 0, 280, 'UTF-8') . PHP_EOL;
+"
+```
+
+#### Additional Fixes Implemented (2025-06-06):
+
+**Multiple Techniques per Annotation:**
+- Updated tooltip display to show all techniques when AI provides multiple labels
+- Fixed metrics calculation to correctly handle multiple techniques (uses `array_intersect`)
+- Added proper color selection for primary technique
+
+**JavaScript Improvements:**
+- Fixed "trust provided text" approach in JavaScript display functions
+- Enhanced tooltip content for multiple techniques with HTML formatting
+- Improved error handling for jQuery/Bootstrap initialization
+
+**Example of Multiple Techniques:**
+```json
+{
+  "type": "labels", 
+  "value": {
+    "start": 0,
+    "end": 280,
+    "text": "Complete AI-provided text...",
+    "labels": ["simplification", "emotionalExpression"]
+  }
+}
+```
+
+**Metrics Calculation:**
+- System correctly identifies True Positive if ANY expert technique matches ANY AI technique
+- Multiple techniques increase accuracy rather than penalizing over-classification
+- Position accuracy calculations maintain UTF-8 character precision
+
 ### 1. Redis Connection Issues
 
 #### Problem: "Connection refused" Error

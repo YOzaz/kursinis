@@ -47,7 +47,7 @@ class PromptService
             'role' => 'Tu esi ATSPARA projekto propagandos analizės ekspertas, specializuojantis lietuvių kalbos tekstų analizėje.',
             'instructions' => 'Analizuok pateiktą tekstą ir identifikuok visas propagandos technikas bei dezinformacijos naratyvus pagal ATSPARA projekto metodologiją. Būk preciziškas ir objektyvus.',
             'situation' => 'Analizuojamas tekstas yra iš lietuviškų žiniasklaidos šaltinių, socialinių tinklų ar viešųjų pranešimų. Tavo užduotis - identifikuoti propaganda technikas ir įvertinti tekstą.',
-            'execution' => 'Atlikdamas analizę: 1) Perskaityk tekstą atidžiai ir įvertink jo ilgį 2) Identifikuok aiškiai matomus propaganda elementus 3) Nurodyk tikslias teksto dalis (15-60% teksto, ne mažiau 50 simbolių) 4) Patikrink pozicijų tikslumą (start/end) 5) Klasifikuok pagal ATSPARA kategoriją 6) Pateik rezultatus JSON formatu',
+            'execution' => 'Atlikdamas analizę: 1) Perskaityk tekstą atidžiai ir įvertink jo ilgį 2) Identifikuok aiškiai matomus propaganda elementus 3) Nurodyk tikslias teksto dalis (15-60% teksto, ne mažiau 50 simbolių) 4) SVARBU: Naudok UNICODE SIMBOLIŲ pozicijas (ne baitų), skaičiuok lietuviškus simbolius ą,č,ę,ė,į,š,ų,ū,ž kaip po 1 simbolį 5) Patikrink pozicijų tikslumą (start/end) 6) Klasifikuok pagal ATSPARA kategoriją 7) Pateik rezultatus JSON formatu',
             'needle' => 'Gražink TIKSLIAI šio formato JSON atsakymą be jokių papildomų komentarų ar paaiškinimų:'
         ];
     }
@@ -86,7 +86,10 @@ class PromptService
         $prompt .= "- Anotacijos turi sudaryti 15-60% teksto (ne mažiau 50 simbolių)\n";
         $prompt .= "- Vengti per smulkių (<10 simbolių) fragmentų\n";
         $prompt .= "- Prioritetas - Zarankos ir ATSPARA metodologijos tikslumui\n";
+        $prompt .= "- KRITIŠKAI SVARBU: Naudok UNICODE simbolių pozicijas (ne baitų)!\n";
+        $prompt .= "- Lietuviški simboliai ą,č,ę,ė,į,š,ų,ū,ž skaičiuojami kaip po 1 simbolį\n";
         $prompt .= "- Tiksliai nurodyti pozicijas (start/end) pagal realų tekstą\n";
+        $prompt .= "- Patikrink kad 'text' laukas atitinka start/end pozicijas\n";
         
         $prompt .= "\n**NEEDLE**: {$parts['needle']}\n\n";
         $prompt .= $this->getJsonFormat();
@@ -110,7 +113,7 @@ class PromptService
       "value": {
         "start": 0,
         "end": 50,
-        "text": "tikslus tekstas iš dokumento be pakeitimų",
+        "text": "tikslus tekstas iš dokumento be pakeitimų (UNICODE simbolių pozicijos!)",
         "labels": ["konkretūs_technikų_pavadinimai"]
       }
     }
@@ -123,12 +126,14 @@ class PromptService
 
 **ANALIZĖS KOKYBĖS REIKALAVIMAI**:
 1. Būk konservatyvus - žymi tik aiškiai identifikuojamas propaganda technikas
-2. Tiksliai nurodyti teksto pozicijas (start/end) - patikrink, kad atitinka realų tekstą
-3. Anotacijos turi sudaryti 15-60% teksto, ne mažiau nei 50 simbolių
-4. Vengti mikroskopinių fragmentų (<10 simbolių) ar viso teksto žymėjimo
-5. Prioritetas - Zarankos ir ATSPARA metodologijos tikslumui
+2. KRITIŠKAI SVARBU - UTF-8/UNICODE pozicijos: skaičiuok simbolius, ne baitus!
+3. Lietuviški simboliai (ą,č,ę,ė,į,š,ų,ū,ž) = po 1 simbolį, ne 2-3 baitus
+4. Tiksliai nurodyti teksto pozicijas (start/end) - patikrink, kad atitinka realų tekstą
+5. Anotacijos turi sudaryti 15-60% teksto, ne mažiau nei 50 simbolių
+6. Vengti mikroskopinių fragmentų (<10 simbolių) ar viso teksto žymėjimo
+7. Prioritetas - Zarankos ir ATSPARA metodologijos tikslumui
 
-**SVARBU**: Analizuojamas tekstas lietuvių kalba. Atsakyk TIK JSON formatu.';
+**SVARBU**: Analizuojamas tekstas lietuvių kalba. NAUDOK UNICODE SIMBOLIŲ pozicijas! Atsakyk TIK JSON formatu.';
     }
 
     /**

@@ -177,9 +177,15 @@ The system uses intelligent category mapping to handle differences between exper
 ### Position Matching Algorithm
 
 1. **Step 1**: Check if text spans overlap by at least 50%
-2. **Step 2**: Verify category match (direct or through mapping)
+2. **Step 2**: Verify category match (direct or through mapping)  
 3. **Step 3**: Allow ±10 character tolerance for boundary positions
 4. **Step 4**: Count as True Positive if all criteria met
+
+**IMPORTANT - UTF-8 Character Positioning (2025-06-06 Update)**:
+- All position calculations use **Unicode character positions**, not byte positions
+- Lithuanian characters (ą,č,ę,ė,į,š,ų,ū,ž) count as 1 character each
+- System automatically handles UTF-8 encoding with `mb_substr()` functions
+- AI models instructed to provide Unicode character positions in prompts
 
 ## 📈 Performance Benchmarks
 
@@ -251,6 +257,13 @@ ANALIZĖS KOKYBĖS REIKALAVIMAI:
 - **Interpretation**: Good overall performance suitable for research
 
 ## 📊 Metric Calculation Technical Details
+
+### UTF-8 Character Positioning (2025-06-06)
+- **Character Encoding**: All text processing uses UTF-8 Unicode standards
+- **Position Calculation**: `mb_substr()` and `mb_strlen()` for accurate Lithuanian text handling
+- **AI Model Instructions**: Explicit guidance to use Unicode character positions
+- **Quality Assurance**: "Trust provided text" approach when AI coordinates mismatch
+- **Lithuanian Characters**: ą,č,ę,ė,į,š,ų,ū,ž properly counted as single characters
 
 ### Execution Time Metrics
 - **Measured**: Per-model analysis time in milliseconds

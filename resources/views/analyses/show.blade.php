@@ -1145,9 +1145,10 @@ function displayHighlightedText(content, annotations, legend) {
         // Add text before annotation
         highlightedContent += escapeHtml(content.substring(lastIndex, annotation.start));
         
-        // Add highlighted annotation
-        const color = techniqueColors[annotation.technique] || '#cccccc';
+        // Add highlighted annotation with multiple technique support
         const labels = Array.isArray(annotation.labels) ? annotation.labels : [annotation.technique];
+        const primaryTechnique = labels[0] || annotation.technique;
+        const color = techniqueColors[primaryTechnique] || '#cccccc';
         
         highlightedContent += `<span class="highlighted-annotation" 
                                      style="background-color: ${color}; padding: 2px 4px; border-radius: 3px; margin: 1px;"
@@ -1666,16 +1667,25 @@ function displayModalHighlightedText(textAnalysisId, content, annotations, legen
         // Add text before annotation
         highlightedContent += escapeHtml(content.substring(lastIndex, safeStart));
         
-        // Ensure we're using the correct text for this annotation
-        const annotationText = content.substring(safeStart, safeEnd);
+        // Use AI-provided text if available, otherwise extract from content (trust provided text approach)
+        const annotationText = annotation.text || content.substring(safeStart, safeEnd);
         
-        // Add highlighted annotation with tooltip
-        const color = techniqueColors[annotation.technique] || '#cccccc';
+        // Add highlighted annotation with tooltip for multiple techniques
         const labels = Array.isArray(annotation.labels) ? annotation.labels : [annotation.technique];
-        const description = getTechniqueDescription(annotation.technique);
+        const primaryTechnique = labels[0] || annotation.technique;
+        const color = techniqueColors[primaryTechnique] || '#cccccc';
         
-        const techniqueInfo = getTechniqueInfo(annotation.technique);
-        const tooltipContent = `${techniqueInfo.name}: ${techniqueInfo.definition}`;
+        // Build tooltip content for multiple techniques
+        let tooltipContent = '';
+        if (labels.length > 1) {
+            tooltipContent = labels.map(tech => {
+                const info = getTechniqueInfo(tech);
+                return `${info.name}: ${info.definition}`;
+            }).join('<br><br>');
+        } else {
+            const techniqueInfo = getTechniqueInfo(primaryTechnique);
+            tooltipContent = `${techniqueInfo.name}: ${techniqueInfo.definition}`;
+        }
         
         highlightedContent += `<span class="highlighted-annotation" 
                                      style="background-color: ${color}; padding: 2px 4px; border-radius: 3px; margin: 1px; cursor: help;"
