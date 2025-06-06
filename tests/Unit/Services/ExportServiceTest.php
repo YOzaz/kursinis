@@ -18,7 +18,7 @@ class ExportServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new ExportService();
+        $this->service = app(ExportService::class);
     }
 
     public function test_exports_analysis_results_to_csv(): void

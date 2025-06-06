@@ -11,14 +11,14 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
         
-        // Set up test database
-        $this->setUpDatabase();
-        
         // Clear any cached data
         $this->clearApplicationCache();
         
         // Set up default HTTP mocking for all LLM services
         $this->setupDefaultHttpMocking();
+        
+        // Set up test database after other setup
+        $this->setUpDatabase();
     }
     
     protected function tearDown(): void
@@ -37,7 +37,9 @@ abstract class TestCase extends BaseTestCase
 
     protected function clearApplicationCache(): void
     {
-        $this->app['cache']->flush();
+        if ($this->app->bound('cache')) {
+            $this->app['cache']->flush();
+        }
         $this->app['config']->set('cache.default', 'array');
     }
 
