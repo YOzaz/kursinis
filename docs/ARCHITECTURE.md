@@ -67,8 +67,9 @@ app/
 ├── Jobs/
 │   ├── AnalyzeTextJob.php             # Single text analysis with custom prompts
 │   ├── BatchAnalysisJob.php           # Multiple text processing (legacy)
-│   ├── BatchAnalysisJobV4.php         # File attachment batch processing with chunking
-│   └── ModelAnalysisJob.php           # Individual model processing with automatic chunking
+│   ├── BatchAnalysisJobV4.php         # Individual text processing orchestrator
+│   ├── IndividualTextAnalysisJob.php  # Individual text-model analysis processing
+│   └── ModelAnalysisJob.php           # Individual model processing with automatic chunking (deprecated)
 ├── Models/
 │   ├── AnalysisJob.php                # Main job tracking with custom prompts and references
 │   ├── TextAnalysis.php               # Individual text results
@@ -228,87 +229,120 @@ Reference Analysis ID
 
 **Recent Enhancement**: Supports category mapping between expert annotations (simplified names like 'simplification', 'emotionalExpression') and AI annotations (ATSPARA methodology names like 'causalOversimplification', 'loadedLanguage')
 
-## 🚀 Large Dataset Processing Architecture
+## 🚀 Individual Text Processing Architecture
 
-### Intelligent Chunking System
+### Individual Text Processing System
 
-The system implements automatic chunking for large datasets to handle API limits and improve reliability:
+The system processes each text individually instead of using chunking for better reliability and simpler error handling:
 
 #### Architecture Overview
 
 ```
-Large Dataset (>8MB)
+Multiple Texts from File Upload
     ↓
 ┌─────────────────┐
-│ Size Detection  │
-│ - Check file size │
-│ - Determine strategy │
+│ BatchAnalysisJobV4 │
+│ - Create TextAnalysis records │
+│ - Dispatch individual jobs │
 └─────────┬───────┘
           ↓
 ┌─────────────────┐
-│ Chunking Logic  │
-│ - Split into 50-text chunks │
-│ - Preserve JSON structure │
+│ Individual Text │
+│ Analysis Jobs   │
+│ - One job per text-model │
+│ - Parallel processing │
 └─────────┬───────┘
           ↓
 ┌─────────────────┐
-│ Sequential Processing │
-│ - Process each chunk │
-│ - Merge results │
-│ - Handle failures │
+│ LLM Services    │
+│ - Direct API calls │
+│ - No chunking needed │
+│ - Better error isolation │
 └─────────┬───────┘
           ↓
 ┌─────────────────┐
-│ Result Assembly │
-│ - Combine successful chunks │
-│ - Mark failed texts │
-│ - Create ModelResults │
+│ Result Storage  │
+│ - ModelResult records │
+│ - Legacy compatibility │
+│ - Progress tracking │
 └─────────────────┘
 ```
 
-#### Provider-Specific Chunking
+#### Individual Processing Benefits
 
-| Provider | Trigger Size | Chunk Size | Strategy |
-|----------|-------------|------------|----------|
-| **Claude** | >8MB | 50 texts | Direct API chunking |
-| **OpenAI** | >9MB | 50 texts | Message content chunking |
-| **Gemini** | Long content | Individual | GeminiService fallback |
+| Benefit | Description | Previous Approach |
+|---------|-------------|-------------------|
+| **Error Isolation** | Single text failure doesn't affect others | Chunk failure affected multiple texts |
+| **Simpler Logic** | No complex chunking algorithms | Complex size calculations and splitting |
+| **Better Monitoring** | Per-text progress tracking | Per-chunk progress only |
+| **Easier Debugging** | Direct text-to-result mapping | Complex chunk-to-text mapping |
+| **Parallel Processing** | True parallelism across queue workers | Sequential chunk processing |
 
-#### Chunking Implementation
+#### Processing Implementation
 
-**ModelAnalysisJob** automatically detects large files and applies chunking:
+**IndividualTextAnalysisJob** processes one text with one model:
 
 ```php
-// Claude chunking
-if ($fileSize > $claudeLimit) {
-    return $this->processClaudeWithChunking($modelKey, $tempFile, $customPrompt);
-}
-
-// Split into optimal chunks
-$chunkSize = 50;
-$chunks = array_chunk($jsonData, $chunkSize);
-
-// Process each chunk sequentially
-foreach ($chunks as $chunkIndex => $chunk) {
-    // Individual chunk processing with error isolation
+// Direct service call - no chunking needed
+switch ($provider) {
+    case 'anthropic':
+        $service = app(ClaudeService::class);
+        $service->setModel($modelKey);
+        return $service->analyzeText($content, $customPrompt);
+        
+    case 'openai':
+        $service = app(OpenAIService::class);
+        $service->setModel($modelKey);
+        return $service->analyzeText($content, $customPrompt);
+        
+    case 'google':
+        $service = app(GeminiService::class);
+        $service->setModel($modelKey);
+        return $service->analyzeText($content, $customPrompt);
 }
 ```
 
-#### Error Isolation
+#### Queue Architecture
 
-- **Failed chunks don't stop processing**: Other chunks continue normally
-- **Graceful degradation**: Partial results when some chunks fail
-- **Detailed logging**: Per-chunk progress and error tracking
-- **Retry logic**: Individual chunks can be retried without affecting others
+Each text-model combination gets its own queue job:
+
+- **2 texts × 3 models = 6 individual jobs**
+- **Jobs processed in parallel by queue workers**
+- **Failed jobs don't affect successful ones**
+- **Granular retry capability per text-model combination**
 
 #### Performance Benefits
 
-- **Memory efficiency**: Processes large files without memory exhaustion
-- **API compliance**: Automatically respects provider limits
-- **Improved reliability**: Isolated failures don't affect entire analysis
-- **Better progress tracking**: Granular progress updates per chunk
+- **True Parallelism**: Multiple texts processed simultaneously
+- **Simpler Error Handling**: Individual failures are isolated
+- **Better Resource Utilization**: Queue workers can process different texts
+- **Improved Reliability**: No complex chunking logic to fail
+- **Easier Maintenance**: Simple, straightforward processing flow
 
 ## 🆕 Recent System Enhancements (2025)
+
+### Individual Text Processing Refactoring (June 2025)
+
+**Major architectural change**: Replaced chunking-based file processing with individual text processing for improved reliability and maintainability.
+
+#### Key Changes:
+- **New Job**: `IndividualTextAnalysisJob` processes one text with one model
+- **Refactored**: `BatchAnalysisJobV4` now orchestrates individual job dispatching
+- **Removed**: Complex chunking logic and file attachment strategies
+- **Enhanced**: True parallel processing across queue workers
+
+#### Benefits:
+- **Error Isolation**: Single text failures don't affect batch processing
+- **Simplified Logic**: No complex size calculations or chunk management
+- **Better Monitoring**: Granular progress tracking per text-model combination
+- **Improved Reliability**: Elimination of chunking failure scenarios
+- **Easier Debugging**: Direct text-to-result mapping
+
+#### Migration Impact:
+- **Tests Updated**: All batch processing tests migrated to individual processing
+- **Documentation Updated**: Architecture guides reflect new processing flow
+- **Backward Compatibility**: Legacy fields maintained for existing data
+- **Queue Configuration**: New 'individual' queue for text processing jobs
 
 ### Text Highlighting and Visualization System
 - **Interactive Text Highlighting**: Real-time visualization of AI and expert annotations
@@ -485,9 +519,18 @@ HTTP Request
    - Single text analysis with optional custom prompts
    - Quick turnaround expected
 
-2. **BatchAnalysisJob** - Priority: Low
-   - Multiple text processing
-   - Longer processing time acceptable
+2. **BatchAnalysisJobV4** - Priority: Normal
+   - Orchestrates individual text processing
+   - Fast job coordination, dispatches individual jobs
+
+3. **IndividualTextAnalysisJob** - Priority: Normal
+   - Processes one text with one model
+   - Parallel execution across queue workers
+   - Isolated error handling
+
+4. **BatchAnalysisJob** - Priority: Low (Legacy)
+   - Multiple text processing (deprecated)
+   - Replaced by individual processing approach
 
 ## 🔐 Security Architecture
 
@@ -675,34 +718,34 @@ tests/
 - **Mocking**: LLM API responses for consistent testing
 - **Seeding**: Development database with sample data
 
-### Enhanced Testing for Chunking
+### Enhanced Testing for Individual Processing
 
-#### Chunking Test Coverage
+#### Individual Processing Test Coverage
 
-- **Large File Processing**: Tests for files >8MB (Claude) and >9MB (OpenAI)
-- **Chunk Failure Isolation**: Verifies failed chunks don't stop processing
-- **Progress Tracking**: Tests new model-based progress calculation
-- **Error Handling**: Comprehensive error scenarios and recovery
+- **Individual Job Dispatching**: Tests that each text-model combination gets its own job
+- **Parallel Processing**: Verifies jobs can run concurrently without interference
+- **Error Isolation**: Confirms failed individual jobs don't affect others
+- **Progress Tracking**: Tests accurate progress calculation based on completed jobs
 
 #### Test Examples
 
 ```php
-// Test chunking for large datasets
-public function test_claude_chunking_for_large_files()
+// Test individual job dispatching
+public function test_individual_text_jobs_dispatched_for_each_text_model_combination()
 {
-    // Creates 100 texts with large content to exceed 8MB limit
-    $largeContent = str_repeat('Large test content...', 200000);
+    $fileContent = [/* 2 texts */];
+    $models = ['claude-3-sonnet', 'gpt-4o'];
     
-    // Verifies automatic chunking is triggered
-    // Confirms ModelResult records are created
+    // Should dispatch 2 texts × 2 models = 4 individual jobs
+    Queue::assertPushed(IndividualTextAnalysisJob::class, 4);
 }
 
-// Test graceful failure handling
-public function test_chunk_failure_handling()
+// Test error isolation
+public function test_individual_text_analysis_with_error_handling()
 {
-    // Mocks one successful chunk and one failed chunk
-    // Verifies partial results are stored
-    // Confirms processing continues despite failures
+    // Mock service to throw exception for one text
+    // Verify other texts continue processing normally
+    // Confirm failed job doesn't stop batch processing
 }
 ```
 

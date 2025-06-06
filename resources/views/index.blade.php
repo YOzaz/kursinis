@@ -76,19 +76,23 @@
                             </small>
                         </div>
                         <div class="upload-area" id="uploadArea">
-                            <input type="file" class="form-control d-none" id="json_file" name="json_file" accept=".json,application/json,text/plain" required>
+                            <input type="file" class="form-control d-none" id="json_files" name="json_files[]" accept=".json,application/json,text/plain" multiple required>
                             <div id="uploadContent">
                                 <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
-                                <h5>Nuvilkite failą čia arba <span class="text-primary">spustelėkite pasirinkti</span></h5>
-                                <p class="text-muted">Palaikomi formatai: .json (iki 100MB)</p>
+                                <h5>Nuvilkite failus čia arba <span class="text-primary">spustelėkite pasirinkti</span></h5>
+                                <p class="text-muted">Palaikomi formatai: .json (iki 100MB kiekvienam). Galite pasirinkti kelis failus.</p>
                             </div>
                             <div id="fileInfo" class="d-none">
                                 <i class="fas fa-file-check fa-2x text-success mb-2"></i>
-                                <p class="mb-0" id="fileName"></p>
-                                <small class="text-muted" id="fileSize"></small>
+                                <div id="fileList"></div>
                             </div>
                         </div>
-                        @error('json_file')
+                        @error('json_files')
+                            <div class="text-danger mt-2">
+                                <small><i class="fas fa-exclamation-circle me-1"></i>{{ $message }}</small>
+                            </div>
+                        @enderror
+                        @error('json_files.*')
                             <div class="text-danger mt-2">
                                 <small><i class="fas fa-exclamation-circle me-1"></i>{{ $message }}</small>
                             </div>
@@ -508,11 +512,10 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const uploadArea = document.getElementById('uploadArea');
-    const fileInput = document.getElementById('json_file');
+    const fileInput = document.getElementById('json_files');
     const uploadContent = document.getElementById('uploadContent');
     const fileInfo = document.getElementById('fileInfo');
-    const fileName = document.getElementById('fileName');
-    const fileSize = document.getElementById('fileSize');
+    const fileList = document.getElementById('fileList');
     const analyzeBtn = document.getElementById('analyzeBtn');
     const form = document.getElementById('uploadForm');
     
@@ -540,53 +543,84 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const files = e.dataTransfer.files;
         if (files.length > 0) {
-            const file = files[0];
-            
-            // Validate dropped file before setting it
-            const allowedTypes = ['application/json', 'text/plain'];
-            const isJsonFile = file.name.toLowerCase().endsWith('.json') || allowedTypes.includes(file.type);
-            
-            if (!isJsonFile) {
-                alert('Prašome pasirinkti JSON formato failą (.json)');
-                return;
-            }
-            
-            if (file.size > 104857600) { // 100MB
-                alert('Failo dydis negali viršyti 100MB');
-                return;
+            // Validate all dropped files before setting them
+            for (let file of files) {
+                const allowedTypes = ['application/json', 'text/plain'];
+                const isJsonFile = file.name.toLowerCase().endsWith('.json') || allowedTypes.includes(file.type);
+                
+                if (!isJsonFile) {
+                    alert(`Failas "${file.name}" nėra JSON formato. Prašome pasirinkti tik JSON failus (.json)`);
+                    return;
+                }
+                
+                if (file.size > 104857600) { // 100MB
+                    alert(`Failas "${file.name}" per didelis. Failo dydis negali viršyti 100MB`);
+                    return;
+                }
             }
             
             fileInput.files = files;
-            displayFileInfo(file);
+            displayMultipleFileInfo(files);
         }
     });
 
     fileInput.addEventListener('change', (e) => {
         if (e.target.files.length > 0) {
-            displayFileInfo(e.target.files[0]);
+            displayMultipleFileInfo(e.target.files);
         }
     });
 
-    function displayFileInfo(file) {
-        // Validate file type
-        const allowedTypes = ['application/json', 'text/plain'];
-        const isJsonFile = file.name.toLowerCase().endsWith('.json') || allowedTypes.includes(file.type);
+    function displayMultipleFileInfo(files) {
+        // Clear previous file list
+        fileList.innerHTML = '';
         
-        if (!isJsonFile) {
-            alert('Prašome pasirinkti JSON formato failą (.json)');
-            fileInput.value = '';
-            return;
+        // Validate and display each file
+        let totalSize = 0;
+        for (let file of files) {
+            // Validate file type
+            const allowedTypes = ['application/json', 'text/plain'];
+            const isJsonFile = file.name.toLowerCase().endsWith('.json') || allowedTypes.includes(file.type);
+            
+            if (!isJsonFile) {
+                alert(`Failas "${file.name}" nėra JSON formato. Prašome pasirinkti tik JSON failus (.json)`);
+                fileInput.value = '';
+                return;
+            }
+            
+            // Validate file size (100MB = 104857600 bytes)
+            if (file.size > 104857600) {
+                alert(`Failas "${file.name}" per didelis. Failo dydis negali viršyti 100MB`);
+                fileInput.value = '';
+                return;
+            }
+            
+            totalSize += file.size;
+            
+            // Create file display element
+            const fileDiv = document.createElement('div');
+            fileDiv.className = 'mb-2 p-2 border rounded bg-light';
+            fileDiv.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-file-alt text-primary me-2"></i>
+                        <strong>${file.name}</strong>
+                    </div>
+                    <span class="text-muted">${formatFileSize(file.size)}</span>
+                </div>
+            `;
+            fileList.appendChild(fileDiv);
         }
         
-        // Validate file size (100MB = 104857600 bytes)
-        if (file.size > 104857600) {
-            alert('Failo dydis negali viršyti 100MB');
-            fileInput.value = '';
-            return;
+        // Add total files summary
+        if (files.length > 1) {
+            const summaryDiv = document.createElement('div');
+            summaryDiv.className = 'mt-2 p-2 bg-primary text-white rounded';
+            summaryDiv.innerHTML = `
+                <strong>Iš viso: ${files.length} failai, ${formatFileSize(totalSize)}</strong>
+                <br><small>Bus sukurta ${files.length} atskiros analizės</small>
+            `;
+            fileList.appendChild(summaryDiv);
         }
-        
-        fileName.textContent = file.name;
-        fileSize.textContent = formatFileSize(file.size);
         
         uploadContent.classList.add('d-none');
         fileInfo.classList.remove('d-none');
@@ -605,27 +639,28 @@ document.addEventListener('DOMContentLoaded', function() {
     // Formos validacija
     form.addEventListener('submit', function(e) {
         const selectedModels = document.querySelectorAll('input[name="models[]"]:checked');
-        const fileInput = document.getElementById('json_file');
+        const fileInput = document.getElementById('json_files');
         
-        // Check if file is selected
+        // Check if files are selected
         if (!fileInput.files || fileInput.files.length === 0) {
             e.preventDefault();
-            alert('Prašome pasirinkti JSON failą analizei.');
+            alert('Prašome pasirinkti bent vieną JSON failą analizei.');
             return;
         }
         
-        // Check file type and size again before submit
-        const file = fileInput.files[0];
-        if (!file.name.toLowerCase().endsWith('.json')) {
-            e.preventDefault();
-            alert('Prašome pasirinkti JSON formato failą (.json)');
-            return;
-        }
-        
-        if (file.size > 104857600) { // 100MB
-            e.preventDefault();
-            alert('Failo dydis negali viršyti 100MB');
-            return;
+        // Check file types and sizes again before submit
+        for (let file of fileInput.files) {
+            if (!file.name.toLowerCase().endsWith('.json')) {
+                e.preventDefault();
+                alert(`Failas "${file.name}" nėra JSON formato. Prašome pasirinkti tik JSON failus (.json)`);
+                return;
+            }
+            
+            if (file.size > 104857600) { // 100MB
+                e.preventDefault();
+                alert(`Failas "${file.name}" per didelis. Failo dydis negali viršyti 100MB`);
+                return;
+            }
         }
         
         // Check if models are selected
@@ -633,6 +668,14 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             alert('Prašome pasirinkti bent vieną LLM modelį analizei.');
             return;
+        }
+        
+        // Show confirmation for multiple files
+        if (fileInput.files.length > 1) {
+            if (!confirm(`Bus sukurta ${fileInput.files.length} atskiros analizės - po vieną kiekvienam failui. Tęsti?`)) {
+                e.preventDefault();
+                return;
+            }
         }
 
         // Jei naudojamas custom prompt, sukurti iš RISEN dalių

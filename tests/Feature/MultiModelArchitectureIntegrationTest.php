@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use Tests\TestCase;
 use App\Jobs\BatchAnalysisJobV4;
+use App\Jobs\IndividualTextAnalysisJob;
 use App\Models\AnalysisJob;
 use App\Models\TextAnalysis;
 use App\Models\ModelResult;
@@ -144,19 +145,29 @@ class MultiModelArchitectureIntegrationTest extends TestCase
             'requested_models' => $models,
         ]);
 
-        // Create and handle the V4 job which should create ModelAnalysisJobs
+        // Create and handle the V4 job which should create IndividualTextAnalysisJobs
         $batchJob = new BatchAnalysisJobV4($jobId, $fileContent, $models);
         $batchJob->handle();
 
-        // Verify ModelAnalysisJobs were queued for both Claude models
-        Queue::assertPushed(\App\Jobs\ModelAnalysisJob::class, 2);
+        // Verify IndividualTextAnalysisJobs were queued for both texts and both models (2 texts × 2 models = 4 jobs)
+        Queue::assertPushed(\App\Jobs\IndividualTextAnalysisJob::class, 4);
         
-        Queue::assertPushed(\App\Jobs\ModelAnalysisJob::class, function ($job) use ($jobId) {
-            return $job->jobId === $jobId && $job->modelKey === 'claude-opus-4';
+        // Verify jobs for text 1 with both models
+        Queue::assertPushed(\App\Jobs\IndividualTextAnalysisJob::class, function ($job) use ($jobId) {
+            return $job->jobId === $jobId && $job->textId === '1' && $job->modelKey === 'claude-opus-4';
         });
 
-        Queue::assertPushed(\App\Jobs\ModelAnalysisJob::class, function ($job) use ($jobId) {
-            return $job->jobId === $jobId && $job->modelKey === 'claude-sonnet-4';
+        Queue::assertPushed(\App\Jobs\IndividualTextAnalysisJob::class, function ($job) use ($jobId) {
+            return $job->jobId === $jobId && $job->textId === '1' && $job->modelKey === 'claude-sonnet-4';
+        });
+
+        // Verify jobs for text 2 with both models
+        Queue::assertPushed(\App\Jobs\IndividualTextAnalysisJob::class, function ($job) use ($jobId) {
+            return $job->jobId === $jobId && $job->textId === '2' && $job->modelKey === 'claude-opus-4';
+        });
+
+        Queue::assertPushed(\App\Jobs\IndividualTextAnalysisJob::class, function ($job) use ($jobId) {
+            return $job->jobId === $jobId && $job->textId === '2' && $job->modelKey === 'claude-sonnet-4';
         });
 
         // Verify TextAnalysis records were created
@@ -201,13 +212,13 @@ class MultiModelArchitectureIntegrationTest extends TestCase
         $batchJob = new BatchAnalysisJobV4($jobId, $fileContent, $models);
         $batchJob->handle();
 
-        // Should create one ModelAnalysisJob for each model
-        Queue::assertPushed(\App\Jobs\ModelAnalysisJob::class, 6);
+        // Should create one IndividualTextAnalysisJob for each text-model combination (1 text × 6 models = 6 jobs)
+        Queue::assertPushed(\App\Jobs\IndividualTextAnalysisJob::class, 6);
 
-        // Verify each model was queued
+        // Verify each model was queued for the single text
         foreach ($models as $modelKey) {
-            Queue::assertPushed(\App\Jobs\ModelAnalysisJob::class, function ($job) use ($jobId, $modelKey) {
-                return $job->jobId === $jobId && $job->modelKey === $modelKey;
+            Queue::assertPushed(\App\Jobs\IndividualTextAnalysisJob::class, function ($job) use ($jobId, $modelKey) {
+                return $job->jobId === $jobId && $job->textId === '1' && $job->modelKey === $modelKey;
             });
         }
     }

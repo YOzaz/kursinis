@@ -41,14 +41,17 @@ class WebController extends Controller
         $availableModels = collect(config('llm.models', []))->keys()->implode(',');
         
         $validator = Validator::make($request->all(), [
-            'json_file' => 'required|file|mimetypes:application/json,text/plain|max:102400', // 100MB
+            'json_files' => 'required|array|min:1',
+            'json_files.*' => 'required|file|mimetypes:application/json,text/plain|max:102400', // 100MB each
             'models' => 'required|array|min:1',
             'models.*' => "required|string|in:{$availableModels}"
         ], [
-            'json_file.required' => 'Prašome pasirinkti JSON failą.',
-            'json_file.file' => 'Įkeltas failas nėra tinkamas.',
-            'json_file.mimetypes' => 'Failas turi būti JSON formato.',
-            'json_file.max' => 'Failo dydis negali viršyti 100MB.',
+            'json_files.required' => 'Prašome pasirinkti bent vieną JSON failą.',
+            'json_files.min' => 'Prašome pasirinkti bent vieną JSON failą.',
+            'json_files.*.required' => 'Kiekvienas failas yra privalomas.',
+            'json_files.*.file' => 'Įkeltas failas nėra tinkamas.',
+            'json_files.*.mimetypes' => 'Kiekvienas failas turi būti JSON formato.',
+            'json_files.*.max' => 'Kiekvieno failo dydis negali viršyti 100MB.',
             'models.min' => 'Pasirinkite bent vieną modelį.',
             'models.required' => 'Pasirinkite bent vieną modelį.',
         ]);
@@ -58,25 +61,10 @@ class WebController extends Controller
         }
 
         try {
-            // Perskaityti JSON failą
-            $fileContent = file_get_contents($request->file('json_file')->getRealPath());
-            $jsonData = json_decode($fileContent, true);
-
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                return back()->withErrors(['json_file' => 'Neteisingas JSON formato failas'])
-                           ->withInput();
-            }
-
-            // Validuoti JSON struktūrą
-            if (!$this->validateJsonStructure($jsonData)) {
-                return back()->withErrors(['json_file' => 'JSON failas neatitinka reikalavimų struktūros'])
-                           ->withInput();
-            }
-
-            $jobId = Str::uuid();
             $models = $request->input('models');
-            $totalTexts = count($jsonData);
-
+            $files = $request->file('json_files');
+            $createdJobs = [];
+            
             // Apdoroti custom prompt
             $customPrompt = null;
             if ($request->has('custom_prompt_parts')) {
@@ -86,36 +74,80 @@ class WebController extends Controller
             } elseif ($request->has('custom_prompt')) {
                 $customPrompt = $request->input('custom_prompt');
             }
+            
+            // Process each file separately
+            foreach ($files as $index => $file) {
+                // Perskaityti JSON failą
+                $fileContent = file_get_contents($file->getRealPath());
+                $jsonData = json_decode($fileContent, true);
 
-            // Sukurti analizės darbą
-            AnalysisJob::create([
-                'job_id' => $jobId,
-                'status' => AnalysisJob::STATUS_PENDING,
-                'total_texts' => $totalTexts,
-                'processed_texts' => 0,
-                'name' => $request->input('name', 'Batch analizė'),
-                'description' => $request->input('description'),
-                'custom_prompt' => $customPrompt,
-                'requested_models' => $models,
-            ]);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    return back()->withErrors(['json_files.*' => "Failas '{$file->getClientOriginalName()}' turi neteisingą JSON formatą"])
+                               ->withInput();
+                }
 
-            // Use file attachment processing for optimal performance and reliability
-            BatchAnalysisJobV4::dispatch($jobId, $jsonData, $models);
-            Log::info('Using file attachment batch processing', [
-                'job_id' => $jobId,
-                'text_count' => count($jsonData),
-                'strategy' => 'file_attachment_v4',
+                // Validuoti JSON struktūrą
+                if (!$this->validateJsonStructure($jsonData)) {
+                    return back()->withErrors(['json_files.*' => "Failas '{$file->getClientOriginalName()}' neatitinka reikalavimų struktūros"])
+                               ->withInput();
+                }
+
+                $jobId = Str::uuid();
+                $textCount = count($jsonData);
+                $modelCount = count($models);
+                $totalTexts = $textCount * $modelCount; // Each text needs to be processed by each model
+                
+                // Generate unique name for each file
+                $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                $jobName = $request->input('name', 'Multi-file analizė') . " - {$fileName}";
+
+                // Sukurti analizės darbą
+                AnalysisJob::create([
+                    'job_id' => $jobId,
+                    'status' => AnalysisJob::STATUS_PENDING,
+                    'total_texts' => $totalTexts,
+                    'processed_texts' => 0,
+                    'name' => $jobName,
+                    'description' => $request->input('description'),
+                    'custom_prompt' => $customPrompt,
+                    'requested_models' => $models,
+                ]);
+
+                // Use file attachment processing for optimal performance and reliability
+                BatchAnalysisJobV4::dispatch($jobId, $jsonData, $models);
+                
+                $createdJobs[] = [
+                    'job_id' => $jobId,
+                    'file_name' => $file->getClientOriginalName(),
+                    'text_count' => $textCount // Show actual text count, not total processes
+                ];
+            }
+            
+            // Log overall operation
+            Log::info('Multi-file analizė paleista per web sąsają', [
+                'files_count' => count($files),
+                'jobs_created' => count($createdJobs),
                 'models' => $models
             ]);
-
-            Log::info('Analizė paleista per web sąsają', [
-                'job_id' => $jobId,
-                'total_texts' => $totalTexts,
-                'models' => $models
-            ]);
-
-            return redirect()->route('progress', ['jobId' => $jobId])
-                           ->with('success', 'Analizė sėkmingai paleista!');
+            
+            // If only one file, redirect to its progress page
+            if (count($createdJobs) === 1) {
+                return redirect()->route('progress', ['jobId' => $createdJobs[0]['job_id']])
+                               ->with('success', 'Analizė sėkmingai paleista!');
+            }
+            
+            // For multiple files, redirect to analyses list with success message
+            $totalTexts = array_sum(array_column($createdJobs, 'text_count'));
+            $successMessage = sprintf(
+                'Sėkmingai sukurta %d analizės iš %d failų (%d tekstų iš viso)',
+                count($createdJobs),
+                count($files),
+                $totalTexts
+            );
+            
+            return redirect()->route('analyses.index')
+                           ->with('success', $successMessage)
+                           ->with('created_jobs', $createdJobs);
 
         } catch (\Exception $e) {
             Log::error('Web failo įkėlimo klaida', [
@@ -214,47 +246,40 @@ class WebController extends Controller
                 'last_activity' => null
             ];
 
-            switch ($provider) {
-                case 'anthropic':
-                    $completed = $textAnalyses->whereNotNull('claude_annotations')->count();
-                    $errors = $textAnalyses->where('claude_error', '!=', null)->where('claude_error', '!=', '')->count();
-                    $modelStats['completed'] = $completed;
-                    $modelStats['errors'] = $errors;
-                    $modelStats['success_rate'] = $textAnalyses->count() > 0 ? round(($completed / $textAnalyses->count()) * 100, 1) : 0;
-                    break;
-                    
-                case 'openai':
-                    $completed = $textAnalyses->whereNotNull('gpt_annotations')->count();
-                    $errors = $textAnalyses->where('gpt_error', '!=', null)->where('gpt_error', '!=', '')->count();
-                    $modelStats['completed'] = $completed;
-                    $modelStats['errors'] = $errors;
-                    $modelStats['success_rate'] = $textAnalyses->count() > 0 ? round(($completed / $textAnalyses->count()) * 100, 1) : 0;
-                    break;
-                    
-                case 'google':
-                    $completed = $textAnalyses->whereNotNull('gemini_annotations')->count();
-                    $errors = $textAnalyses->where('gemini_error', '!=', null)->where('gemini_error', '!=', '')->count();
-                    $modelStats['completed'] = $completed;
-                    $modelStats['errors'] = $errors;
-                    $modelStats['success_rate'] = $textAnalyses->count() > 0 ? round(($completed / $textAnalyses->count()) * 100, 1) : 0;
-                    break;
-            }
+            // Use ModelResult records for accurate tracking (new approach)
+            $modelResults = \App\Models\ModelResult::where('job_id', $jobId)
+                ->where('model_key', $modelKey)
+                ->get();
+            
+            $completed = $modelResults->where('status', 'completed')->count();
+            $errors = $modelResults->where('status', 'failed')->count();
+            $totalForModel = $textAnalyses->count(); // Total texts for this model
+            
+            $modelStats['completed'] = $completed;
+            $modelStats['errors'] = $errors;
+            $modelStats['success_rate'] = $totalForModel > 0 ? round(($completed / $totalForModel) * 100, 1) : 0;
+            
+            // Get last activity from ModelResult timestamps
+            $lastResult = $modelResults->whereNotNull('updated_at')->sortByDesc('updated_at')->first();
+            $modelStats['last_activity'] = $lastResult ? $lastResult->updated_at->diffForHumans() : null;
 
-            // Estimate API activity
+            // Individual processing approach - each text gets its own API call
             $totalTexts = $textAnalyses->unique('text_id')->count();
-            $chunkSize = 3; // Current chunk size
-            $modelStats['estimated_chunks'] = $totalTexts > 0 ? ceil($totalTexts / $chunkSize) : 0;
-            $modelStats['api_calls_made'] = $modelStats['estimated_chunks']; // Approximate
+            $modelStats['estimated_chunks'] = 0; // No chunking in individual processing
+            $modelStats['api_calls_made'] = $completed + $errors; // Actual API calls made (completed + failed)
 
-            // Determine status
-            if ($modelStats['completed'] == 0 && $modelStats['errors'] == 0) {
+            // Determine status based on ModelResult records
+            $totalProcessed = $completed + $errors;
+            if ($totalProcessed == 0) {
                 $modelStats['status'] = 'pending';
-            } elseif ($modelStats['completed'] < $totalTexts && $modelStats['errors'] == 0) {
+            } elseif ($totalProcessed < $totalTexts) {
                 $modelStats['status'] = 'processing';
-            } elseif ($modelStats['completed'] == $totalTexts) {
+            } elseif ($completed == $totalTexts && $errors == 0) {
                 $modelStats['status'] = 'completed';
-            } else {
+            } elseif ($totalProcessed == $totalTexts && $errors > 0) {
                 $modelStats['status'] = 'partial_failure';
+            } else {
+                $modelStats['status'] = 'processing';
             }
 
             $stats['models'][$modelKey] = $modelStats;
@@ -676,8 +701,10 @@ class WebController extends Controller
                 $modelStats['status'] = 'failed';
             } elseif ($modelStats['failed'] > 0) {
                 $modelStats['status'] = 'partial_failure';
-            } else {
+            } elseif ($modelStats['successful'] > 0) {
                 $modelStats['status'] = 'operational';
+            } else {
+                $modelStats['status'] = 'idle';
             }
             
             $systemStats['models'][$modelKey] = $modelStats;

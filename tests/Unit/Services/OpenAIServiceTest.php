@@ -31,17 +31,24 @@ class OpenAIServiceTest extends TestCase
         $this->assertEquals('gpt-4.1', $service->getModelName());
     }
 
-    public function test_is_configured_returns_true_when_real_api_key_exists(): void
+    public function test_is_configured_returns_true_when_api_key_configured(): void
     {
-        // This test uses the real configuration from .env
-        $service = new OpenAIService($this->promptService);
+        // Test with mocked configuration
+        $originalConfig = config('llm.models');
+        config(['llm.models' => [
+            'gpt-4.1' => [
+                'api_key' => 'test-api-key',
+                'model' => 'gpt-4-0125-preview',
+                'max_tokens' => 4096,
+                'temperature' => 0.1
+            ]
+        ]]);
         
-        // If there's a real API key configured, it should be configured
-        if (env('OPENAI_API_KEY')) {
-            $this->assertTrue($service->isConfigured());
-        } else {
-            $this->assertFalse($service->isConfigured());
-        }
+        $service = new OpenAIService($this->promptService);
+        $this->assertTrue($service->isConfigured());
+        
+        // Restore original config
+        config(['llm.models' => $originalConfig]);
     }
 
     public function test_is_configured_returns_false_when_api_key_missing(): void

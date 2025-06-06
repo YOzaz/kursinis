@@ -16,12 +16,12 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * File attachment based batch analysis job with parallel processing.
+ * Individual text processing batch analysis job.
  * 
- * Uses file attachments instead of chunking for maximum efficiency:
- * - Claude: Base64 encoded file attachment
- * - Gemini: File API upload with reference
- * - OpenAI: File attachment or structured chunks
+ * Processes each text individually instead of using chunking:
+ * - Dispatches IndividualTextAnalysisJob for each text-model combination
+ * - Better error isolation and handling
+ * - Simpler debugging and monitoring
  */
 class BatchAnalysisJobV4 implements ShouldQueue
 {
@@ -32,7 +32,7 @@ class BatchAnalysisJobV4 implements ShouldQueue
     public array $models;
 
     public int $tries = 3;
-    public int $timeout = 1800; // 30 minutes for file-based processing
+    public int $timeout = 300; // 5 minutes for job coordination
 
     public function __construct(string $jobId, array $fileContent, array $models)
     {
@@ -59,11 +59,11 @@ class BatchAnalysisJobV4 implements ShouldQueue
             $job->status = AnalysisJob::STATUS_PROCESSING;
             $job->save();
 
-            $this->logProgress('Starting file-based batch analysis', [
+            $this->logProgress('Starting individual text processing batch analysis', [
                 'job_id' => $this->jobId,
                 'texts_count' => count($this->fileContent),
                 'models' => $this->models,
-                'strategy' => 'file_attachment'
+                'strategy' => 'individual_text_processing'
             ]);
 
             // Create TextAnalysis records first
@@ -79,50 +79,48 @@ class BatchAnalysisJobV4 implements ShouldQueue
                 $textAnalyses[$item['id']] = $textAnalysis;
             }
 
-            // Create a temporary JSON file for the batch
-            $jsonContent = json_encode($this->fileContent, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-            $tempFile = tempnam(sys_get_temp_dir(), 'batch_analysis_') . '.json';
-            file_put_contents($tempFile, $jsonContent);
-
             $totalTexts = count($this->fileContent);
             $totalModels = count($this->models);
+            $totalJobs = $totalTexts * $totalModels;
 
-            // Dispatch parallel jobs for each model for true concurrent processing
-            $this->logProgress('Starting parallel model processing', [
-                'models' => $this->models,
+            // Dispatch individual text analysis jobs for each text-model combination
+            $this->logProgress('Dispatching individual text analysis jobs', [
+                'total_texts' => $totalTexts,
                 'total_models' => $totalModels,
-                'parallel_strategy' => 'individual_model_jobs'
+                'total_jobs' => $totalJobs,
+                'strategy' => 'individual_text_model_jobs'
             ]);
 
-            foreach ($this->models as $modelKey) {
-                // Dispatch individual model processing job
-                \App\Jobs\ModelAnalysisJob::dispatch(
-                    $this->jobId,
-                    $modelKey,
-                    $tempFile,
-                    $this->fileContent,
-                    $job->custom_prompt
-                )->onQueue('models');
+            foreach ($this->fileContent as $item) {
+                foreach ($this->models as $modelKey) {
+                    // Dispatch individual text analysis job
+                    \App\Jobs\IndividualTextAnalysisJob::dispatch(
+                        $this->jobId,
+                        (string) $item['id'],
+                        $item['data']['content'],
+                        $item['annotations'] ?? [],
+                        $modelKey,
+                        $job->custom_prompt
+                    )->onQueue('individual');
+                }
             }
 
             // Update status to indicate models are being processed
             $job->status = 'processing';
             $job->save();
 
-            $this->logProgress('Parallel model jobs dispatched', [
+            $this->logProgress('Individual text analysis jobs dispatched', [
                 'job_id' => $this->jobId,
-                'models_dispatched' => count($this->models),
-                'processing_type' => 'parallel_file_attachment'
+                'total_jobs_dispatched' => $totalJobs,
+                'processing_type' => 'individual_text_processing'
             ]);
-
-            // Keep temporary file for model jobs - they will clean up individually
-            // Note: Individual ModelAnalysisJob instances will handle their own cleanup
             
-            $this->logProgress('Batch orchestration completed - models processing in parallel', [
+            $this->logProgress('Batch orchestration completed - texts processing individually', [
                 'job_id' => $this->jobId,
                 'total_texts' => $totalTexts,
-                'models_dispatched' => count($this->models),
-                'processing_type' => 'parallel_individual_jobs'
+                'total_models' => $totalModels,
+                'total_jobs_dispatched' => $totalJobs,
+                'processing_type' => 'individual_text_model_combinations'
             ]);
 
         } catch (\Exception $e) {
@@ -157,7 +155,7 @@ class BatchAnalysisJobV4 implements ShouldQueue
 
     public function failed(\Throwable $exception): void
     {
-        $this->logProgress('File-based batch analysis job failed permanently', [
+        $this->logProgress('Individual text processing batch analysis job failed permanently', [
             'job_id' => $this->jobId,
             'error' => $exception->getMessage(),
             'trace' => $exception->getTraceAsString()

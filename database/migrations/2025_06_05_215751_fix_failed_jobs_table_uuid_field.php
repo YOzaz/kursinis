@@ -11,9 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Simply modify the uuid column to allow null and provide a default
+        // Drop the unique constraint first, then recreate the column properly
         Schema::table('failed_jobs', function (Blueprint $table) {
-            $table->string('uuid')->nullable()->default('')->change();
+            $table->dropUnique(['uuid']);
+        });
+        
+        Schema::table('failed_jobs', function (Blueprint $table) {
+            $table->string('uuid')->nullable()->default(null)->change();
         });
     }
 

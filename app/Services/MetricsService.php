@@ -53,34 +53,36 @@ class MetricsService
         $expertLabels = $this->extractLabelsFromAnnotations($expertAnnotations);
         $modelLabels = $this->extractLabelsFromAnnotations($modelAnnotations['annotations'] ?? []);
         
-        // Pirmiausiai bandyti dokumento lygio metrikas
-        $documentMetrics = $this->calculateDocumentLevelMetrics($expertAnnotations, $modelAnnotations);
+        // Pirmiausiai naudoti fragmentų lygio metrikas (tikslesnės)
+        $stats = $this->calculateOverlapStatistics($expertLabels, $modelLabels);
         
-        if ($documentMetrics !== null) {
-            // Naudoti dokumento lygio klasifikacijos metrikas
-            $stats = [
-                'true_positives' => $documentMetrics['document_tp'] + $documentMetrics['document_tn'],
-                'false_positives' => $documentMetrics['document_fp'],
-                'false_negatives' => $documentMetrics['document_fn'],
-            ];
+        Log::info('Naudojamos fragmentų lygio metrikos', [
+            'text_id' => $textAnalysis->text_id,
+            'model' => $modelName,
+            'expert_fragments' => count($expertLabels),
+            'model_fragments' => count($modelLabels),
+            'stats' => $stats
+        ]);
+        
+        // Atsarginė sistema: jei fragmentų lygio metrikos yra tuščios, bandyti dokumento lygio
+        if ($stats['true_positives'] === 0 && $stats['false_positives'] === 0 && $stats['false_negatives'] === 0) {
+            $documentMetrics = $this->calculateDocumentLevelMetrics($expertAnnotations, $modelAnnotations);
             
-            Log::info('Naudojamos dokumento lygio metrikos', [
-                'text_id' => $textAnalysis->text_id,
-                'model' => $modelName,
-                'expert_decision' => $this->extractPrimaryChoice($expertAnnotations),
-                'model_decision' => $this->extractPrimaryChoice($modelAnnotations),
-                'document_metrics' => $documentMetrics
-            ]);
-        } else {
-            // Grąžti prie fragmentų lygio metrikų
-            $stats = $this->calculateOverlapStatistics($expertLabels, $modelLabels);
-            
-            Log::info('Naudojamos fragmentų lygio metrikos', [
-                'text_id' => $textAnalysis->text_id,
-                'model' => $modelName,
-                'expert_fragments' => count($expertLabels),
-                'model_fragments' => count($modelLabels)
-            ]);
+            if ($documentMetrics !== null) {
+                $stats = [
+                    'true_positives' => $documentMetrics['document_tp'] + $documentMetrics['document_tn'],
+                    'false_positives' => $documentMetrics['document_fp'],
+                    'false_negatives' => $documentMetrics['document_fn'],
+                ];
+                
+                Log::info('Atsarginai naudojamos dokumento lygio metrikos', [
+                    'text_id' => $textAnalysis->text_id,
+                    'model' => $modelName,
+                    'expert_decision' => $this->extractPrimaryChoice($expertAnnotations),
+                    'model_decision' => $this->extractPrimaryChoice($modelAnnotations),
+                    'document_metrics' => $documentMetrics
+                ]);
+            }
         }
 
         // Apskaičiuoti pozicijos tikslumą
