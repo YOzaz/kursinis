@@ -408,7 +408,6 @@
                     @endif
                     </div>
                 </div>
-            @endif
 </div>
 
 @if($analysis->status === 'completed' && $textAnalyses->isNotEmpty())
