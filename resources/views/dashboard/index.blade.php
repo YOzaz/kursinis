@@ -438,8 +438,23 @@ $(document).ready(function() {
         order: [[2, 'desc']], // Sort by F1 score descending
         columnDefs: [
             { 
-                targets: [1, 2, 3, 4, 5, 6], // Numeric columns
+                targets: [2, 3, 4, 5, 6], // Numeric columns (excluding propaganda detection column)
                 type: 'num-fmt'
+            },
+            {
+                targets: [1], // Propaganda detection column
+                type: 'num',
+                render: function(data, type, row) {
+                    if (type === 'display') {
+                        return data; // Keep the formatted display with badges
+                    }
+                    // For sorting, extract total count for sorting priority
+                    var matches = data.match(/(\d+)\/(\d+) tekstų/);
+                    if (matches) {
+                        return parseInt(matches[1]); // Sort by propaganda texts count
+                    }
+                    return 0;
+                }
             },
             {
                 targets: [6], // Overall score column

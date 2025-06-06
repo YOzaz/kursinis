@@ -44,9 +44,15 @@ Universali propagandos analizės platforma, kuri veikia dviem pagrindiniais rež
 - Identifikuoja ATSPARA propagandos technikas ir disinformacijos naratyvus
 - Generuoja struktūrizuotus analizės rezultatus praktiniam naudojimui
 
-## 🆕 Nauji priedai (2025 m. sausis)
+## 🆕 Nauji priedai (2025 m. birželis)
 
-**Didelės funkcionalumo plėtros ir klaidų pataisymai:**
+**Gilesnė propagandos aptikimo statistika (2025-06-06):**
+- 📊 **Confusion matrix propaganda detection** - TP, FP, TN, FN tekstų lygmenyje
+- 🎯 **Išsamūs dashboard'o metrics** - Teisingai/klaidingai rasta/nerasta propaganda
+- 📈 **Patobulinta UI/UX** - Pilno pločio analizės lentelės, perkelta statistika
+- 📋 **Sortable confusion matrix** - Rūšiavimas pagal propagandos aptikimo rezultatus
+
+**Didelės funkcionalumo plėtros ir klaidų pataisymai (2025 m. sausis):**
 - 🔐 **Vartotojų valdymas aplinkos kintamuosiuose** - nebereikia keisti kodo
 - ⏹️ **Analizės sustabdymas** - galimybė sustabdyti vykstančias analizes
 - 🗑️ **Analizės trynimas** - galimybė ištrinti atšauktas analizes su CASCADE duomenų šalinimu

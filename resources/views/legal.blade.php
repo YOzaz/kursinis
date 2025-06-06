@@ -204,7 +204,7 @@
             <div class="text-center text-muted">
                 <small>
                     <i class="fas fa-calendar-alt me-1"></i>
-                    Paskutinį kartą atnaujinta: 2025-05-28
+                    Paskutinį kartą atnaujinta: 2025-06-06
                 </small>
             </div>
         </div>
