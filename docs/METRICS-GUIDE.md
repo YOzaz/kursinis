@@ -89,6 +89,36 @@ The system uses a **region-based evaluation approach** that focuses on propagand
 
 This approach prevents metrics inflation and provides realistic evaluation of AI's propaganda detection capabilities, focusing on region-level accuracy rather than exact boundary matching.
 
+### Failed Analysis Exclusion (2025-06-08)
+
+**Critical Feature**: All metrics calculations properly exclude analyses that failed due to timeouts, API errors, quota limits, or other technical issues.
+
+**Excluded Cases**:
+- **Timeout Errors**: Analysis that exceeded time limits (60+ seconds)
+- **API Quota Exceeded**: When model provider limits are reached
+- **Network Failures**: Connection issues during analysis
+- **Invalid Responses**: Malformed or empty model responses
+- **Authentication Failures**: API key or permission issues
+
+**Verification Methods**:
+1. **ModelResult Status Check**: `status = 'completed'` AND `error_message` is empty
+2. **Legacy Error Field Check**: No error messages in provider-specific error fields
+3. **Annotation Validation**: Model must have returned valid annotations
+
+**Implementation**: 
+- `StatisticsService::modelSuccessfullyAnalyzed()` method filters failed analyses
+- Dashboard metrics exclude failed cases from all calculations
+- Execution time averages only include successful analyses
+
+**Impact on Metrics**:
+- **Propagandos aptikimas** (Propaganda Detection): ✅ Only successful analyses counted
+- **Tikslumas** (Precision): ✅ Failed analyses excluded from calculations  
+- **Atsaukimas** (Recall): ✅ Only texts with successful model runs included
+- **Greitis** (Speed): ✅ Execution times only from completed analyses
+- **Įvertis** (F1-Score): ✅ Based on successful analyses only
+
+This ensures accurate performance metrics that reflect actual model capabilities rather than technical infrastructure issues.
+
 ### Performance Improvements (2025-06-06)
 
 The new region-based evaluation shows significantly improved and more realistic metrics:
