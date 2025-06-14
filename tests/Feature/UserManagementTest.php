@@ -25,7 +25,7 @@ class UserManagementTest extends TestCase
         $apiKey = UserApiKey::create([
             'user_id' => $user->id,
             'provider' => 'anthropic',
-            'api_key' => encrypt('test-api-key'),
+            'api_key' => 'test-api-key', // Model will handle encryption
             'is_active' => true
         ]);
 
@@ -35,10 +35,12 @@ class UserManagementTest extends TestCase
             'is_active' => true
         ]);
 
-        // The API key should be encrypted when stored and retrieved
-        $retrievedKey = $user->getApiKey('anthropic');
+        // The API key should be encrypted when stored and decrypted when retrieved
+        $retrievedKey = UserApiKey::where('user_id', $user->id)
+            ->where('provider', 'anthropic')
+            ->first();
         $this->assertNotNull($retrievedKey);
-        $this->assertEquals('test-api-key', decrypt($retrievedKey));
+        $this->assertEquals('test-api-key', $retrievedKey->getDecryptedApiKey());
     }
 
     public function test_user_role_hierarchy()
