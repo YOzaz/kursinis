@@ -931,29 +931,71 @@ class MetricsService
     }
 
     /**
-     * Apskaičiuoti pozicijos tikslumą.
+     * Apskaičiuoti pozicijos tikslumą pagal inter-annotator agreement formulę.
+     * 
+     * Formula: Agreement = |A ∩ B| / min(|A|, |B|)
+     * 
+     * Kur:
+     * - A ∩ B = sutampančių simbolių skaičius (intersection)
+     * - min(|A|, |B|) = mažesnis anotacijų rinkinys
      */
     private function calculatePositionAccuracy(array $expertLabels, array $modelLabels): float
     {
-        if (empty($modelLabels)) {
+        if (empty($expertLabels) && empty($modelLabels)) {
+            return 1.0; // Pilnas sutapimas - abu tuščia
+        }
+
+        if (empty($expertLabels) || empty($modelLabels)) {
+            return 0.0; // Nėra sutapimo
+        }
+
+        // Apskaičiuoti bendrą ekspertų anotacijų ilgį (|A|)
+        $expertTotalLength = 0;
+        foreach ($expertLabels as $label) {
+            $expertTotalLength += ($label['end'] - $label['start']);
+        }
+
+        // Apskaičiuoti bendrą AI anotacijų ilgį (|B|)
+        $modelTotalLength = 0;
+        foreach ($modelLabels as $label) {
+            $modelTotalLength += ($label['end'] - $label['start']);
+        }
+
+        // Apskaičiuoti sutampančių simbolių skaičių (|A ∩ B|)
+        $intersectionLength = $this->calculateIntersectionLength($expertLabels, $modelLabels);
+
+        // Pagal formulę: Agreement = |A ∩ B| / min(|A|, |B|)
+        $minLength = min($expertTotalLength, $modelTotalLength);
+        
+        if ($minLength === 0) {
             return 0.0;
         }
 
-        $accuratePositions = 0;
+        $agreement = $intersectionLength / $minLength;
 
-        foreach ($modelLabels as $modelLabel) {
-            foreach ($expertLabels as $expertLabel) {
-                $startDiff = abs($modelLabel['start'] - $expertLabel['start']);
-                $endDiff = abs($modelLabel['end'] - $expertLabel['end']);
+        return round(min(1.0, $agreement), 4); // Ribojamas 0-1 intervalu
+    }
 
-                if ($startDiff <= self::POSITION_TOLERANCE && $endDiff <= self::POSITION_TOLERANCE) {
-                    $accuratePositions++;
-                    break; // Rasta atitikmuo, pereiti prie kito modelio label
+    /**
+     * Apskaičiuoti sutampančių simbolių skaičių tarp dviejų anotacijų rinkinių.
+     */
+    private function calculateIntersectionLength(array $expertLabels, array $modelLabels): int
+    {
+        $intersectionLength = 0;
+
+        foreach ($expertLabels as $expertLabel) {
+            foreach ($modelLabels as $modelLabel) {
+                // Apskaičiuoti persidengimą tarp dviejų intervalų
+                $overlapStart = max($expertLabel['start'], $modelLabel['start']);
+                $overlapEnd = min($expertLabel['end'], $modelLabel['end']);
+
+                if ($overlapStart < $overlapEnd) {
+                    $intersectionLength += ($overlapEnd - $overlapStart);
                 }
             }
         }
 
-        return round($accuratePositions / count($modelLabels), 4);
+        return $intersectionLength;
     }
 
     /**

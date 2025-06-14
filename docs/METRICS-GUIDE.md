@@ -161,17 +161,31 @@ The new region-based evaluation shows significantly improved and more realistic 
 
 ### 5. Position Accuracy (Pozicijos Tikslumas)
 
-**Definition**: Measures how accurately AI identifies the exact text positions of propaganda techniques.
+**Definition**: Measures annotation agreement between AI and experts using Inter-Annotator Agreement (IAA) methodology.
+
+**Updated Formula (2025-06-14)**:
+```
+Agreement = |A ∩ B| / min(|A|, |B|)
+```
+
+**Where**:
+- `A ∩ B` = Number of overlapping characters between expert and AI annotations
+- `min(|A|, |B|)` = The smaller annotation set (minimum total characters annotated)
 
 **Calculation Method**:
-1. **Overlap Requirement**: At least 50% overlap between AI and expert-identified text spans
-2. **Position Tolerance**: ±10 characters tolerance for start/end positions
-3. **Formula**: `Position Accuracy = Accurate Positions / Total AI Positions`
+1. **Character-Level Intersection**: Calculate exact character overlap between annotations
+2. **Normalization**: Divide by the smaller annotation set to prevent bias
+3. **Range**: 0.0 (no overlap) to 1.0 (perfect agreement)
 
 **Interpretation**:
-- **High Position Accuracy (>0.9)**: AI precisely locates propaganda text
-- **Medium Position Accuracy (0.7-0.9)**: AI generally finds correct areas
-- **Low Position Accuracy (<0.7)**: AI struggles to pinpoint exact locations
+- **High Position Accuracy (>0.8)**: Strong annotation agreement, AI precisely identifies propaganda text
+- **Medium Position Accuracy (0.6-0.8)**: Good agreement, AI generally finds correct areas
+- **Low Position Accuracy (<0.6)**: Poor agreement, AI struggles with exact positioning
+
+**Advantages of IAA Formula**:
+- **Prevents Bias**: Normalizes by smaller set, avoiding punishment for thoroughness
+- **Standard Methodology**: Uses established inter-annotator agreement practices
+- **More Accurate**: Reflects true annotation quality rather than arbitrary thresholds
 
 ## 🔢 Confusion Matrix Components
 
