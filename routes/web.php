@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AnalysisController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\HelpController;
+use App\Http\Controllers\LanguageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,6 +46,9 @@ Route::post('/settings/reset', [SettingsController::class, 'resetDefaults'])->na
 
 Route::get('/help', [HelpController::class, 'index'])->name('help.index');
 Route::get('/help/faq', [HelpController::class, 'faq'])->name('help.faq');
+
+// Language switching
+Route::get('/language/{language}', [LanguageController::class, 'switch'])->name('language.switch');
 
 Route::get('/contact', function() { return view('contact'); })->name('contact');
 Route::get('/legal', function() { return view('legal'); })->name('legal');
