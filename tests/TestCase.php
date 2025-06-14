@@ -16,9 +16,6 @@ abstract class TestCase extends BaseTestCase
         
         // Set up default HTTP mocking for all LLM services
         $this->setupDefaultHttpMocking();
-        
-        // Set up test database after other setup
-        $this->setUpDatabase();
     }
     
     protected function tearDown(): void
@@ -29,11 +26,6 @@ abstract class TestCase extends BaseTestCase
         parent::tearDown();
     }
 
-    protected function setUpDatabase(): void
-    {
-        // Additional database setup if needed
-        // This runs after the standard Laravel test setup
-    }
 
     protected function clearApplicationCache(): void
     {
