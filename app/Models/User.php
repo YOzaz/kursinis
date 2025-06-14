@@ -53,7 +53,7 @@ class User extends Authenticatable
     public function getApiKey(string $provider): ?string
     {
         $apiKey = $this->apiKeys()->where('provider', $provider)->where('is_active', true)->first();
-        return $apiKey?->api_key;
+        return $apiKey?->getDecryptedApiKey();
     }
 
     public function hasApiKey(string $provider): bool

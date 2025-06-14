@@ -45,6 +45,8 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard
 Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
 Route::post('/settings/defaults', [SettingsController::class, 'updateDefaults'])->name('settings.updateDefaults');
 Route::post('/settings/reset', [SettingsController::class, 'resetDefaults'])->name('settings.resetDefaults');
+Route::post('/settings/api-keys', [SettingsController::class, 'updateApiKeys'])->name('settings.updateApiKeys');
+Route::delete('/settings/api-keys', [SettingsController::class, 'deleteApiKey'])->name('settings.deleteApiKey');
 
 Route::get('/help', [HelpController::class, 'index'])->name('help.index');
 Route::get('/help/faq', [HelpController::class, 'faq'])->name('help.faq');
