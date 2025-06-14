@@ -92,10 +92,22 @@
                             <i class="fas fa-home me-1"></i>{{ __('messages.dashboard') }}
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('create') ? 'active' : '' }}" href="{{ route('create') }}" title="{{ __('messages.start_analysis') }}">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {{ request()->routeIs('create') || request()->routeIs('single-text') ? 'active' : '' }}" href="#" id="analysisDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-plus-circle me-1"></i>{{ __('messages.start_analysis') }}
                         </a>
+                        <ul class="dropdown-menu" aria-labelledby="analysisDropdown">
+                            <li>
+                                <a class="dropdown-item {{ request()->routeIs('create') ? 'active' : '' }}" href="{{ route('create') }}">
+                                    <i class="fas fa-file-upload me-2"></i>{{ __('messages.upload_json') }}
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {{ request()->routeIs('single-text') ? 'active' : '' }}" href="{{ route('single-text') }}">
+                                    <i class="fas fa-edit me-2"></i>{{ __('messages.single_text_analysis') }}
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('analyses.*') ? 'active' : '' }}" href="{{ route('analyses.index') }}" title="{{ __('messages.analyses') }}">
@@ -103,8 +115,8 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('mission-control') ? 'active' : '' }}" href="{{ route('mission-control') }}" title="Sistemos monitoringas ir log'ai">
-                            <i class="fas fa-satellite-dish me-1"></i>Mission Control
+                        <a class="nav-link {{ request()->routeIs('mission-control') ? 'active' : '' }}" href="{{ route('mission-control') }}" title="{{ __('messages.mission_control') }}">
+                            <i class="fas fa-satellite-dish me-1"></i>{{ __('messages.mission_control') }}
                         </a>
                     </li>
                 </ul>
@@ -131,38 +143,38 @@
                     
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="settingsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-cog me-1"></i>Sistema
+                            <i class="fas fa-cog me-1"></i>{{ __('messages.system') }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="settingsDropdown">
                             <li><a class="dropdown-item" href="{{ route('settings.index') }}">
-                                <i class="fas fa-sliders-h me-2"></i>Nustatymai
+                                <i class="fas fa-sliders-h me-2"></i>{{ __('messages.settings') }}
                             </a></li>
                             <li><a class="dropdown-item" href="{{ route('help.index') }}">
-                                <i class="fas fa-question-circle me-2"></i>Pagalba
+                                <i class="fas fa-question-circle me-2"></i>{{ __('messages.help') }}
                             </a></li>
                             <li><a class="dropdown-item" href="{{ route('help.faq') }}">
                                 <i class="fas fa-info-circle me-2"></i>FAQ
                             </a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ route('contact') }}">
-                                <i class="fas fa-envelope me-2"></i>Kontaktai
+                                <i class="fas fa-envelope me-2"></i>{{ __('messages.contacts') }}
                             </a></li>
                             <li><a class="dropdown-item" href="{{ route('legal') }}">
-                                <i class="fas fa-balance-scale me-2"></i>Teisinė info
+                                <i class="fas fa-balance-scale me-2"></i>{{ __('messages.legal_info') }}
                             </a></li>
                         </ul>
                     </li>
                     
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-user me-1"></i>{{ session('username', 'Vartotojas') }}
+                            <i class="fas fa-user me-1"></i>{{ session('username', __('messages.user')) }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                             <li>
                                 <form method="POST" action="{{ route('logout') }}" class="d-inline w-100">
                                     @csrf
-                                    <button type="submit" class="dropdown-item text-danger" title="Atsijungti iš sistemos">
-                                        <i class="fas fa-sign-out-alt me-2"></i>Atsijungti
+                                    <button type="submit" class="dropdown-item text-danger" title="{{ __('messages.logout') }}">
+                                        <i class="fas fa-sign-out-alt me-2"></i>{{ __('messages.logout') }}
                                     </button>
                                 </form>
                             </li>
@@ -212,10 +224,10 @@
                 <div class="col-md-4 text-md-end">
                     <div class="footer-links">
                         <a href="{{ route('contact') }}" class="text-light me-3">
-                            <i class="fas fa-envelope me-1"></i>Kontaktai
+                            <i class="fas fa-envelope me-1"></i>{{ __('messages.contacts') }}
                         </a>
                         <a href="{{ route('legal') }}" class="text-light">
-                            <i class="fas fa-balance-scale me-1"></i>Teisinė info
+                            <i class="fas fa-balance-scale me-1"></i>{{ __('messages.legal_info') }}
                         </a>
                     </div>
                 </div>
