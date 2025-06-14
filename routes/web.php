@@ -20,6 +20,8 @@ use App\Http\Controllers\LanguageController;
 Route::get('/', [DashboardController::class, 'index'])->name('home');
 Route::get('/create', [WebController::class, 'index'])->name('create');
 Route::post('/upload', [WebController::class, 'upload'])->name('upload');
+Route::get('/single-text', [WebController::class, 'singleTextForm'])->name('single-text');
+Route::post('/single-text', [WebController::class, 'singleTextUpload'])->name('single-text.upload');
 Route::get('/progress/{jobId}', [WebController::class, 'progress'])->name('progress');
 Route::get('/status/{jobId}', [WebController::class, 'detailedStatus'])->name('status.detailed');
 Route::get('/status-view/{jobId}', function($jobId) {
