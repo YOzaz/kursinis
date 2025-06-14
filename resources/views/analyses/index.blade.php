@@ -7,7 +7,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1>{{ __('messages.analysis_list') }}</h1>
-            <p class="text-muted mb-0">Visos atliktos propagandos analizės</p>
+            <p class="text-muted mb-0">{{ __('messages.all_completed_analyses') }}</p>
         </div>
         <a href="{{ route('create') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i> {{ __('messages.new_analysis') }}
@@ -20,12 +20,12 @@
                 <i class="fas fa-info-circle fa-lg"></i>
             </div>
             <div>
-                <h6 class="alert-heading mb-2">Analizių tipai</h6>
+                <h6 class="alert-heading mb-2">{{ __('messages.analysis_types') }}</h6>
                 <ul class="mb-0">
-                    <li><strong>Su ekspertų anotacijomis</strong> - sistema palygina AI ir ekspertų rezultatus, apskaičiuoja P/R/F1 metrikas</li>
-                    <li><strong>Be ekspertų anotacijų</strong> - tik AI modeliai analizuoja tekstus pagal ATSPARA metodologiją</li>
-                    <li><strong>Su RISEN prompt'u</strong> - naudoja modifikuotą prompt'ą specifiniems poreikiams</li>
-                    <li><strong>Pakartotinės</strong> - pakartoja esamą analizę su kitais modeliais ar prompt'ais</li>
+                    <li><strong>{{ __('messages.with_expert_annotations') }}</strong> - {{ __('messages.system_compares_ai_expert') }}</li>
+                    <li><strong>{{ __('messages.without_expert_annotations') }}</strong> - {{ __('messages.only_ai_analyzes') }}</li>
+<li><strong>{{ __('messages.with_risen_prompt') }}</strong> - {{ __('messages.uses_modified_prompt') }}</li>
+                    <li><strong>{{ __('messages.repeated') }}</strong> - {{ __('messages.repeats_existing_analysis') }}</li>
                 </ul>
             </div>
         </div>
@@ -36,37 +36,37 @@
         <div class="card-body">
             <div class="row align-items-end">
                 <div class="col-md-4">
-                    <label for="search-input" class="form-label">Paieška</label>
+                    <label for="search-input" class="form-label">{{ __('messages.search') }}</label>
                     <div class="input-group">
                         <span class="input-group-text">
                             <i class="fas fa-search"></i>
                         </span>
-                        <input type="text" class="form-control" id="search-input" placeholder="Ieškoti pagal pavadinimą arba ID...">
+                        <input type="text" class="form-control" id="search-input" placeholder="{{ __('messages.search_by_name_or_id') }}">
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <label for="status-filter" class="form-label">Statusas</label>
+                    <label for="status-filter" class="form-label">{{ __('messages.status') }}</label>
                     <select class="form-select" id="status-filter">
-                        <option value="">Visi statusai</option>
-                        <option value="completed">Baigta</option>
-                        <option value="processing">Vykdoma</option>
-                        <option value="failed">Nepavyko</option>
-                        <option value="pending">Laukia</option>
-                        <option value="cancelled">Atšaukta</option>
+                        <option value="">{{ __('messages.all_statuses') }}</option>
+                        <option value="completed">{{ __('messages.completed') }}</option>
+                        <option value="processing">{{ __('messages.processing') }}</option>
+                        <option value="failed">{{ __('messages.failed') }}</option>
+                        <option value="pending">{{ __('messages.pending') }}</option>
+                        <option value="cancelled">{{ __('messages.cancelled') }}</option>
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label for="type-filter" class="form-label">Tipas</label>
+                    <label for="type-filter" class="form-label">{{ __('messages.type') }}</label>
                     <select class="form-select" id="type-filter">
-                        <option value="">Visi tipai</option>
-                        <option value="standard">Standartinė</option>
+                        <option value="">{{ __('messages.all_types') }}</option>
+                        <option value="standard">{{ __('messages.standard') }}</option>
                         <option value="custom">Custom prompt</option>
-                        <option value="repeat">Pakartotinė</option>
+                        <option value="repeat">{{ __('messages.repeated') }}</option>
                     </select>
                 </div>
                 <div class="col-md-2">
                     <button class="btn btn-outline-secondary w-100" id="clear-filters">
-                        <i class="fas fa-times me-1"></i>Valyti
+                        <i class="fas fa-times me-1"></i>{{ __('messages.clear') }}
                     </button>
                 </div>
             </div>
@@ -81,15 +81,15 @@
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h6 class="card-title mb-0">
                                 @if($analysis->reference_analysis_id)
-                                    <i class="fas fa-redo text-info me-1"></i>Pakartotinė analizė
+                                    <i class="fas fa-redo text-info me-1"></i>{{ __('messages.repeated_analysis') }}
                                 @elseif($analysis->usesCustomPrompt())
                                     <i class="fas fa-edit text-warning me-1"></i>Custom prompt
                                 @else
-                                    <i class="fas fa-chart-line text-primary me-1"></i>Standartinė analizė
+                                    <i class="fas fa-chart-line text-primary me-1"></i>{{ __('messages.standard_analysis') }}
                                 @endif
                             </h6>
                             <span class="badge badge-{{ $analysis->status === 'completed' ? 'success' : ($analysis->status === 'processing' ? 'warning' : ($analysis->status === 'failed' ? 'danger' : ($analysis->status === 'cancelled' ? 'dark' : 'secondary'))) }}">
-                                {{ $analysis->status === 'cancelled' ? 'Atšaukta' : ucfirst($analysis->status) }}
+                                {{ $analysis->status === 'cancelled' ? __('messages.cancelled') : __('messages.'.$analysis->status) }}
                             </span>
                         </div>
                         <div class="card-body">
@@ -101,21 +101,21 @@
                             @endif
                             @if($analysis->reference_analysis_id)
                                 <div class="small text-info mb-2">
-                                    <i class="fas fa-link"></i> Nuoroda: {{ $analysis->reference_analysis_id }}
+                                    <i class="fas fa-link"></i> {{ __('messages.link') }}: {{ $analysis->reference_analysis_id }}
                                 </div>
                             @endif
                             <div class="small text-muted mb-3">
                                 <div><strong>ID:</strong> {{ $analysis->job_id }}</div>
-                                <div><strong>Sukurta:</strong> {{ $analysis->created_at->format('Y-m-d H:i') }}</div>
+                                <div><strong>{{ __('messages.created_at') }}:</strong> {{ $analysis->created_at->format('Y-m-d H:i') }}</div>
                             </div>
 
                             <div class="row text-center mb-3">
                                 <div class="col-6">
-                                    <div class="small text-muted">Tekstų</div>
+                                    <div class="small text-muted">{{ __('messages.texts') }}</div>
                                     <div class="h5">{{ $analysis->textAnalyses->count() }}</div>
                                 </div>
                                 <div class="col-6">
-                                    <div class="small text-muted">Modelių</div>
+                                    <div class="small text-muted">{{ __('messages.models') }}</div>
     @php
                                         // Count actual models that produced results using comparison metrics
                                         $modelCount = $analysis->comparisonMetrics()->distinct('model_name')->count('model_name');
@@ -145,7 +145,7 @@
                                     <div class="progress-bar bg-success" style="width: 100%"></div>
                                 </div>
                                 <small class="text-success">
-                                    <i class="fas fa-check-circle"></i> Analizė baigta sėkmingai
+                                    <i class="fas fa-check-circle"></i> {{ __('messages.analysis_completed_successfully') }}
                                 </small>
                             @elseif($analysis->status === 'processing')
                                 @php
@@ -155,7 +155,7 @@
                                     <div class="progress-bar bg-warning progress-bar-striped progress-bar-animated" style="width: {{ $progressPercent }}%"></div>
                                 </div>
                                 <small class="text-warning">
-                                    <i class="fas fa-cog fa-spin"></i> Analizė vykdoma... ({{ round($progressPercent, 1) }}%)
+                                    <i class="fas fa-cog fa-spin"></i> {{ __('messages.analysis_in_progress') }} ({{ round($progressPercent, 1) }}%)
                                 </small>
                             @elseif($analysis->status === 'failed')
                                 @php
@@ -165,14 +165,14 @@
                                     <div class="progress-bar bg-danger" style="width: {{ max($failedProgressPercent, 10) }}%"></div>
                                 </div>
                                 <small class="text-danger">
-                                    <i class="fas fa-exclamation-triangle"></i> Analizė nepavyko ({{ round($failedProgressPercent, 1) }}%)
+                                    <i class="fas fa-exclamation-triangle"></i> {{ __('messages.analysis_failed') }} ({{ round($failedProgressPercent, 1) }}%)
                                 </small>
                             @elseif($analysis->status === 'cancelled')
                                 <div class="progress mb-2" style="height: 8px;">
                                     <div class="progress-bar bg-dark" style="width: 100%"></div>
                                 </div>
                                 <small class="text-muted">
-                                    <i class="fas fa-ban"></i> Analizė atšaukta
+                                    <i class="fas fa-ban"></i> {{ __('messages.analysis_cancelled') }}
                                 </small>
                             @endif
                         </div>
@@ -181,31 +181,31 @@
                                 <div>
                                     @if($analysis->status === 'completed')
                                         <a href="{{ route('analyses.show', $analysis->job_id) }}" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-eye"></i> Peržiūrėti
+                                            <i class="fas fa-eye"></i> {{ __('messages.view') }}
                                         </a>
                                     @elseif($analysis->status === 'cancelled')
                                         <span class="text-muted small">
-                                            <i class="fas fa-ban"></i> Analizė atšaukta
+                                            <i class="fas fa-ban"></i> {{ __('messages.analysis_cancelled') }}
                                         </span>
                                     @else
                                         <a href="{{ route('progress', $analysis->job_id) }}" class="btn btn-sm btn-outline-secondary">
-                                            <i class="fas fa-clock"></i> Statusas
+                                            <i class="fas fa-clock"></i> {{ __('messages.status') }}
                                         </a>
                                     @endif
                                     
                                     @if($analysis->experiment_id)
                                         <a href="{{ route('experiments.show', $analysis->experiment_id) }}" class="btn btn-sm btn-outline-warning ms-1">
-                                            <i class="fas fa-flask"></i> Eksperimentas
+                                            <i class="fas fa-flask"></i> {{ __('messages.experiment') }}
                                         </a>
                                     @endif
                                 </div>
                                 
                                 @if($analysis->status === 'cancelled')
-                                    <form method="POST" action="{{ route('analysis.delete') }}" class="d-inline" onsubmit="return confirm('Ar tikrai norite ištrinti šią analizę? Šis veiksmas negrįžtamas.')">
+                                    <form method="POST" action="{{ route('analysis.delete') }}" class="d-inline" onsubmit="return confirm('{{ __('messages.confirm_delete_analysis') }}')">
                                         @csrf
                                         @method('DELETE')
                                         <input type="hidden" name="job_id" value="{{ $analysis->job_id }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Ištrinti analizę">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ __('messages.delete_analysis_confirm') }}">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </form>
@@ -224,13 +224,13 @@
     @else
         <div class="text-center py-5">
             <i class="fas fa-chart-line fa-4x text-muted mb-3"></i>
-            <h3>Nėra analizių</h3>
+            <h3>{{ __('messages.no_analyses') }}</h3>
             <p class="text-muted">
-                Dar nėra atlikta jokių propagandos analizių.<br>
-                Pradėkite naują analizę įkeldami JSON failą su tekstais.
+                {{ __('messages.no_analyses_performed_yet') }}<br>
+                {{ __('messages.start_new_analysis_by_uploading') }}
             </p>
             <a href="{{ route('create') }}" class="btn btn-primary">
-                <i class="fas fa-upload"></i> Pradėti analizę
+                <i class="fas fa-upload"></i> {{ __('messages.start_analysis_button') }}
             </a>
         </div>
     @endif
@@ -327,8 +327,8 @@ document.addEventListener('DOMContentLoaded', function() {
             noResultsMsg.innerHTML = `
                 <div class="text-muted">
                     <i class="fas fa-search fa-3x mb-3"></i>
-                    <h5>Nerasta rezultatų</h5>
-                    <p>Pabandykite pakeisti paieškos kriterijus</p>
+                    <h5>{{ __('messages.no_results_found') }}</h5>
+                    <p>{{ __('messages.try_changing_filters') }}</p>
                 </div>
             `;
             analysesContainer.appendChild(noResultsMsg);

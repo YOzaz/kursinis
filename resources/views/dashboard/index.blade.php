@@ -155,16 +155,16 @@
                     </h5>
                     <div class="btn-group btn-group-sm" role="group">
                         <input type="radio" class="btn-check" name="metricType" id="f1Score" checked>
-                        <label class="btn btn-outline-primary" for="f1Score">F1 balas</label>
+                        <label class="btn btn-outline-primary" for="f1Score">{{ __('messages.f1_score') }}</label>
                         
                         <input type="radio" class="btn-check" name="metricType" id="precision">
-                        <label class="btn btn-outline-primary" for="precision">Tikslumas</label>
+                        <label class="btn btn-outline-primary" for="precision">{{ __('messages.precision') }}</label>
                         
                         <input type="radio" class="btn-check" name="metricType" id="recall">
-                        <label class="btn btn-outline-primary" for="recall">Atsaukimas</label>
+                        <label class="btn btn-outline-primary" for="recall">{{ __('messages.recall') }}</label>
                         
                         <input type="radio" class="btn-check" name="metricType" id="speed">
-                        <label class="btn btn-outline-primary" for="speed">Greitis</label>
+                        <label class="btn btn-outline-primary" for="speed">{{ __('messages.speed') }}</label>
                     </div>
                 </div>
                 <div class="card-body">
@@ -174,43 +174,43 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th>
-                                            <i class="fas fa-robot me-1"></i>Modelis
+                                            <i class="fas fa-robot me-1"></i>{{ __('messages.model') }}
                                         </th>
                                         <th class="text-center">
-                                            <i class="fas fa-chart-line me-1"></i>Propagandos aptikimas
+                                            <i class="fas fa-chart-line me-1"></i>{{ __('messages.propaganda_detection') }}
                                             <i class="fas fa-question-circle text-muted ms-1" 
                                                data-bs-toggle="tooltip" 
-                                               title="Teisingai rasta / Klaidingai rasta / Teisingai nerasta / Klaidingai nerasta. TP: ekspertas=TAIP, modelis=TAIP; FP: ekspertas=NE, modelis=TAIP; TN: ekspertas=NE, modelis=NE; FN: ekspertas=TAIP, modelis=NE. Naudoja modelio pagrindinį sprendimą (primaryChoice), ne fragmentų metrikas. SVARBU: Tekstai su timeout/error pašalinti."></i>
+                                               title="{{ __('messages.propaganda_detection_tooltip') }}"></i>
                                         </th>
                                         <th class="text-center">
-                                            <i class="fas fa-bullseye me-1"></i>F1 balas
+                                            <i class="fas fa-bullseye me-1"></i>{{ __('messages.f1_score') }}
                                             <i class="fas fa-question-circle text-muted ms-1" 
                                                data-bs-toggle="tooltip" 
-                                               title="F1 = 2×(Tikslumas×Atsaukimas)/(Tikslumas+Atsaukimas). Subalansuotas tikslumas+atsaukimas metrikos. 100% = tobulas rezultatas."></i>
+                                               title="{{ __('messages.f1_score_tooltip') }}"></i>
                                         </th>
                                         <th class="text-center">
-                                            <i class="fas fa-crosshairs me-1"></i>Tikslumas
+                                            <i class="fas fa-crosshairs me-1"></i>{{ __('messages.precision') }}
                                             <i class="fas fa-question-circle text-muted ms-1" 
                                                data-bs-toggle="tooltip" 
-                                               title="Tikslumas = Teisingai_rasti / Visi_AI_rasti. Pvz: AI rado 10 fragmentų, 8 teisingi → 80% tikslumas. Matuoja 'klaidingų pavojų' kiekį."></i>
+                                               title="{{ __('messages.precision_tooltip') }}"></i>
                                         </th>
                                         <th class="text-center">
-                                            <i class="fas fa-search me-1"></i>Atsaukimas
+                                            <i class="fas fa-search me-1"></i>{{ __('messages.recall') }}
                                             <i class="fas fa-question-circle text-muted ms-1" 
                                                data-bs-toggle="tooltip" 
-                                               title="Atsaukimas = Teisingai_rasti / Visi_ekspertų_fragmentai. Pvz: ekspertai rado 10, AI surado 6 → 60% atsaukimas. Matuoja 'praleidimų' kiekį."></i>
+                                               title="{{ __('messages.recall_tooltip') }}"></i>
                                         </th>
                                         <th class="text-center">
-                                            <i class="fas fa-tachometer-alt me-1"></i>Greitis
+                                            <i class="fas fa-tachometer-alt me-1"></i>{{ __('messages.speed') }}
                                             <i class="fas fa-question-circle text-muted ms-1" 
                                                data-bs-toggle="tooltip" 
-                                               title="Vidutinė analizės trukmė"></i>
+                                               title="{{ __('messages.speed_tooltip') }}"></i>
                                         </th>
                                         <th class="text-center">
-                                            <i class="fas fa-star me-1"></i>Įvertis
+                                            <i class="fas fa-star me-1"></i>{{ __('messages.score') }}
                                             <i class="fas fa-question-circle text-muted ms-1" 
                                                data-bs-toggle="tooltip" 
-                                               title="Bendras modelio įvertinimas: F1×50% + Tikslumas×25% + Atsaukimas×25% (naudojamas reitingui)"></i>
+                                               title="{{ __('messages.score_tooltip') }}"></i>
                                         </th>
                                     </tr>
                                 </thead>
@@ -246,21 +246,21 @@
                                             </td>
                                             <td class="text-center">
                                                 <div class="d-flex flex-wrap justify-content-center gap-1">
-                                                    <span class="badge bg-success" data-bs-toggle="tooltip" title="Teisingai rasta propaganda">
+                                                    <span class="badge bg-success" data-bs-toggle="tooltip" title="{{ __('messages.true_positive_propaganda') }}">
                                                         TP: {{ $stats['propaganda_tp'] ?? 0 }}
                                                     </span>
-                                                    <span class="badge bg-danger" data-bs-toggle="tooltip" title="Klaidingai rasta propaganda">
+                                                    <span class="badge bg-danger" data-bs-toggle="tooltip" title="{{ __('messages.false_positive_propaganda') }}">
                                                         FP: {{ $stats['propaganda_fp'] ?? 0 }}
                                                     </span>
-                                                    <span class="badge bg-info" data-bs-toggle="tooltip" title="Teisingai nerasta propaganda">
+                                                    <span class="badge bg-info" data-bs-toggle="tooltip" title="{{ __('messages.true_negative_propaganda') }}">
                                                         TN: {{ $stats['propaganda_tn'] ?? 0 }}
                                                     </span>
-                                                    <span class="badge bg-warning" data-bs-toggle="tooltip" title="Klaidingai nerasta propaganda">
+                                                    <span class="badge bg-warning" data-bs-toggle="tooltip" title="{{ __('messages.false_negative_propaganda') }}">
                                                         FN: {{ $stats['propaganda_fn'] ?? 0 }}
                                                     </span>
                                                 </div>
                                                 <small class="text-muted d-block mt-1">
-                                                    {{ $stats['total_propaganda_texts'] ?? 0 }}/{{ $stats['total_analyses'] }} tekstų
+                                                    {{ $stats['total_propaganda_texts'] ?? 0 }}/{{ $stats['total_analyses'] }} {{ __('messages.texts') }}
                                                 </small>
                                             </td>
                                             <td class="text-center">
@@ -299,10 +299,10 @@
                     @else
                         <div class="text-center py-4">
                             <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">Nėra našumo duomenų</h5>
-                            <p class="text-muted">Paleiskite analizę, kad pamatytumėte modelių našumo statistikas</p>
+                            <h5 class="text-muted">{{ __('messages.no_performance_data') }}</h5>
+                            <p class="text-muted">{{ __('messages.run_analysis_to_start') }}</p>
                             <a href="{{ route('create') }}" class="btn btn-primary">
-                                <i class="fas fa-plus me-1"></i>Pradėti analizę
+                                <i class="fas fa-plus me-1"></i>{{ __('messages.start_analysis_button') }}
                             </a>
                         </div>
                     @endif
@@ -316,7 +316,7 @@
             <div class="card mb-4">
                 <div class="card-header">
                     <h6 class="mb-0">
-                        <i class="fas fa-medal me-2"></i>Modelių reitingas
+                        <i class="fas fa-medal me-2"></i>{{ __('messages.model_rating') }}
                         <i class="fas fa-question-circle text-muted ms-1" 
                            data-bs-toggle="tooltip" 
                            title="Reitingas skaičiuojamas pagal bendrą įvertį: F1×50% + Tikslumas×25% + Atsaukimas×25%. Aukštesnis balas reiškia geresnį modelio našumą."></i>
@@ -345,7 +345,7 @@
                             </div>
                         @endforeach
                     @else
-                        <p class="text-muted text-center">Nėra duomenų reitingui</p>
+                        <p class="text-muted text-center">{{ __('messages.no_rating_data') }}</p>
                     @endif
                 </div>
             </div>
@@ -354,10 +354,10 @@
             <div class="card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h6 class="mb-0">
-                        <i class="fas fa-history me-2"></i>Paskutinės analizės
+                        <i class="fas fa-history me-2"></i>{{ __('messages.recent_analyses') }}
                     </h6>
                     <a href="{{ route('analyses.index') }}" class="btn btn-sm btn-outline-primary">
-                        Visos
+                        {{ __('messages.view_all') }}
                     </a>
                 </div>
                 <div class="card-body">
@@ -366,7 +366,7 @@
                             <div class="d-flex justify-content-between align-items-center mb-3 pb-2 {{ !$loop->last ? 'border-bottom' : '' }}">
                                 <div class="flex-grow-1">
                                     <div class="fw-bold mb-1">
-                                        {{ Str::limit($analysis->name ?? 'Analizė '.$analysis->job_id, 25) }}
+                                        {{ Str::limit($analysis->name ?? __('messages.analysis').' '.$analysis->job_id, 25) }}
                                     </div>
                                     <small class="text-muted">
                                         <i class="fas fa-clock me-1"></i>{{ $analysis->created_at->diffForHumans() }}
@@ -376,13 +376,13 @@
                                     <div class="mb-1">
                                         @switch($analysis->status)
                                             @case('completed')
-                                                <span class="badge bg-success">Baigta</span>
+                                                <span class="badge bg-success">{{ __('messages.completed') }}</span>
                                                 @break
                                             @case('processing')
-                                                <span class="badge bg-warning">Vykdoma</span>
+                                                <span class="badge bg-warning">{{ __('messages.processing') }}</span>
                                                 @break
                                             @case('failed')
-                                                <span class="badge bg-danger">Nepavyko</span>
+                                                <span class="badge bg-danger">{{ __('messages.failed') }}</span>
                                                 @break
                                             @default
                                                 <span class="badge bg-secondary">{{ ucfirst($analysis->status) }}</span>
@@ -398,7 +398,7 @@
                     @else
                         <div class="text-center py-3">
                             <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
-                            <p class="text-muted">Nėra analizių</p>
+                            <p class="text-muted">{{ __('messages.no_analyses') }}</p>
                         </div>
                     @endif
                 </div>
@@ -467,18 +467,21 @@ $(document).ready(function() {
             }
         ],
         language: {
-            "search": "Ieškoti:",
-            "lengthMenu": "Rodyti _MENU_ įrašų puslapyje",
-            "info": "Rodoma _START_ - _END_ iš _TOTAL_ įrašų",
-            "infoEmpty": "Nėra duomenų",
-            "infoFiltered": "(išfiltruota iš _MAX_ įrašų)",
+            "search": "{{ __('messages.datatable.search') }}",
+            "lengthMenu": "{{ __('messages.datatable.lengthMenu') }}",
+            "info": "{{ __('messages.datatable.info') }}",
+            "infoEmpty": "{{ __('messages.datatable.infoEmpty') }}",
+            "infoFiltered": "{{ __('messages.datatable.infoFiltered') }}",
+            "loadingRecords": "{{ __('messages.datatable.loadingRecords') }}",
+            "processing": "{{ __('messages.datatable.processing') }}",
+            "zeroRecords": "{{ __('messages.datatable.zeroRecords') }}",
             "paginate": {
-                "first": "Pirmas",
-                "last": "Paskutinis",
-                "next": "Kitas",
-                "previous": "Ankstesnis"
+                "first": "{{ __('messages.datatable.paginate.first') }}",
+                "last": "{{ __('messages.datatable.paginate.last') }}",
+                "next": "{{ __('messages.datatable.paginate.next') }}",
+                "previous": "{{ __('messages.datatable.paginate.previous') }}"
             },
-            "emptyTable": "Nėra duomenų lentelėje"
+            "emptyTable": "{{ __('messages.datatable.emptyTable') }}"
         },
         dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rt<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
     });
@@ -616,7 +619,7 @@ document.addEventListener('DOMContentLoaded', function() {
             plugins: {
                 title: {
                     display: true,
-                    text: 'Modelių našumo metrikos'
+                    text: '{{ __('messages.model_performance_metrics') }}'
                 },
                 legend: {
                     position: 'top'
@@ -655,7 +658,7 @@ document.addEventListener('DOMContentLoaded', function() {
             plugins: {
                 title: {
                     display: true,
-                    text: 'Dažniausiai aptiktos technikos'
+                    text: '{{ __('messages.most_detected_techniques') }}'
                 },
                 legend: {
                     position: 'right',
@@ -719,7 +722,7 @@ document.addEventListener('DOMContentLoaded', function() {
             plugins: {
                 title: {
                     display: true,
-                    text: 'Analizių skaičius per paskutines 30 dienų'
+                    text: '{{ __('messages.analyses_count_last_30_days') }}'
                 },
                 legend: {
                     display: false

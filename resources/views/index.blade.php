@@ -19,27 +19,27 @@
                             <i class="fas fa-lightbulb fa-lg"></i>
                         </div>
                         <div>
-                            <h6 class="alert-heading mb-2">Kaip naudoti sistemą</h6>
+                            <h6 class="alert-heading mb-2">{{ __('messages.how_to_use_system') }}</h6>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <p class="mb-1"><strong>1. Duomenų tipai:</strong></p>
+                                    <p class="mb-1"><strong>1. {{ __('messages.data_types') }}:</strong></p>
                                     <ul class="mb-2 small">
-                                        <li><strong>Su ekspertų anotacijomis</strong> - skaičiuoja regionų lygio metrikas (precision, recall, F1)</li>
-                                        <li><strong>Be anotacijų</strong> - tik AI analizė</li>
+                                        <li><strong>{{ __('messages.with_expert_annotations') }}</strong> - {{ __('messages.calculates_region_metrics') }}</li>
+                                        <li><strong>{{ __('messages.without_annotations') }}</strong> - {{ __('messages.ai_analysis_only') }}</li>
                                     </ul>
                                 </div>
                                 <div class="col-md-6">
-                                    <p class="mb-1"><strong>2. Rezultatai:</strong></p>
+                                    <p class="mb-1"><strong>2. {{ __('messages.results') }}:</strong></p>
                                     <ul class="mb-2 small">
-                                        <li>11 ATSPARA propagandos technikų</li>
-                                        <li>CSV/JSON eksportas</li>
-                                        <li>Realaus laiko progresas</li>
+                                        <li>{{ __('messages.11_atspara_techniques') }}</li>
+                                        <li>{{ __('messages.csv_json_export') }}</li>
+                                        <li>{{ __('messages.real_time_progress') }}</li>
                                     </ul>
                                 </div>
                             </div>
                             <div class="text-center">
                                 <a href="{{ route('help.index') }}" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-question-circle me-1"></i>Išsami dokumentacija
+                                    <i class="fas fa-question-circle me-1"></i>{{ __('messages.detailed_documentation') }}
                                 </a>
                                 <a href="{{ route('help.faq') }}" class="btn btn-sm btn-outline-secondary">
                                     <i class="fas fa-list me-1"></i>FAQ
@@ -50,7 +50,7 @@
                 </div>
                 
                 <p class="text-muted mb-4">
-                    Įkelkite JSON failą (su arba be ekspertų anotacijų) ir pasirinkite LLM modelius analizei.
+                    {{ __('messages.upload_json_and_select_models') }}
                 </p>
 
                 <form action="{{ route('upload') }}" method="POST" enctype="multipart/form-data" id="uploadForm">
@@ -60,18 +60,18 @@
                     <div class="mb-4">
                         <label for="json_file" class="form-label fw-bold">
                             <i class="fas fa-file-code me-2"></i>
-                            JSON failas (su arba be ekspertų anotacijų)
+                            {{ __('messages.upload_json') }}
                             <i class="fas fa-question-circle text-muted ms-2" 
                                data-bs-toggle="tooltip" 
                                data-bs-placement="top" 
-                               title="Įkelkite JSON failą su tekstais. Jei turite ekspertų anotacijas (iš Label Studio), sistema apskaičiuos palyginimo metrikas. Jei ne - tik AI analizė."></i>
+                               title="{{ __('messages.json_upload_tooltip') }}"></i>
                         </label>
                         <div class="mb-2">
                             <small class="text-muted">
                                 <i class="fas fa-info-circle me-1"></i>
-                                Reikalingas specifinis JSON formatas. 
+                                {{ __('messages.specific_json_format_required') }} 
                                 <a href="/docs/json-format" target="_blank" class="text-decoration-none">
-                                    <i class="fas fa-external-link-alt me-1"></i>Žiūrėti formato specifikaciją
+                                    <i class="fas fa-external-link-alt me-1"></i>{{ __('messages.view_format_specification') }}
                                 </a>
                             </small>
                         </div>
@@ -79,8 +79,8 @@
                             <input type="file" class="form-control d-none" id="json_files" name="json_files[]" accept=".json,application/json,text/plain" multiple required>
                             <div id="uploadContent">
                                 <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
-                                <h5>Nuvilkite failus čia arba <span class="text-primary">spustelėkite pasirinkti</span></h5>
-                                <p class="text-muted">Palaikomi formatai: .json (iki 100MB kiekvienam). Galite pasirinkti kelis failus.</p>
+                                <h5>{{ __('messages.drag_drop_files') }}</h5>
+                                <p class="text-muted">{{ __('messages.supported_formats_json') }}</p>
                             </div>
                             <div id="fileInfo" class="d-none">
                                 <i class="fas fa-file-check fa-2x text-success mb-2"></i>
@@ -106,12 +106,12 @@
                                 <div>
                                     <h6 class="mb-0">
                                         <i class="fas fa-heartbeat me-2 text-info"></i>
-                                        AI modelių ryšio statusas
+                                        {{ __('messages.model_status') }}
                                     </h6>
                                 </div>
                                 <div>
                                     <button type="button" class="btn btn-sm btn-outline-info" id="refreshStatusBtn" onclick="refreshModelStatus()">
-                                        <i class="fas fa-sync-alt me-1"></i>Atnaujinti
+                                        <i class="fas fa-sync-alt me-1"></i>{{ __('messages.refresh') }}
                                     </button>
                                 </div>
                             </div>
@@ -202,7 +202,7 @@
                                                         <small class="d-block text-muted">${model.description || ''}</small>
                                                     </div>
                                                     <div class="model-status-indicator" id="status-${model.key}">
-                                                        <i class="fas fa-circle text-muted" title="Nežinomas statusas"></i>
+                                                        <i class="fas fa-circle text-muted" title="{{ __('messages.unknown_status') }}"></i>
                                                     </div>
                                                 </div>
                                             </label>
@@ -226,11 +226,11 @@
                     <div class="mb-4">
                         <label class="form-label fw-bold">
                             <i class="fas fa-edit me-2"></i>
-                            RISEN Prompt Konfigūracija
+                            {{ __('messages.risen_prompt_configuration') }}
                             <i class="fas fa-question-circle text-muted ms-2" 
                                data-bs-toggle="tooltip" 
                                data-bs-placement="top" 
-                               title="RISEN metodologija: Role, Instructions, Situation, Execution, Needle. Standartinis ATSPARA promptas optimizuotas lietuvių propagandos analizei."></i>
+                               title="{{ __('messages.risen_methodology_tooltip') }}"></i>
                         </label>
 
                         <!-- Prompt type selector -->
@@ -238,15 +238,15 @@
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="prompt_type" id="standard_prompt" value="standard" checked>
                                 <label class="form-check-label" for="standard_prompt">
-                                    <strong>Standartinis ATSPARA RISEN promptas</strong>
-                                    <small class="d-block text-muted">Profesionaliai sukurtas pagal RISEN metodologiją su 21 propaganda technika</small>
+                                    <strong>{{ __('messages.standard_atspara_risen_prompt') }}</strong>
+                                    <small class="d-block text-muted">{{ __('messages.professionally_created_risen') }}</small>
                                 </label>
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="prompt_type" id="custom_prompt_radio" value="custom">
                                 <label class="form-check-label" for="custom_prompt_radio">
-                                    <strong>Pritaikytas RISEN promptas</strong>
-                                    <small class="d-block text-muted">Modifikuokite bet kurią RISEN dalį pagal poreikius</small>
+                                    <strong>{{ __('messages.custom_risen_prompt') }}</strong>
+                                    <small class="d-block text-muted">{{ __('messages.modify_any_risen_part') }}</small>
                                 </label>
                             </div>
                         </div>
@@ -255,9 +255,9 @@
                         <div id="standard_prompt_section">
                             <div class="card bg-light">
                                 <div class="card-header d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0">RISEN ATSPARA Promptas</h6>
+                                    <h6 class="mb-0">{{ __('messages.risen_atspara_prompt') }}</h6>
                                     <button type="button" class="btn btn-sm btn-outline-primary" onclick="showFullPrompt()">
-                                        <i class="fas fa-eye me-1"></i>Peržiūrėti pilną prompt'ą
+                                        <i class="fas fa-eye me-1"></i>{{ __('messages.view_full_prompt') }}
                                     </button>
                                 </div>
                                 <div class="card-body">
@@ -296,7 +296,7 @@
                                     <div class="text-center mt-3">
                                         <small class="text-muted">
                                             <i class="fas fa-info-circle me-1"></i>
-                                            Šis promptas apima 11 ATSPARA propagandos technikas ir JSON formato specifikaciją
+                                            {{ __('messages.prompt_includes_11_techniques') }}
                                         </small>
                                     </div>
                                 </div>
@@ -307,15 +307,15 @@
                         <div id="custom_prompt_section" style="display: none;">
                             <div class="card">
                                 <div class="card-header">
-                                    <h6 class="mb-0">RISEN Prompt Redaktorius</h6>
-                                    <small class="text-muted">Modifikuokite bet kurią RISEN dalį</small>
+                                    <h6 class="mb-0">{{ __('messages.risen_prompt_editor') }}</h6>
+                                    <small class="text-muted">{{ __('messages.modify_risen_prompt') }}</small>
                                 </div>
                                 <div class="card-body">
                                     <div class="row g-3">
                                         <div class="col-md-6">
                                             <label for="custom_role" class="form-label">
                                                 <strong class="text-primary"><i class="fas fa-user-tie me-2"></i>Role</strong>
-                                                <small class="text-muted d-block">Kas yra AI modelis šioje užduotyje?</small>
+                                                <small class="text-muted d-block">{{ __('messages.what_is_ai_model_in_task') }}</small>
                                             </label>
                                             <textarea class="form-control" id="custom_role" rows="3" 
                                                       placeholder="Pvz: Tu esi ekspertas...">{{ $standardPrompt['role'] }}</textarea>
@@ -323,7 +323,7 @@
                                         <div class="col-md-6">
                                             <label for="custom_instructions" class="form-label">
                                                 <strong class="text-success"><i class="fas fa-list-check me-2"></i>Instructions</strong>
-                                                <small class="text-muted d-block">Ką tiksliai daryti?</small>
+                                                <small class="text-muted d-block">{{ __('messages.what_exactly_to_do') }}</small>
                                             </label>
                                             <textarea class="form-control" id="custom_instructions" rows="3" 
                                                       placeholder="Pvz: Analizuok tekstą...">{{ $standardPrompt['instructions'] }}</textarea>
@@ -331,7 +331,7 @@
                                         <div class="col-md-4">
                                             <label for="custom_situation" class="form-label">
                                                 <strong class="text-info"><i class="fas fa-map-marker-alt me-2"></i>Situation</strong>
-                                                <small class="text-muted d-block">Kokiame kontekste?</small>
+                                                <small class="text-muted d-block">{{ __('messages.in_what_context') }}</small>
                                             </label>
                                             <textarea class="form-control" id="custom_situation" rows="4" 
                                                       placeholder="Pvz: Tekstas iš žiniasklaidos...">{{ $standardPrompt['situation'] }}</textarea>
@@ -339,7 +339,7 @@
                                         <div class="col-md-4">
                                             <label for="custom_execution" class="form-label">
                                                 <strong class="text-warning"><i class="fas fa-cogs me-2"></i>Execution</strong>
-                                                <small class="text-muted d-block">Kaip atlikti užduotį?</small>
+                                                <small class="text-muted d-block">{{ __('messages.how_to_perform_task') }}</small>
                                             </label>
                                             <textarea class="form-control" id="custom_execution" rows="4" 
                                                       placeholder="Pvz: 1) Perskaityk, 2) Identifikuok...">{{ $standardPrompt['execution'] }}</textarea>
@@ -347,7 +347,7 @@
                                         <div class="col-md-4">
                                             <label for="custom_needle" class="form-label">
                                                 <strong class="text-danger"><i class="fas fa-bullseye me-2"></i>Needle</strong>
-                                                <small class="text-muted d-block">Kokio formato atsakymo reikia?</small>
+                                                <small class="text-muted d-block">{{ __('messages.what_format_response_needed') }}</small>
                                             </label>
                                             <textarea class="form-control" id="custom_needle" rows="4" 
                                                       placeholder="Pvz: Gražink JSON formatą...">{{ $standardPrompt['needle'] }}</textarea>
@@ -356,16 +356,16 @@
                                     <div class="d-flex justify-content-between align-items-center mt-3">
                                         <div>
                                             <button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="resetToDefault()">
-                                                <i class="fas fa-undo me-1"></i>Atstatyti standartinį
+                                                <i class="fas fa-undo me-1"></i>{{ __('messages.reset_to_default') }}
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-info" onclick="previewCustomPrompt()">
-                                                <i class="fas fa-eye me-1"></i>Peržiūrėti pilną prompt'ą
+                                                <i class="fas fa-eye me-1"></i>{{ __('messages.view_full_prompt') }}
                                             </button>
                                         </div>
                                         <div>
                                             <small class="text-muted">
                                                 <i class="fas fa-info-circle me-1"></i>
-                                                Automatiškai pridedamos ATSPARA technikos ir JSON formatas
+                                                {{ __('messages.atspara_techniques_added_automatically') }}
                                             </small>
                                         </div>
                                     </div>
@@ -384,12 +384,12 @@
                     <!-- Analizės informacija -->
                     <div class="row mb-4">
                         <div class="col-md-6">
-                            <label for="name" class="form-label">Analizės pavadinimas (neprivalomas)</label>
-                            <input type="text" class="form-control" id="name" name="name" placeholder="Pvz.: Propagandos analizė 2025-01">
+                            <label for="name" class="form-label">{{ __('messages.analysis_name') }}</label>
+                            <input type="text" class="form-control" id="name" name="name" placeholder="{{ __('messages.analysis_name_placeholder') }}">
                         </div>
                         <div class="col-md-6">
-                            <label for="description" class="form-label">Aprašymas (neprivalomas)</label>
-                            <input type="text" class="form-control" id="description" name="description" placeholder="Trumpas analizės aprašymas">
+                            <label for="description" class="form-label">{{ __('messages.analysis_description') }}</label>
+                            <input type="text" class="form-control" id="description" name="description" placeholder="{{ __('messages.analysis_description_placeholder') }}">
                         </div>
                     </div>
 
@@ -397,7 +397,7 @@
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary btn-lg" id="analyzeBtn">
                             <i class="fas fa-play me-2"></i>
-                            Pradėti analizę
+                            {{ __('messages.start_analysis_button') }}
                         </button>
                     </div>
                 </form>
@@ -412,16 +412,16 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Standartinis ATSPARA prompt'as</h5>
+                <h5 class="modal-title">{{ __('messages.standard_atspara_prompt') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <pre id="promptPreviewContent" class="bg-light p-3" style="white-space: pre-wrap; max-height: 400px; overflow-y: auto;"></pre>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Uždaryti</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('messages.close') }}</button>
                 <button type="button" class="btn btn-primary" onclick="loadDefaultPrompt(); bootstrap.Modal.getInstance(this.closest('.modal')).hide();">
-                    <i class="fas fa-copy me-1"></i>Kopijuoti į custom prompt'ą
+                    <i class="fas fa-copy me-1"></i>{{ __('messages.copy_to_custom_prompt') }}
                 </button>
             </div>
         </div>
@@ -433,48 +433,48 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">RISEN Prompt'o kūrėjas</h5>
+                <h5 class="modal-title">{{ __('messages.risen_prompt_builder') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="alert alert-info">
-                    <strong>RISEN metodologija:</strong> Role, Instructions, Situation, Execution, Needle - struktūrizuotas prompt'o kūrimo metodas.
+                    <strong>{{ __('messages.risen_methodology') }}:</strong> {{ __('messages.risen_methodology_description') }}
                 </div>
                 
                 <div class="mb-3">
-                    <label for="risen_role" class="form-label"><strong>Role</strong> - Vaidmuo</label>
+                    <label for="risen_role" class="form-label"><strong>{{ __('messages.role') }}</strong></label>
                     <textarea class="form-control" id="risen_role" rows="2" 
                               placeholder="Pvz.: Tu esi propagandos analizės ekspertas, specializuojantis ATSPARA metodologijoje..."></textarea>
                 </div>
                 
                 <div class="mb-3">
-                    <label for="risen_instructions" class="form-label"><strong>Instructions</strong> - Instrukcijos</label>
+                    <label for="risen_instructions" class="form-label"><strong>{{ __('messages.instructions') }}</strong></label>
                     <textarea class="form-control" id="risen_instructions" rows="3" 
                               placeholder="Pvz.: Analizuok tekstą ir identifikuok propagandos technikas objektyviai..."></textarea>
                 </div>
                 
                 <div class="mb-3">
-                    <label for="risen_situation" class="form-label"><strong>Situation</strong> - Situacija</label>
+                    <label for="risen_situation" class="form-label"><strong>{{ __('messages.situation') }}</strong></label>
                     <textarea class="form-control" id="risen_situation" rows="2" 
                               placeholder="Pvz.: Tekstas pateiktas lietuvių kalba, reikia ATSPARA metodologijos..."></textarea>
                 </div>
                 
                 <div class="mb-3">
-                    <label for="risen_execution" class="form-label"><strong>Execution</strong> - Vykdymas</label>
+                    <label for="risen_execution" class="form-label"><strong>{{ __('messages.execution') }}</strong></label>
                     <textarea class="form-control" id="risen_execution" rows="3" 
                               placeholder="Pvz.: Žingsnis po žingsnio analizuok tekstą, ieškokių technikų..."></textarea>
                 </div>
                 
                 <div class="mb-3">
-                    <label for="risen_needle" class="form-label"><strong>Needle</strong> - Pagrindinis tikslas</label>
+                    <label for="risen_needle" class="form-label"><strong>{{ __('messages.narrowing') }}</strong></label>
                     <textarea class="form-control" id="risen_needle" rows="2" 
                               placeholder="Pvz.: Grąžink JSON formatą su tiksliais propagandos technikų anotacijomis..."></textarea>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Atšaukti</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('messages.cancel') }}</button>
                 <button type="button" class="btn btn-primary" onclick="buildRisenPrompt()">
-                    <i class="fas fa-magic me-1"></i>Sukurti prompt'ą
+                    <i class="fas fa-magic me-1"></i>{{ __('messages.create_prompt') }}
                 </button>
             </div>
         </div>
@@ -500,7 +500,7 @@
                 <button type="button" class="btn btn-outline-secondary" onclick="refreshModelStatusDetails()">
                     <i class="fas fa-sync-alt me-1"></i>Atnaujinti
                 </button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Uždaryti</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('messages.close') }}</button>
             </div>
         </div>
     </div>

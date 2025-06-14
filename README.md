@@ -102,6 +102,7 @@ Universali propagandos analizės platforma, kuri veikia dviem pagrindiniais rež
 - **Statistikos dashboard**: Modelių našumo palyginimas ir sistemos metrikos
 - **Mission Control**: Sistemos monitoringas su log'ų kopijavimo funkcionalumu
 - **Rezultatų vizualizacija**: Interaktyvūs grafikai ir lentelės
+- **Daugiakalbė sąsaja**: Pilna lietuvių ir anglų kalbų palaikymo sistema
 
 ## 🚀 Greitas startas
 
@@ -270,6 +271,25 @@ php artisan queue:work redis --verbose
 ```bash
 tail -f storage/logs/laravel.log
 ```
+
+## 🌐 Kalbų palaikymas
+
+Sistema palaiko dvi kalbas:
+- **Lietuvių** (numatytoji)
+- **Anglų**
+
+### Kalbos perjungimas
+- Prisijungę vartotojai: kalba išsaugoma vartotojo profilyje
+- Neprisijungę vartotojai: kalba saugoma sesijoje
+- Kalbos perjungimo mygtukas prieinamas viršutiniame meniu
+
+### Vertimai
+Visi sistemos tekstai yra pilnai išversti į abi kalbas:
+- Navigacija ir meniu
+- Formos ir mygtukai
+- Statistikos ir metrikų pavadinimai
+- Klaidų pranešimai
+- JavaScript sugeneruotas turinys (DataTables, grafikai)
 
 ## 📚 Dokumentacija
 

@@ -13,6 +13,7 @@ return [
     'mission_control' => 'Mission Control',
 
     // Analysis Interface
+    'analysis' => 'Analysis',
     'analysis_details' => 'Analysis Details',
     'analysis_id' => 'Analysis ID',
     'text_upload' => 'Text Analysis Launch',
@@ -221,4 +222,201 @@ return [
     'showing_data_for_job' => 'Showing data for Job ID',
     'copy_to_clipboard' => 'Copy to clipboard',
     'log_message_copied' => 'LOG MESSAGE COPIED TO CLIPBOARD',
+    
+    // Dashboard Performance Metrics
+    'f1_score' => 'F1 Score',
+    'precision' => 'Precision',
+    'recall' => 'Recall',
+    'speed' => 'Speed',
+    'propaganda_detection' => 'Propaganda Detection',
+    'score' => 'Score',
+    'texts' => 'texts',
+    'no_performance_data' => 'No performance data',
+    'run_analysis_to_start' => 'Run analysis to see metrics',
+    'start_analysis_button' => 'Start Analysis',
+    'model_rating' => 'Model Rating',
+    'no_rating_data' => 'No rating data',
+    'no_analyses' => 'No analyses',
+    
+    // Analysis List Additional
+    'all_completed_analyses' => 'All completed propaganda analyses',
+    'link' => 'Link',
+    'view' => 'View',
+    'status_label' => 'Status',
+    'delete' => 'Delete',
+    'delete_analysis_confirm' => 'Delete analysis',
+    'analysis_cancelled' => 'Analysis cancelled',
+    'no_results_found' => 'No results found',
+    'try_changing_filters' => 'Try changing your filters...',
+    
+    // System Usage Instructions
+    'how_to_use_system' => 'How to use the system',
+    'system_usage_instructions' => [
+        'step1' => 'Prepare a JSON file with texts for analysis. The file can contain expert annotations (for measuring AI accuracy) or be without them.',
+        'step2' => 'Upload the file and select AI models you want to use for propaganda detection.',
+        'step3' => 'The system will process each text with selected models and identify propaganda techniques.',
+        'step4' => 'After completion, you can view detailed results, compare model performance, and export data.',
+    ],
+    
+    // RISEN Prompt
+    'risen_prompt_editor' => 'RISEN Prompt Editor',
+    'modify_risen_prompt' => 'Modify RISEN prompt methodology sections',
+    'role' => 'Role',
+    'instructions' => 'Instructions',
+    'steps' => 'Steps',
+    'end_goal' => 'End Goal',
+    'narrowing' => 'Narrowing',
+    
+    // Analysis Form
+    'analysis_information' => 'Analysis Information',
+    'analysis_type' => 'Analysis Type',
+    'created_at' => 'Created At',
+    'completed_at' => 'Completed At',
+    'error_messages' => 'Error Messages',
+    'analysis_results' => 'Analysis Results',
+    
+    // Tooltips and Help Text
+    'f1_score_tooltip' => 'Harmonic mean of precision and recall. Higher value indicates better overall performance.',
+    'precision_tooltip' => 'Percentage of correctly identified propaganda among all identified cases. High precision means fewer false positives.',
+    'recall_tooltip' => 'Percentage of actual propaganda cases that were correctly identified. High recall means fewer false negatives.',
+    'speed_tooltip' => 'Average time to analyze one text. Lower values indicate faster processing.',
+    'propaganda_detection_tooltip' => 'Percentage of texts where propaganda was detected. Calculated only from texts containing propaganda.',
+    'score_tooltip' => 'Overall model rating based on F1 score, precision, recall, and processing speed.',
+    
+    // DataTable Localization
+    'datatable' => [
+        'search' => 'Search:',
+        'lengthMenu' => 'Show _MENU_ entries',
+        'info' => 'Showing _START_ to _END_ of _TOTAL_ entries',
+        'infoEmpty' => 'Showing 0 to 0 of 0 entries',
+        'infoFiltered' => '(filtered from _MAX_ total entries)',
+        'loadingRecords' => 'Loading...',
+        'processing' => 'Processing...',
+        'zeroRecords' => 'No matching records found',
+        'emptyTable' => 'No data available in table',
+        'paginate' => [
+            'first' => 'First',
+            'previous' => 'Previous',
+            'next' => 'Next',
+            'last' => 'Last'
+        ],
+        'aria' => [
+            'sortAscending' => ': activate to sort column ascending',
+            'sortDescending' => ': activate to sort column descending'
+        ]
+    ],
+    
+    // Chart Labels
+    'average_f1_by_model' => 'Average F1 Score by Model',
+    'model_performance_radar' => 'Model Performance Comparison',
+    'techniques_by_frequency' => 'Propaganda Techniques by Frequency',
+    'model_performance_metrics' => 'Model Performance Metrics',
+    'most_detected_techniques' => 'Most Frequently Detected Techniques',
+    'analyses_count_last_30_days' => 'Analyses Count in Last 30 Days',
+    
+    // Progress Messages
+    'initializing_analysis' => 'Initializing analysis...',
+    'processing_file' => 'Processing file',
+    'analyzing_with_model' => 'Analyzing with :model',
+    'analysis_complete' => 'Analysis complete',
+    'calculating_metrics' => 'Calculating metrics...',
+    
+    // File Upload
+    'json_file_required' => 'JSON file (required)',
+    'upload_instructions' => 'Upload a JSON file containing texts for analysis',
+    'file_format_info' => 'File can include expert annotations or contain only texts',
+    
+    // Actions
+    'actions' => 'Actions',
+    'export' => 'Export',
+    'statistics' => 'Statistics',
+    
+    // Empty States
+    'no_data' => 'No data',
+    'no_analyses_yet' => 'No analyses yet',
+    'start_first_analysis' => 'Start your first analysis to see results here',
+    
+    // Confirmation Messages
+    'confirm_delete' => 'Are you sure you want to delete this analysis?',
+    'confirm_cancel' => 'Are you sure you want to cancel this analysis?',
+    
+    // Success Messages
+    'analysis_started' => 'Analysis started successfully',
+    'analysis_deleted' => 'Analysis deleted successfully',
+    'data_exported' => 'Data exported successfully',
+    
+    // Propaganda Detection Badges
+    'true_positive_propaganda' => 'Correctly detected propaganda',
+    'false_positive_propaganda' => 'Incorrectly detected propaganda',
+    'true_negative_propaganda' => 'Correctly not detected propaganda',
+    'false_negative_propaganda' => 'Incorrectly not detected propaganda',
+    
+    // Analysis Form Additional
+    'data_types' => 'Data Types',
+    'with_expert_annotations_desc' => 'With expert annotations',
+    'calculates_region_metrics' => 'calculates region-level metrics (precision, recall, F1)',
+    'without_annotations' => 'Without annotations',
+    'ai_analysis_only' => 'AI analysis only',
+    'results' => 'Results',
+    '11_atspara_techniques' => '11 ATSPARA propaganda techniques',
+    'csv_json_export' => 'CSV/JSON export',
+    'real_time_progress' => 'Real-time progress',
+    'detailed_documentation' => 'Detailed documentation',
+    'upload_json_and_select_models' => 'Upload JSON file (with or without expert annotations) and select LLM models for analysis.',
+    'json_upload_tooltip' => 'Upload a JSON file with texts. If you have expert annotations (from Label Studio), the system will calculate comparison metrics. If not - AI analysis only.',
+    'specific_json_format_required' => 'Specific JSON format required.',
+    'view_format_specification' => 'View format specification',
+    'supported_formats_json' => 'Supported formats: .json (up to 100MB each). You can select multiple files.',
+    'unknown_status' => 'Unknown status',
+    'risen_prompt_configuration' => 'RISEN Prompt Configuration',
+    'risen_methodology_tooltip' => 'RISEN methodology: Role, Instructions, Situation, Execution, Narrowing. Standard ATSPARA prompt optimized for Lithuanian propaganda analysis.',
+    'standard_atspara_risen_prompt' => 'Standard ATSPARA RISEN prompt',
+    'professionally_created_risen' => 'Professionally created according to RISEN methodology with 21 propaganda techniques',
+    'custom_risen_prompt' => 'Custom RISEN prompt',
+    'modify_any_risen_part' => 'Modify any RISEN part according to your needs',
+    'risen_atspara_prompt' => 'RISEN ATSPARA Prompt',
+    'view_full_prompt' => 'View full prompt',
+    'prompt_includes_11_techniques' => 'This prompt includes 11 ATSPARA propaganda techniques and JSON format specification',
+    'what_is_ai_model_in_task' => 'What is the AI model in this task?',
+    'what_exactly_to_do' => 'What exactly to do?',
+    'in_what_context' => 'In what context?',
+    'how_to_perform_task' => 'How to perform the task?',
+    'what_format_response_needed' => 'What format response is needed?',
+    'reset_to_default' => 'Reset to default',
+    'atspara_techniques_added_automatically' => 'ATSPARA techniques and JSON format are added automatically',
+    'analysis_name_placeholder' => 'E.g.: Propaganda analysis 2025-01',
+    'analysis_description_placeholder' => 'Short analysis description',
+    'standard_atspara_prompt' => 'Standard ATSPARA prompt',
+    'copy_to_custom_prompt' => 'Copy to custom prompt',
+    'risen_prompt_builder' => 'RISEN Prompt Builder',
+    'risen_methodology' => 'RISEN methodology',
+    'risen_methodology_description' => 'Role, Instructions, Situation, Execution, Narrowing - structured prompt creation method',
+    'situation' => 'Situation',
+    'execution' => 'Execution',
+    'create_prompt' => 'Create prompt',
+    
+    // Analysis List Additional
+    'analysis_types' => 'Analysis Types',
+    'without_expert_annotations' => 'Without expert annotations',
+    'with_risen_prompt' => 'With RISEN prompt',
+    'repeated' => 'Repeated',
+    'system_compares_ai_expert' => 'system compares AI and expert results, calculates P/R/F1 metrics',
+    'only_ai_analyzes' => 'only AI models analyze texts according to ATSPARA methodology',
+    'uses_modified_prompt' => 'uses modified prompt for specific needs',
+    'repeats_existing_analysis' => 'repeats existing analysis with different models or prompts',
+    'search' => 'Search',
+    'search_by_name_or_id' => 'Search by name or ID...',
+    'all_statuses' => 'All statuses',
+    'type' => 'Type',
+    'all_types' => 'All types',
+    'standard' => 'Standard',
+    'clear' => 'Clear',
+    'repeated_analysis' => 'Repeated Analysis',
+    'analysis_completed_successfully' => 'Analysis completed successfully',
+    'analysis_in_progress' => 'Analysis in progress...',
+    'analysis_failed' => 'Analysis failed',
+    'experiment' => 'Experiment',
+    'confirm_delete_analysis' => 'Are you sure you want to delete this analysis? This action cannot be undone.',
+    'no_analyses_performed_yet' => 'No propaganda analyses have been performed yet.',
+    'start_new_analysis_by_uploading' => 'Start a new analysis by uploading a JSON file with texts.',
 ];

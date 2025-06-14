@@ -13,6 +13,7 @@ return [
     'mission_control' => 'Mission Control',
 
     // Analysis Interface
+    'analysis' => 'Analizė',
     'analysis_details' => 'Analizės detalės',
     'analysis_id' => 'Analizės ID',
     'text_upload' => 'Tekstų analizės paleidimas',
@@ -221,4 +222,201 @@ return [
     'showing_data_for_job' => 'Rodomi duomenys darbo ID',
     'copy_to_clipboard' => 'Kopijuoti į mainų sricitį',
     'log_message_copied' => 'ŽURNALO PRANEŠIMAS NUKOPIJUOTAS Į MAINŲ SRITĮ',
+    
+    // Dashboard Performance Metrics
+    'f1_score' => 'F1 balas',
+    'precision' => 'Tikslumas',
+    'recall' => 'Atsaukimas',
+    'speed' => 'Greitis',
+    'propaganda_detection' => 'Propagandos aptikimas',
+    'score' => 'Įvertis',
+    'texts' => 'tekstų',
+    'no_performance_data' => 'Nėra našumo duomenų',
+    'run_analysis_to_start' => 'Paleiskite analizę, kad pamatytumėte metrikas',
+    'start_analysis_button' => 'Pradėti analizę',
+    'model_rating' => 'Modelių reitingas',
+    'no_rating_data' => 'Nėra duomenų reitingui',
+    'no_analyses' => 'Nėra analizių',
+    
+    // Analysis List Additional
+    'all_completed_analyses' => 'Visos atliktos propagandos analizės',
+    'link' => 'Nuoroda',
+    'view' => 'Peržiūrėti',
+    'status_label' => 'Statusas',
+    'delete' => 'Ištrinti',
+    'delete_analysis_confirm' => 'Ištrinti analizę',
+    'analysis_cancelled' => 'Analizė atšaukta',
+    'no_results_found' => 'Nerasta rezultatų',
+    'try_changing_filters' => 'Pabandykite pakeisti filtrus...',
+    
+    // System Usage Instructions
+    'how_to_use_system' => 'Kaip naudoti sistemą',
+    'system_usage_instructions' => [
+        'step1' => 'Paruoškite JSON failą su tekstais analizei. Failas gali turėti ekspertų anotacijas (AI tikslumo matavimui) arba būti be jų.',
+        'step2' => 'Įkelkite failą ir pasirinkite AI modelius, kuriuos norite naudoti propagandos aptikimui.',
+        'step3' => 'Sistema apdoros kiekvieną tekstą su pasirinktais modeliais ir identifikuos propagandos technikas.',
+        'step4' => 'Baigus galėsite peržiūrėti detalius rezultatus, palyginti modelių našumą ir eksportuoti duomenis.',
+    ],
+    
+    // RISEN Prompt
+    'risen_prompt_editor' => 'RISEN Prompt Redaktorius',
+    'modify_risen_prompt' => 'Modifikuokite RISEN prompt metodologijos sekcijas',
+    'role' => 'Vaidmuo',
+    'instructions' => 'Instrukcijos',
+    'steps' => 'Žingsniai',
+    'end_goal' => 'Galutinis tikslas',
+    'narrowing' => 'Susiaurinimas',
+    
+    // Analysis Form
+    'analysis_information' => 'Analizės informacija',
+    'analysis_type' => 'Analizės tipas',
+    'created_at' => 'Sukurta',
+    'completed_at' => 'Užbaigta',
+    'error_messages' => 'Klaidų pranešimai',
+    'analysis_results' => 'Analizės rezultatai',
+    
+    // Tooltips and Help Text
+    'f1_score_tooltip' => 'Tikslumo ir atsaukimo harmoninis vidurkis. Didesnė reikšmė rodo geresnį bendrą našumą.',
+    'precision_tooltip' => 'Teisingai identifikuotos propagandos procentas tarp visų identifikuotų atvejų. Didelis tikslumas reiškia mažiau klaidingai teigiamų.',
+    'recall_tooltip' => 'Faktinių propagandos atvejų, kurie buvo teisingai identifikuoti, procentas. Didelis atsaukimas reiškia mažiau klaidingai neigiamų.',
+    'speed_tooltip' => 'Vidutinis laikas analizuoti vieną tekstą. Mažesnės reikšmės rodo greitesnį apdorojimą.',
+    'propaganda_detection_tooltip' => 'Tekstų, kuriuose buvo aptikta propaganda, procentas. Skaičiuojama tik iš tekstų, turinčių propagandą.',
+    'score_tooltip' => 'Bendras modelio įvertinimas pagrįstas F1 balu, tikslumu, atsaukimu ir apdorojimo greičiu.',
+    
+    // DataTable Localization
+    'datatable' => [
+        'search' => 'Ieškoti:',
+        'lengthMenu' => 'Rodyti _MENU_ įrašų',
+        'info' => 'Rodoma _START_ - _END_ iš _TOTAL_ įrašų',
+        'infoEmpty' => 'Rodoma 0 - 0 iš 0 įrašų',
+        'infoFiltered' => '(filtruota iš _MAX_ viso įrašų)',
+        'loadingRecords' => 'Kraunama...',
+        'processing' => 'Apdorojama...',
+        'zeroRecords' => 'Nerasta atitinkančių įrašų',
+        'emptyTable' => 'Nėra duomenų lentelėje',
+        'paginate' => [
+            'first' => 'Pirmas',
+            'previous' => 'Ankstesnis',
+            'next' => 'Kitas',
+            'last' => 'Paskutinis'
+        ],
+        'aria' => [
+            'sortAscending' => ': aktyvuoti rūšiavimui didėjančia tvarka',
+            'sortDescending' => ': aktyvuoti rūšiavimui mažėjančia tvarka'
+        ]
+    ],
+    
+    // Chart Labels
+    'average_f1_by_model' => 'Vidutinis F1 balas pagal modelį',
+    'model_performance_radar' => 'Modelių našumo palyginimas',
+    'techniques_by_frequency' => 'Propagandos technikos pagal dažnumą',
+    'model_performance_metrics' => 'Modelių našumo metrikos',
+    'most_detected_techniques' => 'Dažniausiai aptiktos technikos',
+    'analyses_count_last_30_days' => 'Analizių skaičius per paskutines 30 dienų',
+    
+    // Progress Messages
+    'initializing_analysis' => 'Inicijuojama analizė...',
+    'processing_file' => 'Apdorojamas failas',
+    'analyzing_with_model' => 'Analizuojama su :model',
+    'analysis_complete' => 'Analizė baigta',
+    'calculating_metrics' => 'Skaičiuojamos metrikos...',
+    
+    // File Upload
+    'json_file_required' => 'JSON failas (privalomas)',
+    'upload_instructions' => 'Įkelkite JSON failą su tekstais analizei',
+    'file_format_info' => 'Failas gali turėti ekspertų anotacijas arba tik tekstus',
+    
+    // Actions
+    'actions' => 'Veiksmai',
+    'export' => 'Eksportuoti',
+    'statistics' => 'Statistika',
+    
+    // Empty States
+    'no_data' => 'Nėra duomenų',
+    'no_analyses_yet' => 'Dar nėra analizių',
+    'start_first_analysis' => 'Pradėkite pirmą analizę, kad matytumėte rezultatus',
+    
+    // Confirmation Messages
+    'confirm_delete' => 'Ar tikrai norite ištrinti šią analizę?',
+    'confirm_cancel' => 'Ar tikrai norite atšaukti šią analizę?',
+    
+    // Success Messages
+    'analysis_started' => 'Analizė pradėta sėkmingai',
+    'analysis_deleted' => 'Analizė ištrinta sėkmingai',
+    'data_exported' => 'Duomenys eksportuoti sėkmingai',
+    
+    // Propaganda Detection Badges
+    'true_positive_propaganda' => 'Teisingai rasta propaganda',
+    'false_positive_propaganda' => 'Klaidingai rasta propaganda',
+    'true_negative_propaganda' => 'Teisingai nerasta propaganda',
+    'false_negative_propaganda' => 'Klaidingai nerasta propaganda',
+    
+    // Analysis Form Additional
+    'data_types' => 'Duomenų tipai',
+    'with_expert_annotations_desc' => 'Su ekspertų anotacijomis',
+    'calculates_region_metrics' => 'skaičiuoja regionų lygio metrikas (precision, recall, F1)',
+    'without_annotations' => 'Be anotacijų',
+    'ai_analysis_only' => 'tik AI analizė',
+    'results' => 'Rezultatai',
+    '11_atspara_techniques' => '11 ATSPARA propagandos technikų',
+    'csv_json_export' => 'CSV/JSON eksportas',
+    'real_time_progress' => 'Realaus laiko progresas',
+    'detailed_documentation' => 'Išsami dokumentacija',
+    'upload_json_and_select_models' => 'Įkelkite JSON failą (su arba be ekspertų anotacijų) ir pasirinkite LLM modelius analizei.',
+    'json_upload_tooltip' => 'Įkelkite JSON failą su tekstais. Jei turite ekspertų anotacijas (iš Label Studio), sistema apskaičiuos palyginimo metrikas. Jei ne - tik AI analizė.',
+    'specific_json_format_required' => 'Reikalingas specifinis JSON formatas.',
+    'view_format_specification' => 'Žiūrėti formato specifikaciją',
+    'supported_formats_json' => 'Palaikomi formatai: .json (iki 100MB kiekvienam). Galite pasirinkti kelis failus.',
+    'unknown_status' => 'Nežinomas statusas',
+    'risen_prompt_configuration' => 'RISEN Prompt Konfigūracija',
+    'risen_methodology_tooltip' => 'RISEN metodologija: Role, Instructions, Situation, Execution, Needle. Standartinis ATSPARA promptas optimizuotas lietuvių propagandos analizei.',
+    'standard_atspara_risen_prompt' => 'Standartinis ATSPARA RISEN promptas',
+    'professionally_created_risen' => 'Profesionaliai sukurtas pagal RISEN metodologiją su 21 propaganda technika',
+    'custom_risen_prompt' => 'Pritaikytas RISEN promptas',
+    'modify_any_risen_part' => 'Modifikuokite bet kurią RISEN dalį pagal poreikius',
+    'risen_atspara_prompt' => 'RISEN ATSPARA Promptas',
+    'view_full_prompt' => 'Peržiūrėti pilną prompt\'ą',
+    'prompt_includes_11_techniques' => 'Šis promptas apima 11 ATSPARA propagandos technikas ir JSON formato specifikaciją',
+    'what_is_ai_model_in_task' => 'Kas yra AI modelis šioje užduotyje?',
+    'what_exactly_to_do' => 'Ką tiksliai daryti?',
+    'in_what_context' => 'Kokiame kontekste?',
+    'how_to_perform_task' => 'Kaip atlikti užduotį?',
+    'what_format_response_needed' => 'Kokio formato atsakymo reikia?',
+    'reset_to_default' => 'Atstatyti standartinį',
+    'atspara_techniques_added_automatically' => 'Automatiškai pridedamos ATSPARA technikos ir JSON formatas',
+    'analysis_name_placeholder' => 'Pvz.: Propagandos analizė 2025-01',
+    'analysis_description_placeholder' => 'Trumpas analizės aprašymas',
+    'standard_atspara_prompt' => 'Standartinis ATSPARA prompt\'as',
+    'copy_to_custom_prompt' => 'Kopijuoti į custom prompt\'ą',
+    'risen_prompt_builder' => 'RISEN Prompt\'o kūrėjas',
+    'risen_methodology' => 'RISEN metodologija',
+    'risen_methodology_description' => 'Role, Instructions, Situation, Execution, Needle - struktūrizuotas prompt\'o kūrimo metodas',
+    'situation' => 'Situacija',
+    'execution' => 'Vykdymas',
+    'create_prompt' => 'Sukurti prompt\'ą',
+    
+    // Analysis List Additional
+    'analysis_types' => 'Analizių tipai',
+    'without_expert_annotations' => 'Be ekspertų anotacijų',
+    'with_risen_prompt' => 'Su RISEN prompt\'u',
+    'repeated' => 'Pakartotinės',
+    'system_compares_ai_expert' => 'sistema palygina AI ir ekspertų rezultatus, apskaičiuoja P/R/F1 metrikas',
+    'only_ai_analyzes' => 'tik AI modeliai analizuoja tekstus pagal ATSPARA metodologiją',
+    'uses_modified_prompt' => 'naudoja modifikuotą prompt\'ą specifiniems poreikiams',
+    'repeats_existing_analysis' => 'pakartoja esamą analizę su kitais modeliais ar prompt\'ais',
+    'search' => 'Paieška',
+    'search_by_name_or_id' => 'Ieškoti pagal pavadinimą arba ID...',
+    'all_statuses' => 'Visi statusai',
+    'type' => 'Tipas',
+    'all_types' => 'Visi tipai',
+    'standard' => 'Standartinė',
+    'clear' => 'Valyti',
+    'repeated_analysis' => 'Pakartotinė analizė',
+    'analysis_completed_successfully' => 'Analizė baigta sėkmingai',
+    'analysis_in_progress' => 'Analizė vykdoma...',
+    'analysis_failed' => 'Analizė nepavyko',
+    'experiment' => 'Eksperimentas',
+    'confirm_delete_analysis' => 'Ar tikrai norite ištrinti šią analizę? Šis veiksmas negrįžtamas.',
+    'no_analyses_performed_yet' => 'Dar nėra atlikta jokių propagandos analizių.',
+    'start_new_analysis_by_uploading' => 'Pradėkite naują analizę įkeldami JSON failą su tekstais.',
 ];
