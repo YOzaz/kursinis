@@ -102,7 +102,7 @@ Universali propagandos analizės platforma, kuri veikia dviem pagrindiniais rež
 - **Statistikos dashboard**: Modelių našumo palyginimas ir sistemos metrikos
 - **Mission Control**: Sistemos monitoringas su log'ų kopijavimo funkcionalumu
 - **Rezultatų vizualizacija**: Interaktyvūs grafikai ir lentelės
-- **Daugiakalbė sąsaja**: Pilna lietuvių ir anglų kalbų palaikymo sistema
+- **Daugiakalbė sąsaja**: Pilna lietuvių ir anglų kalbų palaikymo sistema (žr. [Internationalization](docs/INTERNATIONALIZATION.md))
 
 ## 🚀 Greitas startas
 

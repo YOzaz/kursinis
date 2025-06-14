@@ -16,7 +16,7 @@ class StaticPagesTest extends TestCase
         $response = $this->get('/contact');
         
         $response->assertStatus(200)
-                ->assertSee('Kontaktai');
+                ->assertSeeText(__('messages.contacts'));
     }
 
     public function test_legal_page_is_accessible()
@@ -26,7 +26,7 @@ class StaticPagesTest extends TestCase
         $response = $this->get('/legal');
         
         $response->assertStatus(200)
-                ->assertSee('Teisinė informacija');
+                ->assertSeeText(__('messages.legal_information'));
     }
 
     public function test_contact_page_redirects_when_not_authenticated()
@@ -50,7 +50,7 @@ class StaticPagesTest extends TestCase
         $response = $this->get('/contact');
         
         $response->assertStatus(200)
-                ->assertSee('Kontaktai');
+                ->assertSeeText(__('messages.contacts'));
     }
 
     public function test_legal_page_accessible_when_authenticated()
@@ -60,7 +60,7 @@ class StaticPagesTest extends TestCase
         $response = $this->get('/legal');
         
         $response->assertStatus(200)
-                ->assertSee('Teisinė informacija');
+                ->assertSeeText(__('messages.legal_information'));
     }
 
 }
