@@ -253,4 +253,157 @@ class LanguageSwitchingTest extends TestCase
         // Should redirect back to analyses page
         $response->assertRedirect(route('analyses.index'));
     }
+
+    /** @test */
+    public function contact_page_displays_correct_language_content()
+    {
+        // Test English version
+        $user = User::factory()->create([
+            'language' => 'en'
+        ]);
+
+        $this->actingAs($user);
+
+        $response = $this->get(route('contact'));
+
+        $response->assertStatus(200);
+        
+        // Check English translations are displayed
+        $response->assertSee('Contacts');
+        $response->assertSee('Contact the system creators');
+        $response->assertSee('Thesis Author');
+        $response->assertSee('Scientific Supervisor');
+        $response->assertSee('Department of Data Science and Digital Technologies');
+        $response->assertSee('Responsible for');
+        $response->assertSee('System architecture and development');
+        $response->assertSee('AI model integration');
+        $response->assertSee('RISEN methodology implementation');
+        $response->assertSee('ATSPARA Project');
+        $response->assertSee('Academic Research');
+        
+        // Make sure Lithuanian text is not displayed
+        $response->assertDontSee('Kontaktai');
+        $response->assertDontSee('Susisiekite su sistemos kūrėjais');
+        $response->assertDontSee('Kursinio darbo autorius');
+        $response->assertDontSee('Mokslinis vadovas');
+        $response->assertDontSee('Duomenų mokslo ir skaitmeninių technologijų katedra');
+    }
+
+    /** @test */
+    public function contact_page_displays_lithuanian_content_when_language_is_lithuanian()
+    {
+        $user = User::factory()->create([
+            'language' => 'lt'
+        ]);
+
+        $this->actingAs($user);
+
+        $response = $this->get(route('contact'));
+
+        $response->assertStatus(200);
+        
+        // Check Lithuanian content is displayed
+        $response->assertSee('Kontaktai');
+        $response->assertSee('Susisiekite su sistemos kūrėjais');
+        $response->assertSee('Kursinio darbo autorius');
+        $response->assertSee('Mokslinis vadovas');
+        
+        // Make sure English text is not displayed
+        $response->assertDontSee('Contacts');
+        $response->assertDontSee('Contact the system creators');
+        $response->assertDontSee('Thesis Author');
+        $response->assertDontSee('Scientific Supervisor');
+    }
+
+    /** @test */
+    public function legal_page_displays_correct_language_content()
+    {
+        // Test English version
+        $user = User::factory()->create([
+            'language' => 'en'
+        ]);
+
+        $this->actingAs($user);
+
+        $response = $this->get(route('legal'));
+
+        $response->assertStatus(200);
+        
+        // Check English translations are displayed
+        $response->assertSee('Legal Information');
+        $response->assertSee('Data usage, privacy and responsibility');
+        $response->assertSee('General Information');
+        $response->assertSee('Data Usage and Security');
+        $response->assertSee('GDPR and Privacy Protection');
+        $response->assertSee('Liability Disclaimer');
+        $response->assertSee('Academic Ethics Principles');
+        $response->assertSee('Your rights:');
+        $response->assertSee('Access right');
+        $response->assertSee('Rectification right');
+        $response->assertSee('Erasure right');
+        $response->assertSee('Portability right');
+        
+        // Make sure Lithuanian text is not displayed
+        $response->assertDontSee('Teisinė informacija');
+        $response->assertDontSee('Duomenų naudojimas, privatumas ir atsakomybė');
+        $response->assertDontSee('Bendroji informacija');
+        $response->assertDontSee('Duomenų naudojimas ir saugumas');
+        $response->assertDontSee('GDPR ir privatumo apsauga');
+        $response->assertDontSee('Atsakomybės apribojimas');
+        $response->assertDontSee('Akademinės etikos principai');
+    }
+
+    /** @test */
+    public function legal_page_displays_lithuanian_content_when_language_is_lithuanian()
+    {
+        $user = User::factory()->create([
+            'language' => 'lt'
+        ]);
+
+        $this->actingAs($user);
+
+        $response = $this->get(route('legal'));
+
+        $response->assertStatus(200);
+        
+        // Check Lithuanian content is displayed
+        $response->assertSee('Teisinė informacija');
+        $response->assertSee('Duomenų naudojimas, privatumas ir atsakomybė');
+        $response->assertSee('Bendroji informacija');
+        
+        // Make sure English text is not displayed
+        $response->assertDontSee('Legal Information');
+        $response->assertDontSee('Data usage, privacy and responsibility');
+        $response->assertDontSee('General Information');
+    }
+
+    /** @test */
+    public function contact_page_works_for_unauthenticated_users_with_session_language()
+    {
+        // Set session language to English
+        Session::put('language', 'en');
+
+        $response = $this->get(route('contact'));
+
+        $response->assertStatus(200);
+        
+        // Check English translations are displayed
+        $response->assertSee('Contacts');
+        $response->assertSee('Contact the system creators');
+    }
+
+    /** @test */
+    public function legal_page_works_for_unauthenticated_users_with_session_language()
+    {
+        // Set session language to English
+        Session::put('language', 'en');
+
+        $response = $this->get(route('legal'));
+
+        $response->assertStatus(200);
+        
+        // Check English translations are displayed
+        $response->assertSee('Legal Information');
+        $response->assertSee('Data usage, privacy and responsibility');
+    }
 }

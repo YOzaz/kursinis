@@ -1,6 +1,6 @@
 @extends('layout')
 
-@section('title', 'Kontaktai')
+@section('title', __('messages.contacts'))
 
 @section('content')
 <div class="container mt-4">
@@ -8,11 +8,11 @@
         <div class="col-lg-8 mx-auto">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h1><i class="fas fa-envelope me-2"></i>Kontaktai</h1>
-                    <p class="text-muted mb-0">Susisiekite su sistemos kūrėjais</p>
+                    <h1><i class="fas fa-envelope me-2"></i>{{ __('messages.contacts') }}</h1>
+                    <p class="text-muted mb-0">{{ __('messages.contact_system_creators') }}</p>
                 </div>
                 <a href="{{ route('home') }}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left"></i> Grįžti
+                    <i class="fas fa-arrow-left"></i> {{ __('messages.back') }}
                 </a>
             </div>
 
@@ -21,12 +21,12 @@
                     <div class="card h-100">
                         <div class="card-header bg-primary text-white">
                             <h5 class="mb-0">
-                                <i class="fas fa-user-graduate me-2"></i>Kursinio darbo autorius
+                                <i class="fas fa-user-graduate me-2"></i>{{ __('messages.thesis_author') }}
                             </h5>
                         </div>
                         <div class="card-body">
                             <h6>Marijus Plančiūnas</h6>
-                            <p class="text-muted">Kursinio darbo autorius, Duomenų mokslas</p>
+                            <p class="text-muted">{{ __('messages.thesis_author_desc') }}</p>
                             
                             <div class="contact-info">
                                 <div class="mb-2">
@@ -43,11 +43,11 @@
                             
                             <hr>
                             <small class="text-muted">
-                                <strong>Atsakingas už:</strong><br>
-                                • Sistemos architektūra ir plėtra<br>
-                                • AI modelių integracija<br>
-                                • RISEN metodologijos implementacija<br>
-                                • Techninės problemos ir klaidų taisymas
+                                <strong>{{ __('messages.responsible_for') }}:</strong><br>
+                                • {{ __('messages.system_architecture_development') }}<br>
+                                • {{ __('messages.ai_model_integration') }}<br>
+                                • {{ __('messages.risen_methodology_implementation') }}<br>
+                                • {{ __('messages.technical_issues_bug_fixes') }}
                             </small>
                         </div>
                     </div>
@@ -57,12 +57,12 @@
                     <div class="card h-100">
                         <div class="card-header bg-success text-white">
                             <h5 class="mb-0">
-                                <i class="fas fa-chalkboard-teacher me-2"></i>Mokslinis vadovas
+                                <i class="fas fa-chalkboard-teacher me-2"></i>{{ __('messages.scientific_supervisor') }}
                             </h5>
                         </div>
                         <div class="card-body">
                             <h6>Prof. Dr. Darius Plikynas</h6>
-                            <p class="text-muted">Duomenų mokslo ir skaitmeninių technologijų katedra</p>
+                            <p class="text-muted">{{ __('messages.data_science_dept') }}</p>
                             
                             <div class="contact-info">
                                 <div class="mb-2">
@@ -79,11 +79,11 @@
                             
                             <hr>
                             <small class="text-muted">
-                                <strong>Atsakingas už:</strong><br>
-                                • Mokslinė metodologija<br>
-                                • ATSPARA projekto koordinavimas<br>
-                                • Akademinės konsultacijos<br>
-                                • Rezultatų vertinimas
+                                <strong>{{ __('messages.responsible_for') }}:</strong><br>
+                                • {{ __('messages.scientific_methodology') }}<br>
+                                • {{ __('messages.atspara_project_coordination') }}<br>
+                                • {{ __('messages.academic_consultations') }}<br>
+                                • {{ __('messages.results_evaluation') }}
                             </small>
                         </div>
                     </div>
@@ -93,27 +93,25 @@
             <div class="card mb-4">
                 <div class="card-header">
                     <h5 class="mb-0">
-                        <i class="fas fa-shield-alt me-2"></i>ATSPARA projektas
+                        <i class="fas fa-shield-alt me-2"></i>{{ __('messages.atspara_project') }}
                     </h5>
                 </div>
                 <div class="card-body">
                     <p>
-                        Šis kursinis darbas remiasi ATSPARA projektu - Vilniaus universiteto iniciatyva, 
-                        skirta propagandos ir dezinformacijos tyrimams lietuvių kalboje.
+                        {{ __('messages.atspara_project_desc') }}
                     </p>
                     
                     <div class="row">
                         <div class="col-md-6">
-                            <h6><i class="fas fa-globe text-primary me-2"></i>Projekto svetainė</h6>
+                            <h6><i class="fas fa-globe text-primary me-2"></i>{{ __('messages.project_website') }}</h6>
                             <a href="https://www.atspara.mif.vu.lt/" target="_blank" class="btn btn-outline-primary mb-3">
                                 <i class="fas fa-external-link-alt me-1"></i>atspara.mif.vu.lt
                             </a>
                         </div>
                         <div class="col-md-6">
-                            <h6><i class="fas fa-database text-success me-2"></i>Duomenų šaltiniai</h6>
+                            <h6><i class="fas fa-database text-success me-2"></i>{{ __('messages.data_sources') }}</h6>
                             <p class="small text-muted">
-                                Anotacijos metodologija ir propagandos technikos klasifikacija
-                                remiantis ATSPARA korpuso tyrimais.
+                                {{ __('messages.annotation_methodology_desc') }}
                             </p>
                         </div>
                     </div>
@@ -123,20 +121,20 @@
             <div class="card mb-4">
                 <div class="card-header">
                     <h5 class="mb-0">
-                        <i class="fas fa-info-circle me-2"></i>Akademinis tyrimas
+                        <i class="fas fa-info-circle me-2"></i>{{ __('messages.academic_research') }}
                     </h5>
                 </div>
                 <div class="card-body">
-                    <p>Ši sistema yra sukurta akademinio tyrimo tikslais. Jei turite klausimų apie:</p>
+                    <p>{{ __('messages.academic_research_desc') }}</p>
                     
                     <ul>
-                        <li><strong>Tyrimo metodologiją</strong> ir ATSPARA projekto pritaikymą</li>
-                        <li><strong>Rezultatų interpretavimą</strong> ir analizės proceso ypatumus</li>
-                        <li><strong>Techninės sistemos veikimą</strong> ir galimas problemas</li>
-                        <li><strong>Duomenų naudojimą</strong> tyrimo kontekste</li>
+                        <li><strong>{{ __('messages.research_methodology') }}</strong> {{ __('messages.research_methodology_desc') }}</li>
+                        <li><strong>{{ __('messages.results_interpretation') }}</strong> {{ __('messages.results_interpretation_desc') }}</li>
+                        <li><strong>{{ __('messages.technical_system_operation') }}</strong> {{ __('messages.technical_system_operation_desc') }}</li>
+                        <li><strong>{{ __('messages.data_usage_research') }}</strong> {{ __('messages.data_usage_research_desc') }}</li>
                     </ul>
                     
-                    <p>Prašome susisiekti el. paštu pateikiant kuo išsamesnę informaciją apie jūsų klausimą.</p>
+                    <p>{{ __('messages.contact_email_detailed') }}</p>
                 </div>
             </div>
 

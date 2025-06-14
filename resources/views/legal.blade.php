@@ -1,6 +1,6 @@
 @extends('layout')
 
-@section('title', 'Teisinė informacija')
+@section('title', __('messages.legal_information'))
 
 @section('content')
 <div class="container mt-4">
@@ -8,36 +8,33 @@
         <div class="col-lg-8 mx-auto">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h1><i class="fas fa-balance-scale me-2"></i>Teisinė informacija</h1>
-                    <p class="text-muted mb-0">Duomenų naudojimas, privatumas ir atsakomybė</p>
+                    <h1><i class="fas fa-balance-scale me-2"></i>{{ __('messages.legal_information') }}</h1>
+                    <p class="text-muted mb-0">{{ __('messages.data_usage_privacy_responsibility') }}</p>
                 </div>
                 <a href="{{ route('home') }}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left"></i> Grįžti
+                    <i class="fas fa-arrow-left"></i> {{ __('messages.back') }}
                 </a>
             </div>
 
             <!-- Bendroji informacija -->
             <div class="card mb-4">
                 <div class="card-header">
-                    <h3><i class="fas fa-info-circle me-2"></i>Bendroji informacija</h3>
+                    <h3><i class="fas fa-info-circle me-2"></i>{{ __('messages.general_information') }}</h3>
                 </div>
                 <div class="card-body">
                     <p>
-                        Ši propagandos analizės sistema yra sukurta akademinių tyrimų tikslais 
-                        Vilniaus universiteto Matematikos ir informatikos fakulteto magistro studijų programos rėmuose.
+                        {{ __('messages.legal_general_desc') }}
                     </p>
                     
                     <div class="row">
                         <div class="col-md-6">
-                            <h6><i class="fas fa-university text-primary me-2"></i>Institucija</h6>
-                            <p>Vilniaus universitetas<br>
-                            Matematikos ir informatikos fakultetas<br>
-                            Universiteto g. 3, Vilnius</p>
+                            <h6><i class="fas fa-university text-primary me-2"></i>{{ __('messages.institution') }}</h6>
+                            <p>{!! __('messages.vu_mif_address') !!}</p>
                         </div>
                         <div class="col-md-6">
-                            <h6><i class="fas fa-calendar text-success me-2"></i>Sukūrimo data</h6>
+                            <h6><i class="fas fa-calendar text-success me-2"></i>{{ __('messages.creation_date') }}</h6>
                             <p>2025 m.<br>
-                            Kursinis darbas</p>
+                            {{ __('messages.thesis_work') }}</p>
                         </div>
                     </div>
                 </div>
@@ -46,31 +43,29 @@
             <!-- Duomenų naudojimas -->
             <div class="card mb-4">
                 <div class="card-header">
-                    <h3><i class="fas fa-database me-2"></i>Duomenų naudojimas ir saugumas</h3>
+                    <h3><i class="fas fa-database me-2"></i>{{ __('messages.data_usage_security') }}</h3>
                 </div>
                 <div class="card-body">
-                    <h6>Kokie duomenys yra apdorojami:</h6>
+                    <h6>{{ __('messages.what_data_processed') }}</h6>
                     <ul>
-                        <li><strong>Tekstai analizei:</strong> Jūsų įkelti tekstai siunčiami į AI paslaugų teikėjus (OpenAI, Anthropic, Google)</li>
-                        <li><strong>Analizės rezultatai:</strong> AI modelių atsakymai išsaugomi sistemos duomenų bazėje</li>
-                        <li><strong>Metaduomenys:</strong> Analizės laikas, naudoti modeliai, vykdymo statistikos</li>
-                        <li><strong>Ekspertų anotacijos:</strong> Jei pateiktos, naudojamos metrikų skaičiavimui</li>
+                        <li><strong>{{ __('messages.texts_for_analysis') }}:</strong> {{ __('messages.texts_sent_to_ai') }}</li>
+                        <li><strong>{{ __('messages.analysis_results_legal') }}:</strong> {{ __('messages.ai_responses_saved') }}</li>
+                        <li><strong>{{ __('messages.metadata') }}:</strong> {{ __('messages.analysis_time_models_stats') }}</li>
+                        <li><strong>{{ __('messages.expert_annotations_legal') }}:</strong> {{ __('messages.if_provided_used_metrics') }}</li>
                     </ul>
 
-                    <h6 class="mt-4">Kaip duomenys yra apsaugoti:</h6>
+                    <h6 class="mt-4">{{ __('messages.how_data_protected') }}</h6>
                     <ul>
-                        <li><strong>HTTPS šifravimas:</strong> Visi duomenų perdavimai apsaugoti SSL/TLS</li>
-                        <li><strong>Universitetinė infrastruktūra:</strong> Serveriai veikia VU kontrollē</li>
-                        <li><strong>Prieigos kontrolė:</strong> Ribota prieiga prie duomenų bazės</li>
-                        <li><strong>API saugumas:</strong> Naudojami oficialūs API raktai su ribotomis teisėmis</li>
+                        <li><strong>{{ __('messages.https_encryption') }}:</strong> {{ __('messages.all_data_transfers_ssl') }}</li>
+                        <li><strong>{{ __('messages.university_infrastructure') }}:</strong> {{ __('messages.servers_under_vu_control') }}</li>
+                        <li><strong>{{ __('messages.access_control') }}:</strong> {{ __('messages.limited_db_access') }}</li>
+                        <li><strong>{{ __('messages.api_security') }}:</strong> {{ __('messages.official_api_keys_limited') }}</li>
                     </ul>
 
                     <div class="alert alert-warning">
-                        <h6><i class="fas fa-exclamation-triangle me-2"></i>Svarbu žinoti:</h6>
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>{{ __('messages.important_to_know') }}:</h6>
                         <p class="mb-0">
-                            Jūsų tekstai bus siunčiami į trečiųjų šalių AI paslaugas (OpenAI, Anthropic, Google). 
-                            Nors šie tiekėjai teigia, kad neišsaugo duomenų ilgalaikio, rekomenduojame nenaudoti 
-                            konfidencialių ar asmeninių duomenų.
+                            {{ __('messages.texts_sent_to_third_party') }}
                         </p>
                     </div>
                 </div>
@@ -79,28 +74,28 @@
             <!-- GDPR ir privatumas -->
             <div class="card mb-4">
                 <div class="card-header">
-                    <h3><i class="fas fa-shield-alt me-2"></i>GDPR ir privatumo apsauga</h3>
+                    <h3><i class="fas fa-shield-alt me-2"></i>{{ __('messages.gdpr_privacy_protection') }}</h3>
                 </div>
                 <div class="card-body">
-                    <h6>Jūsų teisės:</h6>
+                    <h6>{{ __('messages.your_rights') }}</h6>
                     <ul>
-                        <li><strong>Prieigos teisė:</strong> Galite paprašyti informacijos apie saugomus duomenis</li>
-                        <li><strong>Ištaisymo teisė:</strong> Galite prašyti ištaisyti neteisingus duomenis</li>
-                        <li><strong>Ištrynimo teisė:</strong> Galite prašyti ištrinti savo duomenis</li>
-                        <li><strong>Perkėlimo teisė:</strong> Galite gauti duomenis struktūruotu formatu</li>
+                        <li><strong>{{ __('messages.access_right') }}:</strong> {{ __('messages.request_info_stored_data') }}</li>
+                        <li><strong>{{ __('messages.rectification_right') }}:</strong> {{ __('messages.request_correct_incorrect_data') }}</li>
+                        <li><strong>{{ __('messages.erasure_right') }}:</strong> {{ __('messages.request_delete_data') }}</li>
+                        <li><strong>{{ __('messages.portability_right') }}:</strong> {{ __('messages.get_data_structured_format') }}</li>
                     </ul>
 
-                    <h6 class="mt-4">Duomenų saugojimo trukmė:</h6>
+                    <h6 class="mt-4">{{ __('messages.data_retention_period') }}</h6>
                     <ul>
-                        <li><strong>Analizės rezultatai:</strong> Saugomi iki sistemos pabaigos (akademinio darbo įteikimo)</li>
-                        <li><strong>Loginiai įrašai:</strong> 30 dienų saugojimo terminas</li>
-                        <li><strong>Klaidų informacija:</strong> Ištrinami po problemos išsprendimo</li>
+                        <li><strong>{{ __('messages.analysis_results_retention') }}:</strong> {{ __('messages.stored_until_system_end') }}</li>
+                        <li><strong>{{ __('messages.log_records') }}:</strong> {{ __('messages.30_day_retention') }}</li>
+                        <li><strong>{{ __('messages.error_information') }}:</strong> {{ __('messages.deleted_after_resolution') }}</li>
                     </ul>
 
                     <div class="alert alert-info">
                         <p class="mb-0">
-                            <strong>Duomenų valdytojas:</strong> Vilniaus universitetas<br>
-                            <strong>Kontaktas:</strong> marijus.planciunas@mif.stud.vu.lt
+                            <strong>{{ __('messages.data_controller') }}:</strong> {{ __('messages.data_controller_vu') }}<br>
+                            <strong>{{ __('messages.contact_legal') }}:</strong> marijus.planciunas@mif.stud.vu.lt
                         </p>
                     </div>
                 </div>
@@ -109,31 +104,30 @@
             <!-- Atsakomybės apribojimas -->
             <div class="card mb-4">
                 <div class="card-header">
-                    <h3><i class="fas fa-exclamation-circle me-2"></i>Atsakomybės apribojimas</h3>
+                    <h3><i class="fas fa-exclamation-circle me-2"></i>{{ __('messages.liability_disclaimer') }}</h3>
                 </div>
                 <div class="card-body">
                     <div class="alert alert-danger">
-                        <h6><strong>Svarbu:</strong></h6>
+                        <h6><strong>{{ __('messages.important_legal') }}:</strong></h6>
                         <p class="mb-0">
-                            Ši sistema yra akademinio tyrimo produktas ir nėra skirta komerciniam naudojimui. 
-                            AI rezultatai gali būti netikslūs arba šališki.
+                            {{ __('messages.academic_product_not_commercial') }}
                         </p>
                     </div>
 
-                    <h6>Sistemos apribojimai:</h6>
+                    <h6>{{ __('messages.system_limitations') }}</h6>
                     <ul>
-                        <li><strong>Tikslumas:</strong> AI modeliai nėra 100% tikslūs</li>
-                        <li><strong>Šališkumas:</strong> Modeliai gali turėti kultūrinių ar kalbinių šališkumų</li>
-                        <li><strong>Kontekstas:</strong> AI gali nesuprasti sudėtingo kultūrinio konteksto</li>
-                        <li><strong>Stabilumas:</strong> Kaip prototipas, sistema gali veikti nestabiliai</li>
+                        <li><strong>{{ __('messages.accuracy') }}:</strong> {{ __('messages.ai_not_100_accurate') }}</li>
+                        <li><strong>{{ __('messages.bias') }}:</strong> {{ __('messages.models_may_have_bias') }}</li>
+                        <li><strong>{{ __('messages.context') }}:</strong> {{ __('messages.ai_may_not_understand_context') }}</li>
+                        <li><strong>{{ __('messages.stability') }}:</strong> {{ __('messages.prototype_may_be_unstable') }}</li>
                     </ul>
 
-                    <h6 class="mt-4">Neatsakome už:</h6>
+                    <h6 class="mt-4">{{ __('messages.not_responsible_for') }}</h6>
                     <ul>
-                        <li>Klaidingus AI analizės rezultatus</li>
-                        <li>Sistemos neveikimą arba duomenų praradimą</li>
-                        <li>Trečiųjų šalių (AI tiekėjų) veiksmus</li>
-                        <li>Sprendimus, priimtus remiantis sistemos rezultatais</li>
+                        <li>{{ __('messages.incorrect_ai_results') }}</li>
+                        <li>{{ __('messages.system_failure_data_loss') }}</li>
+                        <li>{{ __('messages.third_party_actions') }}</li>
+                        <li>{{ __('messages.decisions_based_on_results') }}</li>
                     </ul>
                 </div>
             </div>
@@ -141,29 +135,28 @@
             <!-- Akademinės etikos -->
             <div class="card mb-4">
                 <div class="card-header">
-                    <h3><i class="fas fa-graduation-cap me-2"></i>Akademinės etikos principai</h3>
+                    <h3><i class="fas fa-graduation-cap me-2"></i>{{ __('messages.academic_ethics_principles') }}</h3>
                 </div>
                 <div class="card-body">
-                    <h6>Tyrimo etika:</h6>
+                    <h6>{{ __('messages.research_ethics') }}</h6>
                     <ul>
-                        <li><strong>Skaidrumas:</strong> Metodologija ir kodas yra atviri peržiūrai</li>
-                        <li><strong>Objektyvumas:</strong> Stengiamasi vengti šališkumo analizėje</li>
-                        <li><strong>Atidžiai</strong> laikomasi ATSPARA projekto metodologijos</li>
-                        <li><strong>Akademinė laisvė:</strong> Rezultatai pateikiami nekeičiant jų</li>
+                        <li><strong>{{ __('messages.transparency') }}:</strong> {{ __('messages.methodology_code_open') }}</li>
+                        <li><strong>{{ __('messages.objectivity') }}:</strong> {{ __('messages.effort_avoid_bias') }}</li>
+                        <li><strong>{{ __('messages.adherence') }}:</strong> {{ __('messages.following_atspara_methodology') }}</li>
+                        <li><strong>{{ __('messages.academic_freedom') }}:</strong> {{ __('messages.results_presented_unchanged') }}</li>
                     </ul>
 
-                    <h6 class="mt-4">Citavimas ir naudojimas:</h6>
+                    <h6 class="mt-4">{{ __('messages.citation_usage') }}</h6>
                     <ul>
-                        <li>Sistema galima naudoti akademiniams tikslams</li>
-                        <li>Prašome cituoti ATSPARA projektą ir šį darbą</li>
-                        <li>Komerciniam naudojimui reikalingas atskirtas leidimas</li>
+                        <li>{{ __('messages.can_use_for_academic') }}</li>
+                        <li>{{ __('messages.please_cite_atspara') }}</li>
+                        <li>{{ __('messages.commercial_use_permission') }}</li>
                     </ul>
 
                     <div class="alert alert-info">
-                        <h6>Rekomenduojamas citavimas:</h6>
+                        <h6>{{ __('messages.recommended_citation') }}:</h6>
                         <p class="mb-0 font-monospace small">
-                            Plančiūnas, M. (2025). Propagandos analizės sistema naudojant RISEN metodologiją 
-                            ir ATSPARA korpusą. Kursinis darbas. Vilniaus universitetas.
+                            {{ __('messages.citation_text') }}
                         </p>
                     </div>
                 </div>
@@ -172,14 +165,14 @@
             <!-- Kontaktai -->
             <div class="card mb-4">
                 <div class="card-header">
-                    <h3><i class="fas fa-envelope me-2"></i>Klausimų sprendimas</h3>
+                    <h3><i class="fas fa-envelope me-2"></i>{{ __('messages.question_resolution') }}</h3>
                 </div>
                 <div class="card-body">
-                    <p>Jei turite klausimų dėl duomenų naudojimo, privatumo ar sistemos veikimo:</p>
+                    <p>{{ __('messages.questions_about_data') }}</p>
                     
                     <div class="row">
                         <div class="col-md-6">
-                            <h6>Techninis kontaktas:</h6>
+                            <h6>{{ __('messages.technical_contact') }}</h6>
                             <p>
                                 <strong>Marijus Plančiūnas</strong><br>
                                 <a href="mailto:marijus.planciunas@mif.stud.vu.lt">
@@ -188,7 +181,7 @@
                             </p>
                         </div>
                         <div class="col-md-6">
-                            <h6>Akademinis vadovas:</h6>
+                            <h6>{{ __('messages.academic_supervisor') }}</h6>
                             <p>
                                 <strong>Prof. Dr. Darius Plikynas</strong><br>
                                 <a href="mailto:darius.plikynas@mif.vu.lt">
@@ -204,7 +197,7 @@
             <div class="text-center text-muted">
                 <small>
                     <i class="fas fa-calendar-alt me-1"></i>
-                    Paskutinį kartą atnaujinta: 2025-06-06
+                    {{ __('messages.last_updated') }}: 2025-06-06
                 </small>
             </div>
         </div>
