@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Services\Exceptions\GeminiErrorHandler;
 use App\Services\Exceptions\LLMException;
+use App\Models\User;
 
 /**
  * Google Gemini API servisas.
@@ -18,17 +19,28 @@ class GeminiService implements LLMServiceInterface
     private ?array $config;
     private ?string $modelKey;
     private GeminiErrorHandler $errorHandler;
+    private LLMService $llmService;
+    private ?User $user = null;
 
     public function __construct(PromptService $promptService)
     {
         $this->promptService = $promptService;
         $this->errorHandler = new GeminiErrorHandler();
+        $this->llmService = new LLMService();
+        
+        // Get user from SimpleAuth session
+        $username = session('username');
+        if ($username) {
+            $this->user = User::where('email', $username . '@local')->first();
+        }
+        
         $models = config('llm.models', []);
         
         // Rasti bet kurį Gemini modelį kaip numatytąjį
         foreach ($models as $key => $config) {
             if (str_starts_with($key, 'gemini')) {
-                $this->config = $config;
+                // Get config with user-specific API key if available
+                $this->config = $this->llmService->getModelConfig($key, $this->user);
                 $this->modelKey = $key;
                 break;
             }
@@ -262,7 +274,7 @@ class GeminiService implements LLMServiceInterface
      */
     public function isConfigured(): bool
     {
-        return !empty($this->config['api_key'] ?? '');
+        return !empty($this->config) && !empty($this->config['api_key']);
     }
 
     /**
@@ -271,13 +283,14 @@ class GeminiService implements LLMServiceInterface
     public function setModel(string $modelKey): bool
     {
         $models = config('llm.models', []);
-        $this->config = $models[$modelKey] ?? null;
-        
-        if ($this->config) {
-            return true;
+        if (!isset($models[$modelKey])) {
+            return false;
         }
         
-        return false;
+        // Get config with user-specific API key if available
+        $this->config = $this->llmService->getModelConfig($modelKey, $this->user);
+        $this->modelKey = $modelKey;
+        return true;
     }
 
     /**
@@ -290,10 +303,12 @@ class GeminiService implements LLMServiceInterface
         
         foreach ($models as $key => $config) {
             if (strpos($key, 'gemini') === 0) {
+                // Get config with user-specific API key if available
+                $modelConfig = $this->llmService->getModelConfig($key, $this->user);
                 $geminiModels[$key] = [
                     'name' => $config['model'] ?? $key,
                     'provider' => 'Google',
-                    'configured' => !empty($config['api_key'])
+                    'configured' => !empty($modelConfig['api_key'])
                 ];
             }
         }

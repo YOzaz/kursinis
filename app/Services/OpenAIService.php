@@ -7,6 +7,7 @@ use OpenAI\Client;
 use Illuminate\Support\Facades\Log;
 use App\Services\Exceptions\OpenAIErrorHandler;
 use App\Services\Exceptions\LLMException;
+use App\Models\User;
 
 /**
  * OpenAI ChatGPT API servisas.
@@ -21,19 +22,30 @@ class OpenAIService implements LLMServiceInterface
     private ?array $config;
     private ?string $modelKey;
     private OpenAIErrorHandler $errorHandler;
+    private LLMService $llmService;
+    private ?User $user = null;
 
     public function __construct(PromptService $promptService)
     {
         $this->promptService = $promptService;
         $this->errorHandler = new OpenAIErrorHandler();
+        $this->llmService = new LLMService();
         $this->config = null;
         $this->modelKey = null;
+        
+        // Get user from SimpleAuth session
+        $username = session('username');
+        if ($username) {
+            $this->user = User::where('email', $username . '@local')->first();
+        }
+        
         $models = config('llm.models', []);
         
         // Rasti bet kurį GPT modelį kaip numatytąjį
         foreach ($models as $key => $config) {
             if (str_starts_with($key, 'gpt')) {
-                $this->config = $config;
+                // Get config with user-specific API key if available
+                $this->config = $this->llmService->getModelConfig($key, $this->user);
                 $this->modelKey = $key;
                 break;
             }
@@ -194,7 +206,12 @@ class OpenAIService implements LLMServiceInterface
     public function setModel(string $modelKey): bool
     {
         $models = config('llm.models', []);
-        $this->config = $models[$modelKey] ?? null;
+        if (!isset($models[$modelKey])) {
+            return false;
+        }
+        
+        // Get config with user-specific API key if available
+        $this->config = $this->llmService->getModelConfig($modelKey, $this->user);
         
         if ($this->config && !empty($this->config['api_key'])) {
             $this->client = \OpenAI::factory()
@@ -222,10 +239,12 @@ class OpenAIService implements LLMServiceInterface
         
         foreach ($models as $key => $config) {
             if (strpos($key, 'gpt') === 0 || strpos($key, 'openai') === 0) {
+                // Get config with user-specific API key if available
+                $modelConfig = $this->llmService->getModelConfig($key, $this->user);
                 $openaiModels[$key] = [
                     'name' => $config['model'] ?? $key,
                     'provider' => 'OpenAI',
-                    'configured' => !empty($config['api_key'])
+                    'configured' => !empty($modelConfig['api_key'])
                 ];
             }
         }

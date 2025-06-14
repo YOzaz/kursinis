@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Log;
+use App\Models\User;
 
 /**
  * Abstraktus LLM servisas su klaidų valdymu ir pakartojimo funkcionalumu.
@@ -13,12 +14,28 @@ abstract class AbstractLLMService implements LLMServiceInterface
     protected array $models = [];
     protected string $currentModelKey;
     protected array $errorHandlingConfig;
+    protected LLMService $llmService;
+    protected ?User $user = null;
 
     public function __construct(PromptService $promptService)
     {
         $this->promptService = $promptService;
         $this->errorHandlingConfig = config('llm.error_handling', []);
+        $this->llmService = new LLMService();
+        $this->setUser();
         $this->loadModels();
+    }
+    
+    /**
+     * Set user from SimpleAuth session.
+     */
+    protected function setUser(): void
+    {
+        // Get user from SimpleAuth session
+        $username = session('username');
+        if ($username) {
+            $this->user = User::where('email', $username . '@local')->first();
+        }
     }
 
     /**
@@ -37,6 +54,9 @@ abstract class AbstractLLMService implements LLMServiceInterface
         
         foreach ($allModels as $key => $config) {
             if (($config['provider'] ?? '') === $providerName) {
+                // Override API key with user-specific key if available
+                $userConfig = $this->llmService->getModelConfig($key, $this->user);
+                $config['api_key'] = $userConfig['api_key'];
                 $this->models[$key] = $config;
             }
         }

@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Services\Exceptions\ClaudeErrorHandler;
 use App\Services\Exceptions\LLMException;
+use App\Models\User;
 
 /**
  * Claude API servisas.
@@ -19,22 +20,32 @@ class ClaudeService implements LLMServiceInterface
     private ?array $config;
     private ?string $modelKey;
     private ClaudeErrorHandler $errorHandler;
+    private LLMService $llmService;
+    private ?User $user = null;
 
     public function __construct(PromptService $promptService)
     {
         $this->promptService = $promptService;
         $this->errorHandler = new ClaudeErrorHandler();
+        $this->llmService = new LLMService();
+        
+        // Get user from SimpleAuth session
+        $username = session('username');
+        if ($username) {
+            $this->user = User::where('email', $username . '@local')->first();
+        }
+        
         $models = config('llm.models', []);
         
         // Rasti bet kurį Claude modelį kaip numatytąjį
         foreach ($models as $key => $config) {
             if (str_starts_with($key, 'claude')) {
-                $this->config = $config;
+                // Get config with user-specific API key if available
+                $this->config = $this->llmService->getModelConfig($key, $this->user);
                 $this->modelKey = $key;
                 break;
             }
         }
-        
     }
 
     /**
@@ -171,9 +182,7 @@ class ClaudeService implements LLMServiceInterface
      */
     public function isConfigured(): bool
     {
-        // Check current config dynamically for testing
-        $currentConfig = config("llm.models.{$this->modelKey}.api_key");
-        return !empty($currentConfig);
+        return !empty($this->config) && !empty($this->config['api_key']);
     }
 
     /**
@@ -182,14 +191,14 @@ class ClaudeService implements LLMServiceInterface
     public function setModel(string $modelKey): bool
     {
         $models = config('llm.models', []);
-        $this->config = $models[$modelKey] ?? null;
-        
-        if ($this->config) {
-            $this->modelKey = $modelKey;
-            return true;
+        if (!isset($models[$modelKey])) {
+            return false;
         }
         
-        return false;
+        // Get config with user-specific API key if available
+        $this->config = $this->llmService->getModelConfig($modelKey, $this->user);
+        $this->modelKey = $modelKey;
+        return true;
     }
 
     /**
@@ -202,10 +211,12 @@ class ClaudeService implements LLMServiceInterface
         
         foreach ($models as $key => $config) {
             if (strpos($key, 'claude') === 0) {
+                // Get config with user-specific API key if available
+                $modelConfig = $this->llmService->getModelConfig($key, $this->user);
                 $claudeModels[$key] = [
                     'name' => $config['model'] ?? $key,
                     'provider' => 'Anthropic',
-                    'configured' => !empty($config['api_key'])
+                    'configured' => !empty($modelConfig['api_key'])
                 ];
             }
         }
