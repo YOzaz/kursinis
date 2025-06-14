@@ -148,4 +148,77 @@ return [
     'language' => 'Kalba',
     'switch_to_english' => 'Switch to English',
     'switch_to_lithuanian' => 'Perjungti į lietuvių',
+    
+    // Additional Navigation and Layout
+    'system' => 'Sistema',
+    'user' => 'Vartotojas',
+    'contacts' => 'Kontaktai',
+    'legal_info' => 'Teisinė info',
+    'back' => 'Grįžti',
+    'back_to_dashboard' => 'Grįžti į Dashboard',
+    
+    // Analysis List
+    'analysis_list' => 'Analizių sąrašas',
+    'new_analysis' => 'Nauja analizė',
+    
+    // System Settings
+    'system_settings' => 'Sistemos nustatymai',
+    
+    // Dashboard Additional
+    'average_time' => 'Vidutinis laikas',
+    'analysis_duration' => 'Analizės trukmė',
+    'model_performance_comparison' => 'Modelių našumo palyginimas',
+    'propaganda_techniques_distribution' => 'Propagandos technikų pasiskirstymas',
+    
+    // Main Page
+    'main_propaganda_analysis_system' => 'Pagrindinis - Propagandos analizės sistema',
+    
+    // Single Text Upload
+    'single_text_analysis' => 'Vieno teksto analizė',
+    'upload_single_text' => 'Įkelti vieną tekstą',
+    'text_input' => 'Teksto įvestis',
+    'paste_or_type_text' => 'Įklijuokite arba įveskite tekstą čia...',
+    'analyze_text' => 'Analizuoti tekstą',
+    'single_text_description' => 'Analizuoti vieną tekstą be ekspertų anotacijų',
+    
+    // Mission Control
+    'mission_control_title' => 'Mission Control - Sistemos AI analizių monitoringas',
+    'ai_analysis_mission_control' => 'AI ANALIZIŲ MISSION CONTROL',
+    'system_wide_intelligence_status' => 'Sistemos intelekto apdorojimo būsena',
+    'back_to_dashboard' => 'Grįžti į Dashboard',
+    'view_analyses_list' => 'Peržiūrėti analizių sąrašą',
+    'create_new_analysis' => 'Sukurti naują analizę',
+    'filter_by_job_id' => 'Filtruoti pagal darbo ID (neprivaloma)',
+    'filter' => 'Filtruoti',
+    'show_all' => 'Rodyti visus',
+    'force_refresh' => 'Priverstinis atnaujinimas',
+    'initializing_systems' => 'INICIJUOJAMA SISTEMA',
+    'loading_system_status' => 'Kraunama sistemos veiklos būsena...',
+    'live' => 'TIESIOGIAI',
+    'error' => 'KLAIDA',
+    'total_jobs' => 'VISO DARBŲ',
+    'active' => 'AKTYVUS',
+    'inactive' => 'NEAKTYVUS',
+    'queue' => 'EILĖ',
+    'unique_texts' => 'UNIKALŪS TEKSTAI',
+    'current_job_details' => 'Dabartinio darbo detalės',
+    'job_id' => 'Darbo ID',
+    'name' => 'Pavadinimas',
+    'progress' => 'Progresas',
+    'duration' => 'Trukmė',
+    'queue_status' => 'Eilės būsena',
+    'jobs_in_queue' => 'Darbai eilėje',
+    'failed_jobs' => 'Nesėkmingi darbai',
+    'workers' => 'Darbuotojai',
+    'provider' => 'Tiekėjas',
+    'total_analyses' => 'Viso analizių',
+    'successful' => 'Sėkmingas',
+    'pending' => 'Laukiantis',
+    'system_logs' => 'Sistemos žurnalai',
+    'filtered' => 'Filtruota',
+    'system_wide' => 'Visos sistemos',
+    'filtered_view' => 'FILTRUOTAS VAIZDAS',
+    'showing_data_for_job' => 'Rodomi duomenys darbo ID',
+    'copy_to_clipboard' => 'Kopijuoti į mainų sricitį',
+    'log_message_copied' => 'ŽURNALO PRANEŠIMAS NUKOPIJUOTAS Į MAINŲ SRITĮ',
 ];

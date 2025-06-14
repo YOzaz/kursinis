@@ -148,4 +148,77 @@ return [
     'language' => 'Language',
     'switch_to_english' => 'Switch to English',
     'switch_to_lithuanian' => 'Perjungti į lietuvių',
+    
+    // Additional Navigation and Layout
+    'system' => 'System',
+    'user' => 'User',
+    'contacts' => 'Contacts',
+    'legal_info' => 'Legal Info',
+    'back' => 'Back',
+    'back_to_dashboard' => 'Back to Dashboard',
+    
+    // Analysis List
+    'analysis_list' => 'Analysis List',
+    'new_analysis' => 'New Analysis',
+    
+    // System Settings
+    'system_settings' => 'System Settings',
+    
+    // Dashboard Additional
+    'average_time' => 'Average Time',
+    'analysis_duration' => 'Analysis Duration',
+    'model_performance_comparison' => 'Model Performance Comparison',
+    'propaganda_techniques_distribution' => 'Propaganda Techniques Distribution',
+    
+    // Main Page
+    'main_propaganda_analysis_system' => 'Main - Propaganda Analysis System',
+    
+    // Single Text Upload
+    'single_text_analysis' => 'Single Text Analysis',
+    'upload_single_text' => 'Upload Single Text',
+    'text_input' => 'Text Input',
+    'paste_or_type_text' => 'Paste or type your text here...',
+    'analyze_text' => 'Analyze Text',
+    'single_text_description' => 'Analyze a single text without expert annotations',
+    
+    // Mission Control
+    'mission_control_title' => 'Mission Control - System-Wide AI Analysis Monitoring',
+    'ai_analysis_mission_control' => 'AI ANALYSIS MISSION CONTROL',
+    'system_wide_intelligence_status' => 'System-Wide Intelligence Processing Status',
+    'back_to_dashboard' => 'Back to Dashboard',
+    'view_analyses_list' => 'View analyses list',
+    'create_new_analysis' => 'Create new analysis',
+    'filter_by_job_id' => 'Filter by Job ID (optional)',
+    'filter' => 'Filter',
+    'show_all' => 'Show All',
+    'force_refresh' => 'Force Refresh',
+    'initializing_systems' => 'INITIALIZING SYSTEMS',
+    'loading_system_status' => 'Loading system-wide operational status...',
+    'live' => 'LIVE',
+    'error' => 'ERROR',
+    'total_jobs' => 'TOTAL JOBS',
+    'active' => 'ACTIVE',
+    'inactive' => 'INACTIVE',
+    'queue' => 'QUEUE',
+    'unique_texts' => 'UNIQUE TEXTS',
+    'current_job_details' => 'Current Job Details',
+    'job_id' => 'Job ID',
+    'name' => 'Name',
+    'progress' => 'Progress',
+    'duration' => 'Duration',
+    'queue_status' => 'Queue Status',
+    'jobs_in_queue' => 'Jobs in Queue',
+    'failed_jobs' => 'Failed Jobs',
+    'workers' => 'Workers',
+    'provider' => 'Provider',
+    'total_analyses' => 'Total Analyses',
+    'successful' => 'Successful',
+    'pending' => 'Pending',
+    'system_logs' => 'System Logs',
+    'filtered' => 'Filtered',
+    'system_wide' => 'System-wide',
+    'filtered_view' => 'FILTERED VIEW',
+    'showing_data_for_job' => 'Showing data for Job ID',
+    'copy_to_clipboard' => 'Copy to clipboard',
+    'log_message_copied' => 'LOG MESSAGE COPIED TO CLIPBOARD',
 ];

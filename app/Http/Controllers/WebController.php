@@ -916,4 +916,92 @@ class WebController extends Controller
             ];
         }
     }
+    
+    /**
+     * Show single text upload form.
+     */
+    public function singleTextForm()
+    {
+        $recentJobs = AnalysisJob::orderBy('created_at', 'desc')->limit(5)->get();
+        return view('single-text', compact('recentJobs'));
+    }
+    
+    /**
+     * Handle single text upload and analysis.
+     */
+    public function singleTextUpload(Request $request)
+    {
+        $availableModels = collect(config('llm.models', []))->keys()->implode(',');
+        
+        $validator = Validator::make($request->all(), [
+            'text_content' => 'required|string|min:10|max:50000',
+            'models' => 'required|array|min:1',
+            'models.*' => "required|string|in:{$availableModels}",
+            'name' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:1000'
+        ], [
+            'text_content.required' => __('messages.no_files_selected'),
+            'text_content.min' => 'Text must be at least 10 characters long.',
+            'text_content.max' => 'Text cannot exceed 50,000 characters.',
+            'models.min' => __('messages.no_models_selected'),
+            'models.required' => __('messages.no_models_selected'),
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
+        try {
+            $models = $request->input('models');
+            $textContent = $request->input('text_content');
+            
+            // Create JSON structure for single text (without expert annotations)
+            $jsonData = [
+                [
+                    'id' => 1,
+                    'text' => $textContent,
+                    'expert_annotations' => [] // Empty - no expert annotations
+                ]
+            ];
+            
+            $jobId = Str::uuid();
+            $textCount = 1;
+            $modelCount = count($models);
+            $totalTexts = $textCount * $modelCount;
+            
+            $jobName = $request->input('name', __('messages.single_text_analysis'));
+
+            // Create analysis job
+            AnalysisJob::create([
+                'job_id' => $jobId,
+                'status' => AnalysisJob::STATUS_PENDING,
+                'total_texts' => $totalTexts,
+                'processed_texts' => 0,
+                'name' => $jobName,
+                'description' => $request->input('description'),
+                'custom_prompt' => null, // Single text uses standard prompt
+                'requested_models' => $models,
+            ]);
+
+            // Dispatch job for processing
+            BatchAnalysisJobV4::dispatch($jobId, $jsonData, $models);
+            
+            Log::info('Single text analysis started', [
+                'job_id' => $jobId,
+                'models' => $models,
+                'text_length' => strlen($textContent)
+            ]);
+            
+            return redirect()->route('analyses.show', $jobId)
+                           ->with('success', 'Single text analysis started successfully!');
+
+        } catch (\Exception $e) {
+            Log::error('Single text upload error', [
+                'error' => $e->getMessage()
+            ]);
+
+            return back()->withErrors(['upload' => 'Error starting analysis: ' . $e->getMessage()])
+                       ->withInput();
+        }
+    }
 }

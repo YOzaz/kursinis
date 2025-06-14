@@ -105,8 +105,8 @@
                                 }
                             @endphp
                             <h2 class="mb-1">{{ number_format($avgExecutionTime / 1000, 1) }}s</h2>
-                            <p class="mb-0 opacity-75">Vidutinis laikas</p>
-                            <small class="opacity-50">Analizės trukmė</small>
+                            <p class="mb-0 opacity-75">{{ __('messages.average_time') }}</p>
+                            <small class="opacity-50">{{ __('messages.analysis_duration') }}</small>
                         </div>
                         <div class="text-end">
                             <i class="fas fa-clock fa-2x opacity-50"></i>
@@ -123,7 +123,7 @@
             <div class="card">
                 <div class="card-header">
                     <h5 class="mb-0">
-                        <i class="fas fa-chart-bar me-2"></i>Modelių našumo palyginimas
+                        <i class="fas fa-chart-bar me-2"></i>{{ __('messages.model_performance_comparison') }}
                     </h5>
                 </div>
                 <div class="card-body">
@@ -135,7 +135,7 @@
             <div class="card">
                 <div class="card-header">
                     <h5 class="mb-0">
-                        <i class="fas fa-chart-pie me-2"></i>Propagandos technikų pasiskirstymas
+                        <i class="fas fa-chart-pie me-2"></i>{{ __('messages.propaganda_techniques_distribution') }}
                     </h5>
                 </div>
                 <div class="card-body">
@@ -151,7 +151,7 @@
             <div class="card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
-                        <i class="fas fa-trophy me-2"></i>Modelių našumo palyginimas
+                        <i class="fas fa-trophy me-2"></i>{{ __('messages.model_performance_comparison') }}
                     </h5>
                     <div class="btn-group btn-group-sm" role="group">
                         <input type="radio" class="btn-check" name="metricType" id="f1Score" checked>

@@ -1,16 +1,16 @@
 @extends('layout')
 
-@section('title', 'Sistemos nustatymai')
+@section('title', __('messages.system_settings'))
 
 @section('content')
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1>Sistemos nustatymai</h1>
+            <h1>{{ __('messages.system_settings') }}</h1>
             <p class="text-muted mb-0">Modelių konfigūracija ir sistemos parametrai</p>
         </div>
         <a href="{{ route('home') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left"></i> Grįžti
+            <i class="fas fa-arrow-left"></i> {{ __('messages.back') }}
         </a>
     </div>
 

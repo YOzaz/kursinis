@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mission Control - System-Wide AI Analysis Monitoring</title>
+    <title>{{ __('messages.mission_control_title') }}</title>
     <style>
         * {
             margin: 0;
@@ -532,19 +532,19 @@
         <div class="header">
             <div class="header-main">
                 <div class="header-content">
-                    <h1>🤖 AI ANALYSIS MISSION CONTROL</h1>
-                    <div class="subtitle">System-Wide Intelligence Processing Status</div>
+                    <h1>🤖 {{ __('messages.ai_analysis_mission_control') }}</h1>
+                    <div class="subtitle">{{ __('messages.system_wide_intelligence_status') }}</div>
                 </div>
                 <div class="header-nav">
-                    <a href="{{ route('home') }}" class="nav-btn" title="Grįžti į Dashboard">
+                    <a href="{{ route('home') }}" class="nav-btn" title="{{ __('messages.back_to_dashboard') }}">
                         <span class="nav-icon">🏠</span>
                         <span class="nav-text">DASHBOARD</span>
                     </a>
-                    <a href="{{ route('analyses.index') }}" class="nav-btn" title="Peržiūrėti analizių sąrašą">
+                    <a href="{{ route('analyses.index') }}" class="nav-btn" title="{{ __('messages.view_analyses_list') }}">
                         <span class="nav-icon">📊</span>
                         <span class="nav-text">{{ __('messages.analyses') }}</span>
                     </a>
-                    <a href="{{ route('create') }}" class="nav-btn" title="Sukurti naują analizę">
+                    <a href="{{ route('create') }}" class="nav-btn" title="{{ __('messages.create_new_analysis') }}">
                         <span class="nav-icon">➕</span>
                         <span class="nav-text">{{ __('messages.start_analysis') }}</span>
                     </a>
@@ -557,10 +557,10 @@
         </div>
 
         <div class="controls">
-            <input type="text" id="jobFilter" class="filter-input" placeholder="Filter by Job ID (optional)" />
-            <button class="btn" onclick="applyFilter()">Filter</button>
-            <button class="btn" onclick="clearFilter()">Show All</button>
-            <button class="btn" onclick="forceRefresh()">Force Refresh</button>
+            <input type="text" id="jobFilter" class="filter-input" placeholder="{{ __('messages.filter_by_job_id') }}" />
+            <button class="btn" onclick="applyFilter()">{{ __('messages.filter') }}</button>
+            <button class="btn" onclick="clearFilter()">{{ __('messages.show_all') }}</button>
+            <button class="btn" onclick="forceRefresh()">{{ __('messages.force_refresh') }}</button>
         </div>
 
         <div id="filter-indicator"></div>
@@ -568,13 +568,48 @@
         <div id="status-content">
             <!-- Status content will be loaded here -->
             <div style="text-align: center; padding: 50px;">
-                <div style="font-size: 2em; margin-bottom: 20px;">⚡ INITIALIZING SYSTEMS ⚡</div>
-                <div>Loading system-wide operational status...</div>
+                <div style="font-size: 2em; margin-bottom: 20px;">⚡ {{ __('messages.initializing_systems') }} ⚡</div>
+                <div>{{ __('messages.loading_system_status') }}</div>
             </div>
         </div>
     </div>
 
     <script>
+        // Translation variables for JavaScript
+        const messages = {
+            live: @json(__('messages.live')),
+            error: @json(__('messages.error')),
+            totalJobs: @json(__('messages.total_jobs')),
+            active: @json(__('messages.active')),
+            completed: @json(__('messages.completed')),
+            failed: @json(__('messages.failed')),
+            uniqueTexts: @json(__('messages.unique_texts')),
+            queue: @json(__('messages.queue')),
+            currentJobDetails: @json(__('messages.current_job_details')),
+            jobId: @json(__('messages.job_id')),
+            name: @json(__('messages.name')),
+            status: @json(__('messages.status')),
+            progress: @json(__('messages.progress')),
+            duration: @json(__('messages.duration')),
+            queueStatus: @json(__('messages.queue_status')),
+            jobsInQueue: @json(__('messages.jobs_in_queue')),
+            failedJobs: @json(__('messages.failed_jobs')),
+            workers: @json(__('messages.workers')),
+            inactive: @json(__('messages.inactive')),
+            provider: @json(__('messages.provider')),
+            totalAnalyses: @json(__('messages.total_analyses')),
+            successful: @json(__('messages.successful')),
+            pending: @json(__('messages.pending')),
+            systemLogs: @json(__('messages.system_logs')),
+            filtered: @json(__('messages.filtered')),
+            systemWide: @json(__('messages.system_wide')),
+            filteredView: @json(__('messages.filtered_view')),
+            showingDataForJob: @json(__('messages.showing_data_for_job')),
+            showAll: @json(__('messages.show_all')),
+            copyToClipboard: @json(__('messages.copy_to_clipboard')),
+            logMessageCopied: @json(__('messages.log_message_copied'))
+        };
+        
         // Matrix rain effect
         const canvas = document.getElementById('matrix');
         const ctx = canvas.getContext('2d');
@@ -627,11 +662,11 @@
                 .then(response => response.json())
                 .then(data => {
                     renderStatus(data);
-                    document.getElementById('refresh-status').textContent = 'LIVE';
+                    document.getElementById('refresh-status').textContent = messages.live;
                 })
                 .catch(error => {
                     console.error('Status update failed:', error);
-                    document.getElementById('refresh-status').textContent = 'ERROR';
+                    document.getElementById('refresh-status').textContent = messages.error;
                 });
         }
 
@@ -654,8 +689,8 @@
             const filterDiv = document.getElementById('filter-indicator');
             if (isFiltered) {
                 filterDiv.innerHTML = `<div class="filter-active">
-                    <strong>🔍 FILTERED VIEW:</strong> Showing data for Job ID: ${isFiltered}
-                    <button class="btn" onclick="clearFilter()" style="margin-left: 10px; padding: 5px 10px;">Show All</button>
+                    <strong>🔍 ${messages.filteredView}:</strong> ${messages.showingDataForJob}: ${isFiltered}
+                    <button class="btn" onclick="clearFilter()" style="margin-left: 10px; padding: 5px 10px;">${messages.showAll}</button>
                 </div>`;
             } else {
                 filterDiv.innerHTML = '';
@@ -666,27 +701,27 @@
             <div class="stats-row">
                 <div class="stat-box">
                     <div class="stat-number">${system.overview.total_jobs}</div>
-                    <div class="stat-label">TOTAL JOBS</div>
+                    <div class="stat-label">${messages.totalJobs.toUpperCase()}</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-number">${system.overview.active_jobs}</div>
-                    <div class="stat-label">ACTIVE</div>
+                    <div class="stat-label">${messages.active.toUpperCase()}</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-number">${system.overview.completed_jobs}</div>
-                    <div class="stat-label">COMPLETED</div>
+                    <div class="stat-label">${messages.completed.toUpperCase()}</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-number">${system.overview.failed_jobs}</div>
-                    <div class="stat-label">FAILED</div>
+                    <div class="stat-label">${messages.failed.toUpperCase()}</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-number">${system.overview.unique_texts}</div>
-                    <div class="stat-label">UNIQUE TEXTS</div>
+                    <div class="stat-label">${messages.uniqueTexts.toUpperCase()}</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-number">${system.queue.jobs_in_queue}</div>
-                    <div class="stat-label">QUEUE</div>
+                    <div class="stat-label">${messages.queue.toUpperCase()}</div>
                 </div>
             </div>`;
 
@@ -695,41 +730,41 @@
                 html += `
                 <div class="grid">
                     <div class="panel">
-                        <h3>🎯 Current Job Details</h3>
+                        <h3>🎯 ${messages.currentJobDetails}</h3>
                         <div class="metric">
-                            <span class="metric-label">Job ID:</span>
+                            <span class="metric-label">${messages.jobId}:</span>
                             <span class="metric-value">${jobDetails.id}</span>
                         </div>
                         <div class="metric">
-                            <span class="metric-label">Name:</span>
+                            <span class="metric-label">${messages.name}:</span>
                             <span class="metric-value">${jobDetails.name || 'Unnamed'}</span>
                         </div>
                         <div class="metric">
-                            <span class="metric-label">Status:</span>
+                            <span class="metric-label">${messages.status}:</span>
                             <span class="metric-value">${jobDetails.status.toUpperCase()}</span>
                         </div>
                         <div class="metric">
-                            <span class="metric-label">Progress:</span>
+                            <span class="metric-label">${messages.progress}:</span>
                             <span class="metric-value">${jobDetails.progress_percentage}%</span>
                         </div>
                         <div class="metric">
-                            <span class="metric-label">Duration:</span>
+                            <span class="metric-label">${messages.duration}:</span>
                             <span class="metric-value">${jobDetails.duration}</span>
                         </div>
                     </div>
                     <div class="panel">
-                        <h3>📊 Queue Status</h3>
+                        <h3>📊 ${messages.queueStatus}</h3>
                         <div class="metric">
-                            <span class="metric-label">Jobs in Queue:</span>
+                            <span class="metric-label">${messages.jobsInQueue}:</span>
                             <span class="metric-value">${system.queue.jobs_in_queue}</span>
                         </div>
                         <div class="metric">
-                            <span class="metric-label">Failed Jobs:</span>
+                            <span class="metric-label">${messages.failedJobs}:</span>
                             <span class="metric-value" style="color: ${system.queue.failed_jobs > 0 ? '#ff4444' : '#00ff41'}">${system.queue.failed_jobs}</span>
                         </div>
                         <div class="metric">
-                            <span class="metric-label">Workers:</span>
-                            <span class="metric-value">${system.queue.batch_workers_active ? 'ACTIVE' : 'INACTIVE'}</span>
+                            <span class="metric-label">${messages.workers}:</span>
+                            <span class="metric-value">${system.queue.batch_workers_active ? messages.active.toUpperCase() : messages.inactive.toUpperCase()}</span>
                         </div>
                     </div>
                 </div>`;
@@ -746,23 +781,23 @@
                         <div class="status-indicator status-${model.status}">${model.status.replace('_', ' ')}</div>
                     </div>
                     <div class="metric">
-                        <span class="metric-label">Provider:</span>
+                        <span class="metric-label">${messages.provider}:</span>
                         <span class="metric-value">${model.provider.toUpperCase()}</span>
                     </div>
                     <div class="metric">
-                        <span class="metric-label">Total Analyses:</span>
+                        <span class="metric-label">${messages.totalAnalyses}:</span>
                         <span class="metric-value">${model.total_analyses}</span>
                     </div>
                     <div class="metric">
-                        <span class="metric-label">Successful:</span>
+                        <span class="metric-label">${messages.successful}:</span>
                         <span class="metric-value" style="color: #00cc00">${model.successful}</span>
                     </div>
                     <div class="metric">
-                        <span class="metric-label">Failed:</span>
+                        <span class="metric-label">${messages.failed}:</span>
                         <span class="metric-value" style="color: ${model.failed > 0 ? '#ff4444' : '#00ff41'}">${model.failed}</span>
                     </div>
                     <div class="metric">
-                        <span class="metric-label">Pending:</span>
+                        <span class="metric-label">${messages.pending}:</span>
                         <span class="metric-value" style="color: #ffaa00">${model.pending}</span>
                     </div>
                     <div class="metric">
@@ -777,7 +812,7 @@
             // System logs
             html += `
             <div class="panel logs-panel">
-                <h3>📋 System Logs ${isFiltered ? '(Filtered)' : '(System-wide)'}</h3>`;
+                <h3>📋 ${messages.systemLogs} ${isFiltered ? `(${messages.filtered})` : `(${messages.systemWide})`}</h3>`;
             
             logs.forEach(log => {
                 const time = new Date(log.timestamp).toLocaleTimeString();
@@ -793,7 +828,7 @@
                     <div class="log-job-id">${jobId}</div>
                     <div class="log-message">${log.message}</div>
                     <div class="log-actions">
-                        <button class="copy-btn" onclick="copyLogMessage(event)" title="Copy to clipboard">
+                        <button class="copy-btn" onclick="copyLogMessage(event)" title="${messages.copyToClipboard}">
                             <i class="fas fa-copy"></i>
                         </button>
                     </div>
@@ -915,7 +950,7 @@
                 // Show global feedback message
                 const feedback = document.createElement('div');
                 feedback.className = 'copy-feedback';
-                feedback.textContent = '📋 LOG MESSAGE COPIED TO CLIPBOARD';
+                feedback.textContent = `📋 ${messages.logMessageCopied.toUpperCase()}`;
                 document.body.appendChild(feedback);
                 
                 setTimeout(() => {

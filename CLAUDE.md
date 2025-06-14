@@ -14,8 +14,10 @@ This is a Laravel-based system for detecting propaganda techniques in Lithuanian
 - **Audit Logging**: Complete audit trail of user actions and system changes
 - **Confusion Matrix Analysis**: Text-level propaganda detection statistics (TP, FP, TN, FN)
 - **Batch Processing**: Queue-based analysis of multiple texts
+- **Single Text Analysis**: Upload and analyze individual texts without expert annotations
 - **Real-time Monitoring**: Mission Control interface for system status
 - **Export Capabilities**: JSON and CSV export of results
+- **Multi-language Support**: Full Lithuanian and English language support
 
 ## Architecture
 
@@ -26,6 +28,7 @@ This is a Laravel-based system for detecting propaganda techniques in Lithuanian
 - **AI Integration**: Service-based architecture for multiple LLM providers
 - **Audit System**: Complete logging of user actions and data changes
 - **Frontend**: Blade templates with Bootstrap and Chart.js
+- **Internationalization**: Laravel localization with Lithuanian and English support
 - **Testing**: Comprehensive PHPUnit test suite
 
 ## Development Commands
@@ -34,6 +37,8 @@ This is a Laravel-based system for detecting propaganda techniques in Lithuanian
 - `php artisan queue:work` - Start queue worker
 - `php artisan tinker` - Laravel REPL for debugging
 - `php artisan serve` - Start development server
+- `php artisan config:cache` - Cache configuration for production
+- `php artisan route:cache` - Cache routes for production
 
 ## User Management Commands
 

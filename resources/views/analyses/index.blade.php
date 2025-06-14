@@ -1,16 +1,16 @@
 @extends('layout')
 
-@section('title', 'Analizių sąrašas')
+@section('title', __('messages.analysis_list'))
 
 @section('content')
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1>Analizių sąrašas</h1>
+            <h1>{{ __('messages.analysis_list') }}</h1>
             <p class="text-muted mb-0">Visos atliktos propagandos analizės</p>
         </div>
         <a href="{{ route('create') }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Nauja analizė
+            <i class="fas fa-plus"></i> {{ __('messages.new_analysis') }}
         </a>
     </div>
 

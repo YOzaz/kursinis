@@ -1,6 +1,6 @@
 @extends('layout')
 
-@section('title', 'Pagrindinis - Propagandos analizės sistema')
+@section('title', __('messages.main_propaganda_analysis_system'))
 
 @section('content')
 <div class="row">
@@ -9,7 +9,7 @@
             <div class="card-header bg-primary text-white">
                 <h3 class="card-title mb-0">
                     <i class="fas fa-upload me-2"></i>
-                    Tekstų analizės paleidimas
+                    {{ __('messages.text_upload') }}
                 </h3>
             </div>
             <div class="card-body">
