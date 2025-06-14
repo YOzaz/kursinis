@@ -286,7 +286,7 @@
                                                                             
                                                                             <div class="model-selector-expanded me-2" id="model-selector-expanded-{{ $textAnalysis->id }}">
                                                                                 <select class="form-select form-select-sm" id="ai-model-select-{{ $textAnalysis->id }}">
-                                                                                    <option value="all">Visi modeliai</option>
+                                                                                    <option value="all">Visi modeliai (kombinuoti)</option>
                                                                                     @foreach($textAnalysis->getAllAttemptedModels() as $modelName => $modelData)
                                                                                         <option value="{{ $modelName }}">{{ $modelName }}</option>
                                                                                     @endforeach
@@ -602,7 +602,7 @@
                                         
                                         <div class="model-selector-modal" id="modal-model-selector-{{ $textAnalysis->id }}" style="display: none;">
                                             <select class="form-select form-select-sm" id="modal-ai-model-select-{{ $textAnalysis->id }}" style="min-width: 120px;">
-                                                <option value="all">Visi modeliai</option>
+                                                <option value="all">Visi modeliai (kombinuoti)</option>
                                                 @foreach($allAttemptedModels as $modelName => $modelData)
                                                     <option value="{{ $modelName }}">{{ $modelName }}</option>
                                                 @endforeach
@@ -1120,7 +1120,7 @@ function loadTextAnnotations() {
             loadingSpinner.style.display = 'none';
             
             if (data.success) {
-                displayHighlightedText(data.content, data.annotations, data.legend);
+                displayHighlightedText(data.content, data.annotations, data.legend, data);
                 showLegend(data.legend);
             } else {
                 highlightedText.innerHTML = `<div class="alert alert-warning">${data.message || 'Nepavyko įkelti anotacijų'}</div>`;
@@ -1133,7 +1133,7 @@ function loadTextAnnotations() {
         });
 }
 
-function displayHighlightedText(content, annotations, legend) {
+function displayHighlightedText(content, annotations, legend, responseData = null) {
     const highlightedText = document.getElementById('highlighted-text');
     
     if (!annotations || annotations.length === 0) {
@@ -1151,15 +1151,56 @@ function displayHighlightedText(content, annotations, legend) {
         // Add text before annotation
         highlightedContent += escapeHtml(content.substring(lastIndex, annotation.start));
         
-        // Add highlighted annotation with multiple technique support
+        // Add highlighted annotation with multiple technique support and agreement info
         const labels = Array.isArray(annotation.labels) ? annotation.labels : [annotation.technique];
         const primaryTechnique = labels[0] || annotation.technique;
         const color = techniqueColors[primaryTechnique] || '#cccccc';
         
+        // Create agreement indicator for "All models" view
+        let agreementIndicator = '';
+        let titleText = labels.join(', ');
+        let extraStyle = '';
+        
+        if (annotation.models && annotation.models.length > 0) {
+            const agreementCount = annotation.agreement_count || annotation.models.length;
+            const agreementPercentage = annotation.agreement_percentage || 0;
+            const isConsensus = annotation.is_consensus || false;
+            
+            // Add border style based on agreement level
+            if (agreementCount === 1) {
+                extraStyle = 'border: 2px dashed #ffc107;'; // Yellow dashed border for single model
+            } else if (isConsensus) {
+                extraStyle = 'border: 2px solid #28a745; font-weight: bold;'; // Green solid border for consensus
+            } else {
+                extraStyle = 'border: 2px dotted #17a2b8;'; // Blue dotted border for partial agreement
+            }
+            
+            agreementIndicator = `<span class="agreement-badge" style="
+                background: rgba(0,0,0,0.7); 
+                color: white; 
+                font-size: 10px; 
+                padding: 1px 3px; 
+                border-radius: 2px; 
+                margin-left: 2px;
+                position: relative;
+                top: -2px;
+            ">${agreementCount}</span>`;
+            
+            titleText = `${labels.join(', ')}\n\nModelių sutarimas: ${agreementCount}/${responseData?.total_models || agreementCount} (${agreementPercentage}%)\nModeliai: ${annotation.models.join(', ')}`;
+            
+            if (isConsensus) {
+                titleText += '\n✓ Dauguma modelių sutinka';
+            } else if (agreementCount === 1) {
+                titleText += '\n⚠ Tik vienas modelis aptiko';
+            }
+        }
+        
         highlightedContent += `<span class="highlighted-annotation" 
-                                     style="background-color: ${color}; padding: 2px 4px; border-radius: 3px; margin: 1px;"
+                                     style="background-color: ${color}; padding: 2px 4px; border-radius: 3px; margin: 1px; ${extraStyle}"
                                      data-labels="${labels.join(', ')}"
-                                     title="${labels.join(', ')}">${escapeHtml(annotation.text)}</span>`;
+                                     data-models="${annotation.models ? annotation.models.join(', ') : ''}"
+                                     data-agreement="${annotation.agreement_count || 0}"
+                                     title="${titleText}">${escapeHtml(annotation.text)}${agreementIndicator}</span>`;
         
         lastIndex = annotation.end;
     });
@@ -1168,6 +1209,31 @@ function displayHighlightedText(content, annotations, legend) {
     highlightedContent += escapeHtml(content.substring(lastIndex));
     
     highlightedText.innerHTML = `<div class="p-3" style="line-height: 1.8;">${highlightedContent}</div>`;
+    
+    // Add explanation for "All models" view
+    if (responseData && responseData.all_models_explanation) {
+        const explanationHtml = `
+            <div class="alert alert-info mt-3">
+                <h6><i class="fas fa-info-circle me-2"></i>{{ __('messages.all_models_explanation') }}</h6>
+                <p class="mb-2">${responseData.all_models_explanation.description}</p>
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>🟢 {{ __('messages.consensus') }}:</strong><br>
+                        <small>${responseData.all_models_explanation.agreement_levels.high}</small>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>🔵 {{ __('messages.partial_agreement') }}:</strong><br>
+                        <small>${responseData.all_models_explanation.agreement_levels.medium}</small>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>🟡 {{ __('messages.single_model') }}:</strong><br>
+                        <small>${responseData.all_models_explanation.agreement_levels.low}</small>
+                    </div>
+                </div>
+            </div>
+        `;
+        highlightedText.insertAdjacentHTML('afterend', explanationHtml);
+    }
 }
 
 function showLegend(legendItems) {
@@ -1389,7 +1455,7 @@ function loadExpandedTextAnnotations(textId) {
         .then(data => {
             if (data.success) {
                 if (annotationsEnabled && data.annotations && data.annotations.length > 0) {
-                    displayExpandedHighlightedText(textId, data.content, data.annotations, data.legend);
+                    displayExpandedHighlightedText(textId, data.content, data.annotations, data.legend, data);
                     showExpandedLegend(textId, data.legend);
                 } else {
                     // Show plain text without annotations
@@ -1408,7 +1474,7 @@ function loadExpandedTextAnnotations(textId) {
         });
 }
 
-function displayExpandedHighlightedText(textId, content, annotations, legend) {
+function displayExpandedHighlightedText(textId, content, annotations, legend, responseData = null) {
     const highlightedText = document.getElementById(`highlighted-text-${textId}`);
     
     if (!annotations || annotations.length === 0) {
@@ -1426,21 +1492,61 @@ function displayExpandedHighlightedText(textId, content, annotations, legend) {
         // Add text before annotation
         highlightedContent += escapeHtml(content.substring(lastIndex, annotation.start));
         
-        // Add highlighted annotation with tooltip
-        const color = techniqueColors[annotation.technique] || '#cccccc';
+        // Add highlighted annotation with agreement info and tooltip
         const labels = Array.isArray(annotation.labels) ? annotation.labels : [annotation.technique];
-        const description = getTechniqueDescription(annotation.technique);
+        const primaryTechnique = labels[0] || annotation.technique;
+        const color = techniqueColors[primaryTechnique] || '#cccccc';
         
-        const techniqueInfo = getTechniqueInfo(annotation.technique);
-        const tooltipContent = `${techniqueInfo.name}: ${techniqueInfo.definition}`;
+        // Create agreement indicator for "All models" view
+        let agreementIndicator = '';
+        let extraStyle = '';
+        
+        const techniqueInfo = getTechniqueInfo(primaryTechnique);
+        let tooltipContent = `${techniqueInfo.name}: ${techniqueInfo.definition}`;
+        
+        if (annotation.models && annotation.models.length > 0) {
+            const agreementCount = annotation.agreement_count || annotation.models.length;
+            const agreementPercentage = annotation.agreement_percentage || 0;
+            const isConsensus = annotation.is_consensus || false;
+            
+            // Add border style based on agreement level
+            if (agreementCount === 1) {
+                extraStyle = 'border: 2px dashed #ffc107;'; // Yellow dashed border for single model
+            } else if (isConsensus) {
+                extraStyle = 'border: 2px solid #28a745; font-weight: bold;'; // Green solid border for consensus
+            } else {
+                extraStyle = 'border: 2px dotted #17a2b8;'; // Blue dotted border for partial agreement
+            }
+            
+            agreementIndicator = `<span class="agreement-badge" style="
+                background: rgba(0,0,0,0.7); 
+                color: white; 
+                font-size: 10px; 
+                padding: 1px 3px; 
+                border-radius: 2px; 
+                margin-left: 2px;
+                position: relative;
+                top: -2px;
+            ">${agreementCount}</span>`;
+            
+            tooltipContent += `<br><br><strong>Modelių sutarimas:</strong> ${agreementCount}/${responseData?.total_models || agreementCount} (${agreementPercentage}%)<br><strong>Modeliai:</strong> ${annotation.models.join(', ')}`;
+            
+            if (isConsensus) {
+                tooltipContent += '<br>✓ Dauguma modelių sutinka';
+            } else if (agreementCount === 1) {
+                tooltipContent += '<br>⚠ Tik vienas modelis aptiko';
+            }
+        }
         
         highlightedContent += `<span class="highlighted-annotation" 
-                                     style="background-color: ${color}; padding: 2px 4px; border-radius: 3px; margin: 1px; cursor: help;"
+                                     style="background-color: ${color}; padding: 2px 4px; border-radius: 3px; margin: 1px; cursor: help; ${extraStyle}"
                                      data-labels="${labels.join(', ')}"
+                                     data-models="${annotation.models ? annotation.models.join(', ') : ''}"
+                                     data-agreement="${annotation.agreement_count || 0}"
                                      data-bs-toggle="tooltip"
                                      data-bs-placement="top"
                                      data-bs-html="true"
-                                     title="${tooltipContent}">${escapeHtml(annotation.text)}</span>`;
+                                     title="${tooltipContent}">${escapeHtml(annotation.text)}${agreementIndicator}</span>`;
         
         lastIndex = annotation.end;
     });
@@ -1449,6 +1555,31 @@ function displayExpandedHighlightedText(textId, content, annotations, legend) {
     highlightedContent += escapeHtml(content.substring(lastIndex));
     
     highlightedText.innerHTML = `<div class="p-3" style="line-height: 1.8;">${highlightedContent}</div>`;
+    
+    // Add explanation for "All models" view
+    if (responseData && responseData.all_models_explanation) {
+        const explanationHtml = `
+            <div class="alert alert-info mt-3">
+                <h6><i class="fas fa-info-circle me-2"></i>{{ __('messages.all_models_explanation') }}</h6>
+                <p class="mb-2">${responseData.all_models_explanation.description}</p>
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>🟢 {{ __('messages.consensus') }}:</strong><br>
+                        <small>${responseData.all_models_explanation.agreement_levels.high}</small>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>🔵 {{ __('messages.partial_agreement') }}:</strong><br>
+                        <small>${responseData.all_models_explanation.agreement_levels.medium}</small>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>🟡 {{ __('messages.single_model') }}:</strong><br>
+                        <small>${responseData.all_models_explanation.agreement_levels.low}</small>
+                    </div>
+                </div>
+            </div>
+        `;
+        highlightedText.insertAdjacentHTML('afterend', explanationHtml);
+    }
     
     // Initialize tooltips for new elements
     const tooltipTriggerList = highlightedText.querySelectorAll('[data-bs-toggle="tooltip"]');
@@ -1610,7 +1741,7 @@ function loadModalTextAnnotations(textAnalysisId) {
             
             if (data.success) {
                 if (annotationsEnabled && data.annotations && data.annotations.length > 0) {
-                    displayModalHighlightedText(textAnalysisId, data.content, data.annotations, data.legend);
+                    displayModalHighlightedText(textAnalysisId, data.content, data.annotations, data.legend, data);
                     showModalLegend(textAnalysisId, data.legend);
                 } else {
                     // Show plain text without annotations
@@ -1630,7 +1761,7 @@ function loadModalTextAnnotations(textAnalysisId) {
         });
 }
 
-function displayModalHighlightedText(textAnalysisId, content, annotations, legend) {
+function displayModalHighlightedText(textAnalysisId, content, annotations, legend, responseData = null) {
     const highlightedText = document.getElementById(`modal-highlighted-text-${textAnalysisId}`);
     
     if (!annotations || annotations.length === 0) {
@@ -1724,10 +1855,14 @@ function displayModalHighlightedText(textAnalysisId, content, annotations, legen
             highlightedContent += escapeHtml(content.substring(lastIndex, actualStart));
         }
         
-        // Add highlighted annotation with tooltip for multiple techniques
+        // Add highlighted annotation with agreement info and tooltip for multiple techniques
         const labels = Array.isArray(annotation.labels) ? annotation.labels : [annotation.technique];
         const primaryTechnique = labels[0] || annotation.technique;
         const color = techniqueColors[primaryTechnique] || '#cccccc';
+        
+        // Create agreement indicator for "All models" view
+        let agreementIndicator = '';
+        let extraStyle = '';
         
         // Build tooltip content for multiple techniques
         let tooltipContent = '';
@@ -1741,13 +1876,50 @@ function displayModalHighlightedText(textAnalysisId, content, annotations, legen
             tooltipContent = `${techniqueInfo.name}: ${techniqueInfo.definition}`;
         }
         
+        // Add agreement information to tooltip
+        if (annotation.models && annotation.models.length > 0) {
+            const agreementCount = annotation.agreement_count || annotation.models.length;
+            const agreementPercentage = annotation.agreement_percentage || 0;
+            const isConsensus = annotation.is_consensus || false;
+            
+            // Add border style based on agreement level
+            if (agreementCount === 1) {
+                extraStyle = 'border: 2px dashed #ffc107;'; // Yellow dashed border for single model
+            } else if (isConsensus) {
+                extraStyle = 'border: 2px solid #28a745; font-weight: bold;'; // Green solid border for consensus
+            } else {
+                extraStyle = 'border: 2px dotted #17a2b8;'; // Blue dotted border for partial agreement
+            }
+            
+            agreementIndicator = `<span class="agreement-badge" style="
+                background: rgba(0,0,0,0.7); 
+                color: white; 
+                font-size: 10px; 
+                padding: 1px 3px; 
+                border-radius: 2px; 
+                margin-left: 2px;
+                position: relative;
+                top: -2px;
+            ">${agreementCount}</span>`;
+            
+            tooltipContent += `<br><br><strong>Modelių sutarimas:</strong> ${agreementCount}/${responseData?.total_models || agreementCount} (${agreementPercentage}%)<br><strong>Modeliai:</strong> ${annotation.models.join(', ')}`;
+            
+            if (isConsensus) {
+                tooltipContent += '<br>✓ Dauguma modelių sutinka';
+            } else if (agreementCount === 1) {
+                tooltipContent += '<br>⚠ Tik vienas modelis aptiko';
+            }
+        }
+        
         highlightedContent += `<span class="highlighted-annotation" 
-                                     style="background-color: ${color}; padding: 2px 4px; border-radius: 3px; margin: 1px; cursor: help;"
+                                     style="background-color: ${color}; padding: 2px 4px; border-radius: 3px; margin: 1px; cursor: help; ${extraStyle}"
                                      data-labels="${labels.join(', ')}"
+                                     data-models="${annotation.models ? annotation.models.join(', ') : ''}"
+                                     data-agreement="${annotation.agreement_count || 0}"
                                      data-bs-toggle="tooltip"
                                      data-bs-placement="top"
                                      data-bs-html="true"
-                                     title="${tooltipContent}">${escapeHtml(annotationText)}</span>`;
+                                     title="${tooltipContent}">${escapeHtml(annotationText)}${agreementIndicator}</span>`;
         
         lastIndex = actualEnd;
     });
@@ -1756,6 +1928,31 @@ function displayModalHighlightedText(textAnalysisId, content, annotations, legen
     highlightedContent += escapeHtml(content.substring(lastIndex));
     
     highlightedText.innerHTML = `<div class="p-3" style="line-height: 1.8;">${highlightedContent}</div>`;
+    
+    // Add explanation for "All models" view
+    if (responseData && responseData.all_models_explanation) {
+        const explanationHtml = `
+            <div class="alert alert-info mt-3">
+                <h6><i class="fas fa-info-circle me-2"></i>{{ __('messages.all_models_explanation') }}</h6>
+                <p class="mb-2">${responseData.all_models_explanation.description}</p>
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>🟢 {{ __('messages.consensus') }}:</strong><br>
+                        <small>${responseData.all_models_explanation.agreement_levels.high}</small>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>🔵 {{ __('messages.partial_agreement') }}:</strong><br>
+                        <small>${responseData.all_models_explanation.agreement_levels.medium}</small>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>🟡 {{ __('messages.single_model') }}:</strong><br>
+                        <small>${responseData.all_models_explanation.agreement_levels.low}</small>
+                    </div>
+                </div>
+            </div>
+        `;
+        highlightedText.insertAdjacentHTML('afterend', explanationHtml);
+    }
     
     // Initialize tooltips for new elements
     const tooltipTriggerList = highlightedText.querySelectorAll('[data-bs-toggle="tooltip"]');

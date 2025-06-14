@@ -12,8 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Register SimpleAuth middleware for all web routes except login
+        // Register language setting middleware and SimpleAuth middleware for all web routes
         $middleware->web(append: [
+            \App\Http\Middleware\SetLanguage::class,
             \App\Http\Middleware\SimpleAuth::class,
         ]);
     })

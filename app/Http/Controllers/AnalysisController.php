@@ -1280,6 +1280,7 @@ class AnalysisController extends Controller
                 $modelAnnotations = $textAnalysis->getAllModelAnnotations();
                 $allTechniques = [];
                 $techniquePositions = [];
+                $modelStats = [];
                 
                 // Filter by specific model if requested
                 if ($selectedModel !== 'all') {
@@ -1307,11 +1308,23 @@ class AnalysisController extends Controller
                     }
                 }
                 
+                // Initialize model statistics
+                foreach ($modelAnnotations as $modelName => $modelData) {
+                    $modelStats[$modelName] = [
+                        'total_annotations' => 0,
+                        'unique_techniques' => []
+                    ];
+                }
+                
                 foreach ($modelAnnotations as $modelName => $modelData) {
                     if (isset($modelData['annotations'])) {
                         foreach ($modelData['annotations'] as $annotation) {
                             if (isset($annotation['value']['labels'])) {
+                                $modelStats[$modelName]['total_annotations']++;
+                                
                                 foreach ($annotation['value']['labels'] as $technique) {
+                                    $modelStats[$modelName]['unique_techniques'][$technique] = true;
+                                    
                                     $key = $annotation['value']['start'] . '-' . $annotation['value']['end'] . '-' . $technique;
                                     
                                     if (!isset($techniquePositions[$key])) {
@@ -1329,7 +1342,8 @@ class AnalysisController extends Controller
                                             'technique' => $technique,
                                             'text' => $finalText,
                                             'count' => 0,
-                                            'models' => []
+                                            'models' => [],
+                                            'agreement_percentage' => 0
                                         ];
                                     }
                                     $techniquePositions[$key]['count']++;
@@ -1341,21 +1355,35 @@ class AnalysisController extends Controller
                     }
                 }
                 
-                // Filter annotations that appear in at least 1 model (or majority)
-                foreach ($techniquePositions as $annotation) {
+                // Calculate agreement percentages and filter annotations
+                $totalModels = count($modelAnnotations);
+                foreach ($techniquePositions as &$annotation) {
+                    $annotation['agreement_percentage'] = $totalModels > 0 ? 
+                        round(($annotation['count'] / $totalModels) * 100) : 0;
+                    
                     if ($annotation['count'] >= 1) { // At least 1 model found this
                         $annotations[] = [
                             'start' => $annotation['start'],
                             'end' => $annotation['end'],
                             'technique' => $annotation['technique'],
                             'text' => $annotation['text'],
-                            'models' => $annotation['models']
+                            'models' => $annotation['models'],
+                            'agreement_count' => $annotation['count'],
+                            'agreement_percentage' => $annotation['agreement_percentage'],
+                            'is_consensus' => $annotation['count'] > ($totalModels / 2)
                         ];
                     }
                 }
                 
                 // Create legend for AI annotations
                 $legend = $this->createLegend(array_keys($allTechniques));
+                
+                // Add model statistics for "All models" view
+                if ($selectedModel === 'all') {
+                    foreach ($modelStats as $modelName => &$stats) {
+                        $stats['unique_techniques'] = array_keys($stats['unique_techniques']);
+                    }
+                }
             }
             
             // Clean up UTF-8 encoding issues before returning
@@ -1363,14 +1391,37 @@ class AnalysisController extends Controller
             $cleanedAnnotations = $this->cleanUtf8InArray($annotations);
             $cleanedLegend = $this->cleanUtf8InArray($legend);
             
-            return response()->json([
+            $response = [
                 'success' => true,
                 'content' => $cleanedText,
                 'text' => $cleanedText,
                 'annotations' => $cleanedAnnotations,
                 'legend' => $cleanedLegend,
                 'view_type' => $viewType
-            ]);
+            ];
+
+            // Add additional info for "All models" view
+            if ($viewType === 'ai' && $selectedModel === 'all' && !empty($modelStats)) {
+                $response['model_stats'] = $modelStats;
+                $response['total_models'] = count($modelAnnotations);
+                $response['consensus_annotations'] = array_filter($cleanedAnnotations, function($ann) {
+                    return $ann['is_consensus'] ?? false;
+                });
+                $response['single_model_annotations'] = array_filter($cleanedAnnotations, function($ann) {
+                    return ($ann['agreement_count'] ?? 0) === 1;
+                });
+                $response['all_models_explanation'] = [
+                    'description' => __('messages.all_models_description'),
+                    'consensus_info' => __('messages.consensus_info', ['default' => 'Annotations agreed upon by most models are marked with special indicators.']),
+                    'agreement_levels' => [
+                        'high' => __('messages.consensus_desc'),
+                        'medium' => __('messages.partial_agreement_desc'),
+                        'low' => __('messages.single_model_desc')
+                    ]
+                ];
+            }
+
+            return response()->json($response);
             
         } catch (\Exception $e) {
             Log::error('Error getting text annotations', [
