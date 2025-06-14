@@ -1,0 +1,50 @@
+name: Workflow Status
+
+on:
+  workflow_run:
+    workflows: 
+      - "Pull Request Tests"
+      - "CI/CD Pipeline" 
+      - "Tests"
+    types:
+      - completed
+
+jobs:
+  status-check:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion != 'success'
+    
+    steps:
+    - name: Notify on workflow failure
+      run: |
+        echo "Workflow ${{ github.event.workflow_run.name }} failed!"
+        echo "Event: ${{ github.event.workflow_run.event }}"
+        echo "Conclusion: ${{ github.event.workflow_run.conclusion }}"
+        echo "URL: ${{ github.event.workflow_run.html_url }}"
+        
+        if [ "${{ github.event.workflow_run.conclusion }}" = "failure" ]; then
+          echo "❌ Tests or checks failed. Please review the failed workflow."
+          echo "Common issues to check:"
+          echo "- Database connection issues"
+          echo "- Missing dependencies"
+          echo "- Code syntax errors"
+          echo "- Test failures"
+          echo "- Migration problems"
+        fi
+
+  success-status:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+    
+    steps:
+    - name: Confirm workflow success
+      run: |
+        echo "✅ Workflow ${{ github.event.workflow_run.name }} completed successfully!"
+        echo "Event: ${{ github.event.workflow_run.event }}"
+        echo "Branch: ${{ github.event.workflow_run.head_branch }}"
+        
+        if [ "${{ github.event.workflow_run.event }}" = "pull_request" ]; then
+          echo "🚀 Pull request is ready for review!"
+        elif [ "${{ github.event.workflow_run.event }}" = "push" ] && [ "${{ github.event.workflow_run.head_branch }}" = "main" ]; then
+          echo "🎉 Main branch build successful - ready for deployment!"
+        fi
