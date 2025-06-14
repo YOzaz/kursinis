@@ -1,5 +1,10 @@
 # Propagandos ir dezinformacijos tekstų analizės sistema
 
+[![Tests](https://github.com/YOzaz/kursinis/actions/workflows/pr-tests.yml/badge.svg)](https://github.com/YOzaz/kursinis/actions/workflows/pr-tests.yml)
+[![CI/CD](https://github.com/YOzaz/kursinis/actions/workflows/ci.yml/badge.svg)](https://github.com/YOzaz/kursinis/actions/workflows/ci.yml)
+[![Laravel](https://img.shields.io/badge/Laravel-11.x-red.svg)](https://laravel.com)
+[![PHP](https://img.shields.io/badge/PHP-8.2%7C8.3-blue.svg)](https://php.net)
+
 Sistema, skirta automatiškai atpažinti propagandos technikas ir dezinformacijos naratyvus lietuviškame tekste naudojant dirbtinius intelekto modelius (Claude, Gemini, ChatGPT) ir palyginti juos su ekspertų anotacijomis.
 
 ## 👨‍🎓 Autorystė ir moksliniai pagrindai

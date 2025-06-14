@@ -1,0 +1,203 @@
+name: Pull Request Tests
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: propaganda_testing
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, dom, fileinfo, mysql, gd, zip, bcmath, pdo_mysql
+        coverage: none
+
+    - name: Cache Composer packages
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress --no-suggest
+
+    - name: Copy environment file
+      run: cp .env.example .env
+
+    - name: Generate application key
+      run: php artisan key:generate
+
+    - name: Set testing environment
+      run: |
+        echo "DB_CONNECTION=mysql" >> .env
+        echo "DB_HOST=127.0.0.1" >> .env
+        echo "DB_PORT=3306" >> .env
+        echo "DB_DATABASE=propaganda_testing" >> .env
+        echo "DB_USERNAME=root" >> .env
+        echo "DB_PASSWORD=password" >> .env
+        echo "APP_ENV=testing" >> .env
+        echo "CACHE_DRIVER=array" >> .env
+        echo "QUEUE_CONNECTION=sync" >> .env
+        echo "SESSION_DRIVER=array" >> .env
+
+    - name: Clear config cache
+      run: php artisan config:clear
+
+    - name: Run database migrations
+      run: php artisan migrate --force
+
+    - name: Run PHP syntax check
+      run: find . -name "*.php" -not -path "./vendor/*" -not -path "./storage/*" | xargs -l1 php -l
+
+    - name: Run critical new functionality tests
+      run: |
+        echo "Testing new user management and IAA position accuracy functionality..."
+        php artisan test tests/Unit/Commands/CreateSuperAdminCommandTest.php
+        php artisan test tests/Unit/Services/PositionAccuracyTest.php  
+        php artisan test tests/Unit/Models/UserTest.php
+        php artisan test tests/Feature/UserManagementTest.php
+
+    - name: Test position accuracy functionality
+      run: php artisan test --filter=PositionAccuracyTest
+
+    - name: Test user management functionality
+      run: php artisan test --filter=UserTest
+
+    - name: Test console commands
+      run: |
+        php artisan user:create-superadmin --email=test@example.com --name="Test Admin" --password=testpassword
+        php artisan metrics:recalculate-position-accuracy --force
+
+    - name: Test migration rollback (safety check)
+      run: |
+        php artisan migrate:rollback --step=3
+        php artisan migrate
+
+  validate-pr:
+    name: Validate Pull Request
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Check for merge conflicts
+      run: |
+        git fetch origin main
+        if git merge-tree $(git merge-base HEAD origin/main) HEAD origin/main | grep -q "<<<<<<< "; then
+          echo "❌ Merge conflicts detected. Please resolve conflicts before merging."
+          exit 1
+        else
+          echo "✅ No merge conflicts detected"
+        fi
+
+    - name: Validate commit messages
+      run: |
+        echo "Checking commit messages..."
+        COMMITS=$(git rev-list origin/main..HEAD)
+        
+        for commit in $COMMITS; do
+          MESSAGE=$(git log --format=%s -n 1 $commit)
+          echo "Checking: $MESSAGE"
+          
+          # Check if message starts with conventional commit types
+          if echo "$MESSAGE" | grep -qE "^(feat|fix|docs|style|refactor|test|chore|revert)(\(.+\))?: .+"; then
+            echo "✅ Valid commit message: $MESSAGE"
+          else
+            echo "❌ Commit message doesn't follow conventional format: $MESSAGE"
+            echo "Use: type(scope): description"
+            echo "Types: feat, fix, docs, style, refactor, test, chore, revert"
+            echo "Examples:"
+            echo "  feat: add user authentication"
+            echo "  fix(metrics): correct position accuracy calculation"
+            echo "  docs: update README with new features"
+          fi
+        done
+
+    - name: Check file changes
+      run: |
+        echo "📁 Files changed in this PR:"
+        git diff --name-only origin/main...HEAD
+        
+        echo ""
+        echo "📊 Change statistics:"
+        git diff --stat origin/main...HEAD
+        
+        echo ""
+        echo "🔍 Checking for sensitive files..."
+        SENSITIVE_FILES=$(git diff --name-only origin/main...HEAD | grep -E "\.(env|key|pem|p12|pfx)$" || true)
+        if [ ! -z "$SENSITIVE_FILES" ]; then
+          echo "⚠️ Warning: Potential sensitive files detected:"
+          echo "$SENSITIVE_FILES"
+        else
+          echo "✅ No sensitive files detected"
+        fi
+
+  code-quality:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, dom, fileinfo, mysql
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+
+    - name: Check PHP syntax
+      run: |
+        echo "🔍 Checking PHP syntax..."
+        find . -name "*.php" -not -path "./vendor/*" -not -path "./storage/*" -print0 | xargs -0 -n1 php -l
+        echo "✅ PHP syntax check passed"
+
+    - name: Check for TODO/FIXME comments
+      run: |
+        echo "🔍 Checking for TODO/FIXME comments..."
+        TODO_COUNT=$(find . -name "*.php" -not -path "./vendor/*" -exec grep -l "TODO\|FIXME" {} \; | wc -l)
+        if [ $TODO_COUNT -gt 0 ]; then
+          echo "📝 Found $TODO_COUNT files with TODO/FIXME comments:"
+          find . -name "*.php" -not -path "./vendor/*" -exec grep -Hn "TODO\|FIXME" {} \;
+        else
+          echo "✅ No TODO/FIXME comments found"
+        fi
+
+    - name: Check code complexity
+      run: |
+        echo "🔍 Checking for large files..."
+        LARGE_FILES=$(find . -name "*.php" -not -path "./vendor/*" -size +10k)
+        if [ ! -z "$LARGE_FILES" ]; then
+          echo "📁 Large PHP files (>10KB) - consider refactoring:"
+          echo "$LARGE_FILES" | xargs ls -lh
+        else
+          echo "✅ No unusually large PHP files found"
+        fi
