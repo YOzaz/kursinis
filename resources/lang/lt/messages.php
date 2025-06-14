@@ -86,6 +86,64 @@ return [
     'models_online' => 'modelių prisijungę',
     'last_checked' => 'Paskutinį kartą tikrinta',
     
+    // Dashboard
+    'export_data' => 'Eksportuoti duomenis',
+    'dashboard_statistics' => 'Dashboard statistikos',
+    'json_format' => 'JSON formatas',
+    'csv_format' => 'CSV formatas',
+    'structured_data' => 'Struktūrizuoti duomenys programoms',
+    'excel_spreadsheets' => 'Excel, skaičiuoklės',
+    'export_info' => 'Eksportuojama: globalios statistikos, modelių našumas, propagandos technikos, chronologiniai duomenys',
+    'total_analyses' => 'Viso analizių',
+    'with_texts' => 'Su :count tekstų',
+    'completed_analyses' => 'Užbaigtos analizės',
+    'success_rate' => 'Sėkmės dažnis',
+    'avg_execution_time' => 'Vidutinis vykdymo laikas',
+    'minutes' => 'min',
+    'texts_with_propaganda' => 'Tekstai su propaganda',
+    'detection_rate' => 'Aptikimo dažnis',
+    'avg_f1_score' => 'Vidutinis F1 balas',
+    'propaganda_texts_only' => 'Tik propagandos tekstai',
+    'configured_models' => 'Konfigūruoti modeliai',
+    'claude_gpt_gemini' => 'Claude Opus/Sonnet 4, GPT-4o/4.1, Gemini Pro/Flash',
+    
+    // Model Performance
+    'model_performance' => 'Modelių našumas',
+    'model' => 'Modelis',
+    'analyses_count' => 'Analizių',
+    'success_rate_percent' => 'Sėkmės dažnis',
+    'avg_time' => 'Vid. laikas',
+    'last_used' => 'Paskutinį kartą',
+    'never' => 'Niekada',
+    
+    // Propaganda Techniques
+    'propaganda_techniques' => 'Propagandos technikos',
+    'technique' => 'Technika',
+    'frequency' => 'Dažnumas',
+    'in_texts' => 'tekstuose',
+    
+    // Recent Activity
+    'recent_activity' => 'Paskutinė veikla',
+    'recent_analyses' => 'Paskutinės analizės',
+    'view_all' => 'Žiūrėti visas',
+    'view_details' => 'Žiūrėti detales',
+    'ago' => 'prieš',
+    'just_now' => 'ką tik',
+    
+    // Time periods
+    'seconds' => 'sek.',
+    'minutes_short' => 'min.',
+    'hours' => 'val.',
+    'days' => 'd.',
+    'weeks' => 'sav.',
+    'months' => 'mėn.',
+    'years' => 'm.',
+    
+    // Analysis Types
+    'standard_analysis' => 'Standartinė analizė',
+    'custom_prompt' => 'Custom prompt',
+    'repeated_analysis' => 'Pakartotinė analizė',
+    
     // Language Switcher
     'language' => 'Kalba',
     'switch_to_english' => 'Switch to English',

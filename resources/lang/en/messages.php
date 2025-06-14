@@ -86,6 +86,64 @@ return [
     'models_online' => 'models online',
     'last_checked' => 'Last checked',
     
+    // Dashboard
+    'export_data' => 'Export Data',
+    'dashboard_statistics' => 'Dashboard Statistics',
+    'json_format' => 'JSON Format',
+    'csv_format' => 'CSV Format',
+    'structured_data' => 'Structured data for programs',
+    'excel_spreadsheets' => 'Excel, spreadsheets',
+    'export_info' => 'Exported: global statistics, model performance, propaganda techniques, chronological data',
+    'total_analyses' => 'Total Analyses',
+    'with_texts' => 'With :count texts',
+    'completed_analyses' => 'Completed Analyses',
+    'success_rate' => 'Success Rate',
+    'avg_execution_time' => 'Average Execution Time',
+    'minutes' => 'min',
+    'texts_with_propaganda' => 'Texts with Propaganda',
+    'detection_rate' => 'Detection Rate',
+    'avg_f1_score' => 'Average F1 Score',
+    'propaganda_texts_only' => 'Propaganda texts only',
+    'configured_models' => 'Configured Models',
+    'claude_gpt_gemini' => 'Claude Opus/Sonnet 4, GPT-4o/4.1, Gemini Pro/Flash',
+    
+    // Model Performance
+    'model_performance' => 'Model Performance',
+    'model' => 'Model',
+    'analyses_count' => 'Analyses',
+    'success_rate_percent' => 'Success Rate',
+    'avg_time' => 'Avg. Time',
+    'last_used' => 'Last Used',
+    'never' => 'Never',
+    
+    // Propaganda Techniques
+    'propaganda_techniques' => 'Propaganda Techniques',
+    'technique' => 'Technique',
+    'frequency' => 'Frequency',
+    'in_texts' => 'in texts',
+    
+    // Recent Activity
+    'recent_activity' => 'Recent Activity',
+    'recent_analyses' => 'Recent Analyses',
+    'view_all' => 'View All',
+    'view_details' => 'View Details',
+    'ago' => 'ago',
+    'just_now' => 'just now',
+    
+    // Time periods
+    'seconds' => 'sec.',
+    'minutes_short' => 'min.',
+    'hours' => 'hrs.',
+    'days' => 'd.',
+    'weeks' => 'wks.',
+    'months' => 'mo.',
+    'years' => 'y.',
+    
+    // Analysis Types
+    'standard_analysis' => 'Standard Analysis',
+    'custom_prompt' => 'Custom Prompt',
+    'repeated_analysis' => 'Repeated Analysis',
+    
     // Language Switcher
     'language' => 'Language',
     'switch_to_english' => 'Switch to English',

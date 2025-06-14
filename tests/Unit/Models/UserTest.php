@@ -100,4 +100,67 @@ class UserTest extends TestCase
         $this->assertFalse($user->hasApiKey('anthropic'));
         $this->assertNull($user->getApiKey('anthropic'));
     }
+
+    public function test_user_has_default_language()
+    {
+        $user = User::factory()->create();
+        
+        $this->assertEquals('lt', $user->getLanguage());
+    }
+
+    public function test_user_can_set_language()
+    {
+        $user = User::factory()->create();
+        
+        $user->setLanguage('en');
+        
+        $this->assertEquals('en', $user->language);
+        $this->assertEquals('en', $user->getLanguage());
+        
+        // Check it was saved to database
+        $user->refresh();
+        $this->assertEquals('en', $user->language);
+    }
+
+    public function test_user_language_validation()
+    {
+        $user = User::factory()->create();
+        
+        // Valid language
+        $user->setLanguage('en');
+        $this->assertEquals('en', $user->language);
+        
+        // Invalid language should not change current setting
+        $user->setLanguage('invalid');
+        $this->assertEquals('en', $user->language); // Should remain unchanged
+        
+        // Another valid language
+        $user->setLanguage('lt');
+        $this->assertEquals('lt', $user->language);
+    }
+
+    public function test_user_language_supports_only_lithuanian_and_english()
+    {
+        $user = User::factory()->create();
+        
+        // Test Lithuanian
+        $user->setLanguage('lt');
+        $this->assertEquals('lt', $user->language);
+        
+        // Test English
+        $user->setLanguage('en');
+        $this->assertEquals('en', $user->language);
+        
+        // Test unsupported languages
+        $originalLanguage = $user->language;
+        
+        $user->setLanguage('fr'); // French
+        $this->assertEquals($originalLanguage, $user->language);
+        
+        $user->setLanguage('de'); // German
+        $this->assertEquals($originalLanguage, $user->language);
+        
+        $user->setLanguage(''); // Empty string
+        $this->assertEquals($originalLanguage, $user->language);
+    }
 }

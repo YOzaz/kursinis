@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="lt">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -61,6 +61,33 @@
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .language-switcher {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            margin-left: 15px;
+            padding-left: 15px;
+            border-left: 1px solid #00ff41;
+        }
+        
+        .lang-btn {
+            padding: 5px 10px;
+            background: transparent;
+            border: 1px solid #00ff41;
+            color: #00ff41;
+            text-decoration: none;
+            border-radius: 3px;
+            font-size: 0.8em;
+            transition: all 0.3s ease;
+        }
+        
+        .lang-btn:hover, .lang-btn.active {
+            background: #00ff41;
+            color: #000;
+            text-decoration: none;
         }
         
         .nav-btn {
@@ -515,12 +542,16 @@
                     </a>
                     <a href="{{ route('analyses.index') }}" class="nav-btn" title="Peržiūrėti analizių sąrašą">
                         <span class="nav-icon">📊</span>
-                        <span class="nav-text">ANALIZĖS</span>
+                        <span class="nav-text">{{ __('messages.analyses') }}</span>
                     </a>
                     <a href="{{ route('create') }}" class="nav-btn" title="Sukurti naują analizę">
                         <span class="nav-icon">➕</span>
-                        <span class="nav-text">NAUJA</span>
+                        <span class="nav-text">{{ __('messages.start_analysis') }}</span>
                     </a>
+                    <div class="language-switcher">
+                        <a href="{{ route('language.switch', 'lt') }}" class="lang-btn {{ app()->getLocale() === 'lt' ? 'active' : '' }}">LT</a>
+                        <a href="{{ route('language.switch', 'en') }}" class="lang-btn {{ app()->getLocale() === 'en' ? 'active' : '' }}">EN</a>
+                    </div>
                 </div>
             </div>
         </div>
