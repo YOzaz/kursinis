@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\App;
 
@@ -23,8 +24,14 @@ class LanguageController extends Controller
             $language = 'lt'; // Default to Lithuanian
         }
         
-        // Store in session
-        Session::put('language', $language);
+        // Save to user preference if authenticated
+        if (Auth::check()) {
+            $user = Auth::user();
+            $user->setLanguage($language);
+        } else {
+            // Fallback to session for non-authenticated users
+            Session::put('language', $language);
+        }
         
         // Set for current request
         App::setLocale($language);

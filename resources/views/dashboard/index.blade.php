@@ -1,31 +1,31 @@
 @extends('layout')
 
-@section('title', 'Dashboard - Propagandos analizės sistema')
+@section('title', __('messages.dashboard') . ' - ' . __('messages.title'))
 
 @section('content')
 <div class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="mb-0">
-            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+            <i class="fas fa-tachometer-alt me-2"></i>{{ __('messages.dashboard') }}
         </h1>
         <div class="dropdown">
             <button class="btn btn-outline-primary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fas fa-download me-1"></i>Eksportuoti duomenis
+                <i class="fas fa-download me-1"></i>{{ __('messages.export_data') }}
             </button>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
-                <li><h6 class="dropdown-header">Dashboard statistikos</h6></li>
+                <li><h6 class="dropdown-header">{{ __('messages.dashboard_statistics') }}</h6></li>
                 <li><a class="dropdown-item" href="/api/dashboard/export?format=json" target="_blank">
-                    <i class="fas fa-file-code me-2"></i>JSON formatas
-                    <small class="d-block text-muted">Struktūrizuoti duomenys programoms</small>
+                    <i class="fas fa-file-code me-2"></i>{{ __('messages.json_format') }}
+                    <small class="d-block text-muted">{{ __('messages.structured_data') }}</small>
                 </a></li>
                 <li><a class="dropdown-item" href="/api/dashboard/export?format=csv" target="_blank">
-                    <i class="fas fa-file-csv me-2"></i>CSV formatas
-                    <small class="d-block text-muted">Excel, skaičiuoklės</small>
+                    <i class="fas fa-file-csv me-2"></i>{{ __('messages.csv_format') }}
+                    <small class="d-block text-muted">{{ __('messages.excel_spreadsheets') }}</small>
                 </a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li><span class="dropdown-item-text text-muted small">
                     <i class="fas fa-info-circle me-1"></i>
-                    Eksportuojama: globalios statistikos, modelių našumas, propagandos technikos, chronologiniai duomenys
+                    {{ __('messages.export_info') }}
                 </span></li>
             </ul>
         </div>
@@ -40,8 +40,8 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h2 class="mb-1">{{ $globalStats['total_analyses'] ?? 0 }}</h2>
-                            <p class="mb-0 opacity-75">Viso analizių</p>
-                            <small class="opacity-50">Su {{ $globalStats['total_texts'] ?? 0 }} tekstų</small>
+                            <p class="mb-0 opacity-75">{{ __('messages.total_analyses') }}</p>
+                            <small class="opacity-50">{{ __('messages.with_texts', ['count' => $globalStats['total_texts'] ?? 0]) }}</small>
                         </div>
                         <div class="text-end">
                             <i class="fas fa-chart-line fa-2x opacity-50"></i>
@@ -65,8 +65,8 @@
                                 }
                             @endphp
                             <h2 class="mb-1">{{ number_format($avgF1 * 100, 1) }}%</h2>
-                            <p class="mb-0 opacity-75">Vidutinis F1 balas</p>
-                            <small class="opacity-50">Tik propagandos tekstai</small>
+                            <p class="mb-0 opacity-75">{{ __('messages.avg_f1_score') }}</p>
+                            <small class="opacity-50">{{ __('messages.propaganda_texts_only') }}</small>
                         </div>
                         <div class="text-end">
                             <i class="fas fa-bullseye fa-2x opacity-50"></i>
@@ -82,8 +82,8 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h2 class="mb-1">{{ count(config('llm.models', [])) }}</h2>
-                            <p class="mb-0 opacity-75">Konfigūruoti modeliai</p>
-                            <small class="opacity-50">Claude Opus/Sonnet 4, GPT-4o/4.1, Gemini Pro/Flash</small>
+                            <p class="mb-0 opacity-75">{{ __('messages.configured_models') }}</p>
+                            <small class="opacity-50">{{ __('messages.claude_gpt_gemini') }}</small>
                         </div>
                         <div class="text-end">
                             <i class="fas fa-robot fa-2x opacity-50"></i>

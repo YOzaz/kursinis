@@ -17,6 +17,7 @@ class User extends Authenticatable
         'password',
         'role',
         'is_active',
+        'language',
     ];
 
     protected $hidden = [
@@ -58,5 +59,19 @@ class User extends Authenticatable
     public function hasApiKey(string $provider): bool
     {
         return $this->apiKeys()->where('provider', $provider)->where('is_active', true)->exists();
+    }
+
+    public function getLanguage(): string
+    {
+        return $this->language ?? 'lt';
+    }
+
+    public function setLanguage(string $language): void
+    {
+        $supportedLanguages = ['lt', 'en'];
+        if (in_array($language, $supportedLanguages)) {
+            $this->language = $language;
+            $this->save();
+        }
     }
 }
