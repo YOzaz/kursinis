@@ -505,7 +505,7 @@ class StatisticsService
     /**
      * Get time series data for analyses creation over time.
      */
-    private function getTimeSeriesData(): array
+    protected function getTimeSeriesData(): array
     {
         $timeSeriesData = [];
         

@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\AnalysisJob;
-use App\Services\StatisticsService;
+use App\Services\CachedStatisticsService;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
     public function __construct(
-        private StatisticsService $statisticsService
+        private CachedStatisticsService $statisticsService
     ) {}
 
     public function index(): View

@@ -18,6 +18,7 @@ This is a Laravel-based system for detecting propaganda techniques in Lithuanian
 - **Real-time Monitoring**: Mission Control interface for system status
 - **Export Capabilities**: JSON and CSV export of results
 - **Multi-language Support**: Full Lithuanian and English language support
+- **Optimized Dashboard**: Cached statistics with database query optimization for fast loading
 
 ## Architecture
 
@@ -30,6 +31,7 @@ This is a Laravel-based system for detecting propaganda techniques in Lithuanian
 - **Frontend**: Blade templates with Bootstrap and Chart.js
 - **Internationalization**: Laravel localization with Lithuanian and English support
 - **Testing**: Comprehensive PHPUnit test suite
+- **Performance**: Dashboard caching with automatic invalidation and optimized database indexes
 
 ## Development Commands
 
@@ -65,4 +67,5 @@ This formula provides a more accurate measure of annotation agreement compared t
 - See `docs/` directory for detailed documentation
 - `docs/METRICS-GUIDE.md` - Comprehensive metrics explanation
 - `docs/ARCHITECTURE.md` - System architecture details
+- `docs/DASHBOARD-PERFORMANCE.md` - Dashboard optimization and caching details
 - `README.md` - Setup and installation instructions
